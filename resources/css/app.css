@@ -1,0 +1,8 @@
+@import 'sweetalert2/dist/sweetalert2.min.css';
+@import 'flatpickr/dist/flatpickr.min.css';
+@import 'filepond/dist/filepond.min.css';
+@import 'photoswipe/dist/photoswipe.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

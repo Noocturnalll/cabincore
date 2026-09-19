@@ -76,19 +76,39 @@ class GoogleSheetsSyncService
 
     protected function processRow($row, $headerMap, $tabName, $spreadsheetId)
     {
-        // Helper to find column index safely
-        $getIndex = function($possibleNames) use ($headerMap) {
+        // Helper to find column index safely, with fallback to hardcoded column index based on tab
+        $getIndex = function($possibleNames, $fallbackIndex) use ($headerMap) {
             foreach ($possibleNames as $name) {
                 if (isset($headerMap[$name])) return $headerMap[$name];
             }
-            return -1;
+            return $fallbackIndex;
         };
 
-        $catIdx  = $getIndex(['CATEGORY', 'TRADE', 'DIVISI']);
-        $ataIdx  = $getIndex(['ATA', 'ATA CHAPTER', 'CHAPTER']);
-        $descIdx = $getIndex(['DESCRIPTION', 'WO DESCRIPTION', 'TASK CARD DESCRIPTION', 'DESC']);
-        $taskIdx = $getIndex(['TASK ID', 'WO NUMBER', 'NO WO', 'WO']);
-        $acIdx   = $getIndex(['AC REG', 'A/C REG', 'AIRCRAFT', 'REG', 'AIRCRAFT REGISTRATION']);
+        // Fallback indexes based on DjaSheetImport mappings
+        $catFallback = -1; $ataFallback = -1; $descFallback = -1; $taskFallback = -1; $acFallback = -1;
+        
+        if ($tabName === 'DJA') {
+            $catFallback = 4;
+            $descFallback = 5;
+            $taskFallback = 3;
+            $acFallback = 2;
+        } elseif ($tabName === 'DJA DMI') {
+            $catFallback = 5;
+            $descFallback = 2;
+            $taskFallback = 4;
+            $acFallback = 1;
+        } elseif (in_array($tabName, ['DJA NSRD', 'DJA NSRDI'])) {
+            $catFallback = 5;
+            $descFallback = 4;
+            $taskFallback = 3;
+            $acFallback = 2;
+        }
+
+        $catIdx  = $getIndex(['CATEGORY', 'TRADE', 'DIVISI'], $catFallback);
+        $ataIdx  = $getIndex(['ATA', 'ATA CHAPTER', 'CHAPTER'], $ataFallback);
+        $descIdx = $getIndex(['DESCRIPTION', 'WO DESCRIPTION', 'TASK CARD DESCRIPTION', 'DESC'], $descFallback);
+        $taskIdx = $getIndex(['TASK ID', 'WO NUMBER', 'NO WO', 'WO'], $taskFallback);
+        $acIdx   = $getIndex(['AC REG', 'A/C REG', 'AIRCRAFT', 'REG', 'AIRCRAFT REGISTRATION'], $acFallback);
 
         $category    = $catIdx >= 0 && isset($row[$catIdx]) ? trim($row[$catIdx]) : '';
         $ata         = $ataIdx >= 0 && isset($row[$ataIdx]) ? trim($row[$ataIdx]) : '';

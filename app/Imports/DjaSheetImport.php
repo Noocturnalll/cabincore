@@ -67,7 +67,7 @@ class DjaSheetImport implements ToModel
 
         if ($this->tabName === 'DJA') {
             $jobType = 'R01/WO';
-            $djaDate = $parseDate($row[0] ?? null) ?? $activeDate;
+            $djaDate = $parseDate($row[20] ?? null) ?? $activeDate;
             $acReg = $truncate($row[2] ?? '');
             $taskId = $truncate($row[3] ?? '');
             $description = (string)($row[5] ?? '');
@@ -93,7 +93,7 @@ class DjaSheetImport implements ToModel
             ];
         } elseif ($this->tabName === 'DJA DMI') {
             $jobType = 'DMI';
-            $djaDate = $parseDate($row[0] ?? null) ?? $activeDate;
+            $djaDate = $parseDate($row[20] ?? null) ?? $activeDate;
             $acReg = $truncate($row[1] ?? '');
             $description = (string)($row[2] ?? '');
             $taskId = $truncate($row[4] ?? '');
@@ -113,7 +113,7 @@ class DjaSheetImport implements ToModel
             ];
         } elseif (in_array($this->tabName, ['DJA NSRD', 'DJA NSRDI'])) {
             $jobType = 'AOC/NSRDI';
-            $djaDate = $parseDate($row[0] ?? null) ?? $activeDate;
+            $djaDate = $parseDate($row[20] ?? null) ?? $activeDate;
             $acReg = $truncate($row[2] ?? '');
             $taskId = $truncate($row[3] ?? '');
             $description = (string)($row[4] ?? '');

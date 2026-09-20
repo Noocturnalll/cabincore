@@ -115,7 +115,24 @@ class GoogleSheetsSyncService
         $description = $descIdx >= 0 && isset($row[$descIdx]) ? trim($row[$descIdx]) : '';
         $taskId      = $taskIdx >= 0 && isset($row[$taskIdx]) ? trim($row[$taskIdx]) : '';
         $acReg       = $acIdx >= 0 && isset($row[$acIdx]) ? trim($row[$acIdx]) : '';
-        $date        = Carbon::today()->toDateString(); 
+        
+        $parseDate = function($val) {
+            if (empty($val)) return null;
+            if (is_numeric($val)) {
+                return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($val))->format('Y-m-d');
+            }
+            try {
+                return \Carbon\Carbon::parse($val)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
+
+        $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
+        
+        $dateIdx = 20; // Kolom ke-21 / Refresh Date
+        $dateStr = isset($row[$dateIdx]) ? trim($row[$dateIdx]) : null;
+        $date = $parseDate($dateStr) ?? $activeDate;
 
         $shouldSync = false;
 

@@ -3,13 +3,13 @@
 namespace App\Imports;
 
 use App\Models\CmlLog;
+use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
-use App\Models\DmiLog;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class DailyReportImport implements ToCollection, WithHeadingRow
 {
@@ -22,13 +22,13 @@ class DailyReportImport implements ToCollection, WithHeadingRow
             }
 
             $docType = strtoupper(trim($row['doc_type'] ?? ''));
-            
+
             // Format dates if necessary, though if date is just string we can store as string,
             // assuming date column is string or date.
             $date = null;
             if (isset($row['date'])) {
                 try {
-                    $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date'])->format('Y-m-d');
+                    $date = Date::excelToDateTimeObject($row['date'])->format('Y-m-d');
                 } catch (\Exception $e) {
                     $date = $row['date']; // fallback if it's already a formatted string
                 }
@@ -49,13 +49,15 @@ class DailyReportImport implements ToCollection, WithHeadingRow
                 ]);
             } elseif ($docType === 'NSRDI') {
                 $noDoc = $row['no_doc'] ?? null;
-                if (!$noDoc) continue;
+                if (! $noDoc) {
+                    continue;
+                }
 
                 $existing = NsrdiLog::whereNotNull('dja_id')->where('nsrdi_number', $noDoc)->first();
                 if ($existing) {
                     $existing->update([
                         'status' => 'Closed',
-                        'description' => $row['action_taken_reason'] ?? $existing->description
+                        'description' => $row['action_taken_reason'] ?? $existing->description,
                     ]);
                 } else {
                     NsrdiLog::create([
@@ -65,18 +67,20 @@ class DailyReportImport implements ToCollection, WithHeadingRow
                         'act_station' => $row['sta'] ?? null,
                         'description' => $row['action_taken_reason'] ?? null,
                         'status' => 'Closed',
-                        'report_date' => $date
+                        'report_date' => $date,
                     ]);
                 }
             } elseif ($docType === 'WO') {
                 $noDoc = $row['no_doc'] ?? null;
-                if (!$noDoc) continue;
+                if (! $noDoc) {
+                    continue;
+                }
 
                 $existing = WoLog::whereNotNull('dja_id')->where('wo_number', $noDoc)->first();
                 if ($existing) {
                     $existing->update([
                         'status' => 'Closed',
-                        'description' => $row['action_taken_reason'] ?? $existing->description
+                        'description' => $row['action_taken_reason'] ?? $existing->description,
                     ]);
                 } else {
                     WoLog::create([
@@ -92,13 +96,15 @@ class DailyReportImport implements ToCollection, WithHeadingRow
                 }
             } elseif ($docType === 'DMI') {
                 $noDoc = $row['no_doc'] ?? null;
-                if (!$noDoc) continue;
+                if (! $noDoc) {
+                    continue;
+                }
 
                 $existing = DmiLog::whereNotNull('dja_id')->where('dmi_number', $noDoc)->first();
                 if ($existing) {
                     $existing->update([
                         'status' => 'Closed',
-                        'description' => $row['action_taken_reason'] ?? $existing->description
+                        'description' => $row['action_taken_reason'] ?? $existing->description,
                     ]);
                 } else {
                     DmiLog::create([

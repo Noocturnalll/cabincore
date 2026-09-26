@@ -19,14 +19,14 @@ class EvidenceController extends Controller
 
         return response()->json([
             'message' => 'File uploaded successfully',
-            'path' => $path
+            'path' => $path,
         ], 200);
     }
 
     public function getUrl(Request $request)
     {
         $request->validate([
-            'path' => 'required|string'
+            'path' => 'required|string',
         ]);
 
         $url = Storage::disk('s3')->temporaryUrl(
@@ -35,7 +35,7 @@ class EvidenceController extends Controller
         );
 
         return response()->json([
-            'url' => $url
+            'url' => $url,
         ]);
     }
 }

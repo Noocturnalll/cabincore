@@ -2,30 +2,39 @@
 
 namespace App\Livewire\Modules\DmiLog;
 
-use App\Models\DmiLog;
-use Livewire\Component;
-
-use Livewire\WithPagination;
-use Livewire\WithFileUploads;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DmiExport;
 use App\Imports\DmiImport;
+use App\Models\DailyJobAssignment;
+use App\Models\DmiLog;
+use App\Notifications\SystemNotification;
+use App\Services\GoogleSheetsSyncService;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public $activeTab = 'planned';
 
     public $isModalOpen = false;
+
     public $isImportModalOpen = false;
+
     public $file;
+
     public $selectedLogId = null;
-    
+
     public $status = 'Open';
+
     public $hold_reason_category = '';
+
     public $hold_remarks = '';
 
     public $search = '';
+
     public $dateFilter = '';
 
     public function importDmi()
@@ -38,9 +47,11 @@ class Index extends Component
             Excel::import(new DmiImport, $this->file);
             $this->isImportModalOpen = false;
             $this->file = null;
-            session()->flash('success', 'Data DMI berhasil diimport.');
+            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data DMI berhasil diimport.']);
+            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data DMI berhasil diimport.']));
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan saat mengimport data: ' . $e->getMessage());
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]);
+            auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]));
         }
     }
 
@@ -61,7 +72,7 @@ class Index extends Component
         }
     }
 
-    public function updateStatus(\App\Services\GoogleSheetsSyncService $syncService)
+    public function updateStatus(GoogleSheetsSyncService $syncService)
     {
         $this->validate([
             'status' => 'required|in:Open,Closed',
@@ -76,22 +87,32 @@ class Index extends Component
             $log->save();
 
             if ($log->dja_id) {
-                $dja = \App\Models\DailyJobAssignment::find($log->dja_id);
+                $dja = DailyJobAssignment::find($log->dja_id);
                 if ($dja && $dja->source_spreadsheet_id) {
-                    $syncService->pushSync($dja->source_spreadsheet_id, 'DJA DMI', 'K2', $this->status, $this->hold_remarks);
+                    $syncService->pushSync($dja->source_spreadsheet_id, 'DJA DMI', $dja->task_id, $this->status, $this->hold_remarks);
                 }
             }
         }
 
         $this->isModalOpen = false;
-        session()->flash('success', 'Status updated successfully.');
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Status updated successfully.']);
+        auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Status updated successfully.']));
+    }
+
+    public function exportExcel()
+    {
+        $search = property_exists($this, 'search') ? $this->search : '';
+        $dateFilter = property_exists($this, 'dateFilter') ? $this->dateFilter : '';
+        $activeTab = property_exists($this, 'activeTab') ? $this->activeTab : '';
+
+        return Excel::download(new DmiExport($search, $dateFilter, $activeTab), 'DmiExport-'.date('Y-m-d').'.xlsx');
     }
 
     public function render()
     {
         $query = DmiLog::query();
         $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
-        
+
         $query->where(function ($q) use ($activeDate) {
             $q->whereHas('dailyJobAssignment', function ($q2) use ($activeDate) {
                 $q2->whereDate('date', $activeDate);
@@ -102,17 +123,23 @@ class Index extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('aircraft_registration', 'like', '%' . $this->search . '%')
-                  ->orWhere('status', 'like', '%' . $this->search . '%')
-                  ->orWhere('dmi_number', 'like', '%' . $this->search . '%')
-                  ->orWhere('hold_reason_category', 'like', '%' . $this->search . '%');
+                $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
+                    ->orWhere('status', 'like', '%'.$this->search.'%')
+                    ->orWhere('dmi_number', 'like', '%'.$this->search.'%')
+                    ->orWhere('hold_reason_category', 'like', '%'.$this->search.'%')
+                    ->orWhere('plan_station', 'like', '%'.$this->search.'%')
+                    ->orWhere('act_station', 'like', '%'.$this->search.'%')
+                    ->orWhere('dmi_category', 'like', '%'.$this->search.'%')
+                    ->orWhere('category', 'like', '%'.$this->search.'%')
+                    ->orWhere('description', 'like', '%'.$this->search.'%')
+                    ->orWhere('pn_required', 'like', '%'.$this->search.'%');
             });
         }
-        
+
         if ($this->dateFilter) {
             $query->whereDate('date', $this->dateFilter);
         }
-        
+
         $query->orderBy('date', 'asc');
 
         if ($this->activeTab === 'planned') {
@@ -122,7 +149,7 @@ class Index extends Component
         }
 
         return view('livewire.modules.dmi-log.index', [
-            'logs' => $query->get(),
+            'logs' => $query->with('dailyJobAssignment')->get(),
         ])->layout('components.layouts.app', ['title' => 'DMI Logs']);
     }
 }

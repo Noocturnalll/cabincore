@@ -35,11 +35,11 @@ return new class extends Migration
     {
         Schema::table('wo_logs', function (Blueprint $table) {
             $table->renameColumn('act_station', 'station');
-            
+
             $table->dropColumn([
                 'date', 'work_group', 'wo_number', 'wo_category',
                 'pn_picklist', 'man_hour', 'operator', 'type',
-                'plan_station', 'remarks_ppc_to_lm', 'reason_open', 'code_open'
+                'plan_station', 'remarks_ppc_to_lm', 'reason_open', 'code_open',
             ]);
 
             $table->enum('hold_reason_category', ['Awaiting Sparepart', 'Aircraft Re-routed', 'Awaiting Ground Time', 'Manpower Shortage'])->nullable();

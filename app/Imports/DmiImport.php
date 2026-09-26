@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class DmiImport implements ToModel, WithHeadingRow
 {
-    public function model(array $row): \Illuminate\Database\Eloquent\Model|array|null
+    public function model(array $row): Model|array|null
     {
         return new DmiLog([
             'aircraft_registration' => $row['aircraft_registration'] ?? $row['ac_reg'] ?? null,

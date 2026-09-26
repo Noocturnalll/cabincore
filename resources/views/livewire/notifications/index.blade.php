@@ -13,7 +13,12 @@
                 </div>
             </div>
             
-            <button class="cbm-btn-outline">Tandai Semua Dibaca</button>
+            <button wire:click="markAllAsRead" class="cbm-btn-outline" style="display: flex; align-items: center; gap: 0.5rem;" wire:loading.attr="disabled">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.125rem; height: 1.125rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                Tandai Semua Dibaca
+            </button>
         </div>
     </div>
 
@@ -98,26 +103,26 @@
 
     <div class="notif-list">
         @forelse($notifications as $notif)
-        <div class="notif-card {{ !$notif['is_read'] ? 'unread' : '' }}">
-            <div class="notif-icon icon-{{ $notif['type'] }}">
-                @if($notif['type'] === 'success')
+        <div class="notif-card {{ !$notif->read_at ? 'unread' : '' }}" @if(!$notif->read_at) wire:click="markAsRead('{{ $notif->id }}')" style="cursor: pointer;" title="Tandai dibaca" @endif>
+            <div class="notif-icon icon-{{ $notif->data['type'] ?? 'info' }}">
+                @if(($notif->data['type'] ?? 'info') === 'success')
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                @elseif($notif['type'] === 'warning')
+                @elseif(($notif->data['type'] ?? 'info') === 'warning')
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                @elseif($notif['type'] === 'error')
+                @elseif(($notif->data['type'] ?? 'info') === 'error')
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 @else
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
                 @endif
             </div>
             <div class="notif-content">
-                <div class="notif-title">{{ $notif['title'] }}</div>
-                <div class="notif-message">{{ $notif['message'] }}</div>
-                <div class="notif-time">{{ $notif['time'] }}</div>
+                <div class="notif-title">{{ $notif->data['title'] ?? 'Notifikasi' }}</div>
+                <div class="notif-message">{{ $notif->data['message'] ?? 'Tidak ada pesan.' }}</div>
+                <div class="notif-time">{{ $notif->created_at->diffForHumans() }}</div>
             </div>
             
-            @if(!$notif['is_read'])
-            <div style="position: absolute; right: 1.5rem; top: 1.5rem; width: 0.5rem; height: 0.5rem; background: var(--cbm-blue); border-radius: 50%;"></div>
+            @if(!$notif->read_at)
+            <div style="position: absolute; right: 1.5rem; top: 1.5rem; width: 0.5rem; height: 0.5rem; background: var(--cbm-blue); border-radius: 50%; box-shadow: 0 0 8px rgba(59,130,246,0.5);"></div>
             @endif
         </div>
         @empty
@@ -130,4 +135,10 @@
         </div>
         @endforelse
     </div>
+
+    @if($notifications->hasPages())
+    <div style="margin-top: 2rem;">
+        {{ $notifications->links() }}
+    </div>
+    @endif
 </div>

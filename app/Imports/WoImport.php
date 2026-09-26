@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class WoImport implements ToModel, WithHeadingRow
 {
-    public function model(array $row): \Illuminate\Database\Eloquent\Model|array|null
+    public function model(array $row): Model|array|null
     {
         return new WoLog([
             'aircraft_registration' => $row['aircraft_registration'] ?? $row['ac_reg'] ?? null,

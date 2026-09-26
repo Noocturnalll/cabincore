@@ -47,61 +47,170 @@
     }
     .cbm-file-input::file-selector-button:hover { background: var(--cbm-nav-hover); }
 
+    /* Tables */
+    .cbm-table-wrapper {
+        overflow-x: auto;
+        border-radius: 0.75rem;
+        border: 1px solid var(--cbm-card-border);
+        margin: 1rem;
+        background: var(--cbm-sidebar-bg);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .cbm-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+    .cbm-table thead tr {
+        background: var(--cbm-nav-hover);
+        border-bottom: 2px solid var(--cbm-card-border);
+    }
+    .cbm-table th {
+        padding: 1rem 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--cbm-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+    }
+    .cbm-table tbody tr {
+        border-bottom: 1px solid var(--cbm-card-border);
+        transition: background 0.2s, transform 0.2s;
+    }
+    .cbm-table tbody tr:hover {
+        background: var(--cbm-nav-hover);
+    }
+    .cbm-table td {
+        padding: 1rem 1.5rem;
+        color: var(--cbm-text-sub);
+        vertical-align: middle;
+    }
+    .cbm-table td.fw-bold {
+        color: var(--cbm-text);
+        font-weight: 600;
+    }
+    .cbm-empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .cbm-empty-state svg {
+        width: 3rem;
+        height: 3rem;
+        color: var(--cbm-text-muted);
+        opacity: 0.5;
+    }
+    .cbm-empty-state h4 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--cbm-text);
+        margin: 0;
+    }
+    .cbm-empty-state p {
+        font-size: 0.875rem;
+        color: var(--cbm-text-sub);
+        margin: 0;
+    }
+
     /* ═══════════════════════════════════════════════════
        CSS VARIABLES — Dark (default) & Light
     ═══════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════
+       DARK MODE (default) — Rich dark navy, clear contrast
+    ═══════════════════════════════════════════════════ */
     :root {
-        --cbm-bg:            #0a0e1a;
-        --cbm-sidebar-bg:    #0d1117;
+        /* Backgrounds — layered so content always pops */
+        --cbm-bg:            #0f1623;   /* page background — deep navy */
+        --cbm-sidebar-bg:    #141b2d;   /* sidebar — slightly lighter than page bg */
         --cbm-sidebar-w:     260px;
-        --cbm-topbar-bg:     rgba(13,17,23,.90);
-        --cbm-card-bg:       rgba(255,255,255,.045);
-        --cbm-card-border:   rgba(255,255,255,.08);
-        --cbm-card-shadow:   0 4px 24px rgba(0,0,0,.30);
-        --cbm-text:          #f1f5f9;
-        --cbm-text-muted:    rgba(255,255,255,.50);
-        --cbm-text-sub:      rgba(255,255,255,.28);
-        --cbm-divider:       rgba(255,255,255,.07);
-        --cbm-nav-hover:     rgba(255,255,255,.06);
-        --cbm-nav-active:    rgba(59,130,246,.18);
-        --cbm-nav-active-t:  #60a5fa;
-        --cbm-input-bg:      rgba(255,255,255,.06);
-        --cbm-input-border:  rgba(255,255,255,.10);
-        --cbm-overlay-bg:    rgba(0,0,0,.55);
-        --cbm-blue:          #3b82f6;
-        --cbm-blue-glow:     rgba(59,130,246,.28);
-        --cbm-indigo:        #6366f1;
+        --cbm-topbar-bg:     rgba(20,27,45,.95); /* topbar — near-solid for clarity */
+        --cbm-card-bg:       #1a2238;   /* cards — clearly distinct from page bg */
+        --cbm-card-border:   rgba(99,130,180,.18);
+        --cbm-border:        rgba(148,163,200,.15);
+        --cbm-card-shadow:   0 4px 24px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+
+        /* Text — strong hierarchy, nothing too faded */
+        --cbm-text:          #e8edf5;   /* primary — off-white, easier on eyes than pure white */
+        --cbm-text-muted:    #8899b4;   /* secondary — readable mid-grey blue */
+        --cbm-text-sub:      #5c6e88;   /* tertiary — still readable, not invisible */
+
+        /* Dividers / Hover */
+        --cbm-divider:       rgba(99,130,180,.14);
+        --cbm-nav-hover:     rgba(99,130,246,.10);
+        --cbm-nav-active:    rgba(59,130,246,.22);
+        --cbm-nav-active-t:  #7ab3ff;
+
+        /* Inputs */
+        --cbm-input-bg:      #1e2a40;   /* clearly distinct from card-bg */
+        --cbm-input-border:  rgba(99,130,180,.25);
+
+        /* Overlays */
+        --cbm-overlay-bg:    rgba(4,8,20,.70);
+
+        /* Accent colors — slightly desaturated for dark mode eye comfort */
+        --cbm-blue:          #4d9fff;
+        --cbm-blue-glow:     rgba(77,159,255,.30);
+        --cbm-indigo:        #818cf8;
         --cbm-green:         #4ade80;
         --cbm-red:           #f87171;
         --cbm-yellow:        #fbbf24;
-        --cbm-purple:        #a78bfa;
+        --cbm-purple:        #c084fc;
         --cbm-cyan:          #38bdf8;
+
+        /* Stat gradients */
         --cbm-stat-1:        linear-gradient(135deg,#3b82f6,#6366f1);
         --cbm-stat-2:        linear-gradient(135deg,#10b981,#059669);
         --cbm-stat-3:        linear-gradient(135deg,#f59e0b,#d97706);
         --cbm-stat-4:        linear-gradient(135deg,#8b5cf6,#7c3aed);
+
         --cbm-transition:    background .3s ease, color .3s ease, border-color .3s ease, box-shadow .3s ease;
     }
 
+    /* ═══════════════════════════════════════════════════
+       LIGHT MODE — Warm neutral-white, clear contrast
+    ═══════════════════════════════════════════════════ */
     .cbm-light {
-        --cbm-bg:            #eef2ff;
-        --cbm-sidebar-bg:    #ffffff;
-        --cbm-topbar-bg:     rgba(255,255,255,.92);
-        --cbm-card-bg:       rgba(255,255,255,.90);
-        --cbm-card-border:   rgba(148,163,184,.20);
-        --cbm-card-shadow:   0 4px 20px rgba(37,99,235,.08), 0 1px 4px rgba(0,0,0,.06);
-        --cbm-text:          #0f172a;
-        --cbm-text-muted:    #64748b;
-        --cbm-text-sub:      #94a3b8;
-        --cbm-divider:       rgba(148,163,184,.15);
-        --cbm-nav-hover:     rgba(99,102,241,.07);
-        --cbm-nav-active:    rgba(59,130,246,.12);
-        --cbm-nav-active-t:  #2563eb;
-        --cbm-input-bg:      #f1f5f9;
-        --cbm-input-border:  #e2e8f0;
-        --cbm-overlay-bg:    rgba(15,23,42,.45);
-        --cbm-blue:          #2563eb;
-        --cbm-blue-glow:     rgba(37,99,235,.15);
+        /* Backgrounds — strong layering so cards always visible */
+        --cbm-bg:            #f0f4f8;   /* page background — warm light grey (not harsh white) */
+        --cbm-sidebar-bg:    #ffffff;   /* sidebar — pure white, very distinct from page bg */
+        --cbm-topbar-bg:     rgba(255,255,255,.97);
+        --cbm-card-bg:       #ffffff;   /* cards — pure white, pops from f0f4f8 bg */
+        --cbm-card-border:   rgba(100,116,139,.18);
+        --cbm-border:        #cbd5e1;   /* clear visible borders */
+        --cbm-card-shadow:   0 2px 12px rgba(30,58,138,.08), 0 1px 3px rgba(0,0,0,.06);
+
+        /* Text — strong, no ambiguity */
+        --cbm-text:          #1e293b;   /* primary — very dark blue-grey, not pure black */
+        --cbm-text-muted:    #475569;   /* secondary — readable, clear */
+        --cbm-text-sub:      #64748b;   /* tertiary — still readable, not too light */
+
+        /* Dividers / Hover */
+        --cbm-divider:       #e2e8f0;   /* visible but subtle */
+        --cbm-nav-hover:     rgba(59,130,246,.08);
+        --cbm-nav-active:    rgba(37,99,235,.12);
+        --cbm-nav-active-t:  #1d4ed8;   /* deep blue for active items */
+
+        /* Inputs — slightly off-white to contrast with card */
+        --cbm-input-bg:      #f8fafc;
+        --cbm-input-border:  #cbd5e1;
+
+        /* Overlays */
+        --cbm-overlay-bg:    rgba(15,23,42,.50);
+
+        /* Accent colors — richer/deeper for light mode contrast */
+        --cbm-blue:          #1d4ed8;
+        --cbm-blue-glow:     rgba(29,78,216,.15);
+        --cbm-indigo:        #4338ca;
+        --cbm-green:         #16a34a;
+        --cbm-red:           #dc2626;
+        --cbm-yellow:        #d97706;
+        --cbm-purple:        #7c3aed;
+        --cbm-cyan:          #0891b2;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -452,14 +561,14 @@
         position: absolute;
         top: calc(100% + 0.5rem);
         right: 0;
-        background: var(--cbm-card-bg);
+        background: var(--cbm-sidebar-bg); /* Use solid background */
         border: 1px solid var(--cbm-card-border);
         box-shadow: var(--cbm-card-shadow);
         border-radius: 1rem;
         min-width: 14rem;
         padding: 0.5rem;
         z-index: 9999;
-        backdrop-filter: blur(12px);
+        /* backdrop-filter: blur(12px); not needed with solid bg */
     }
     .cbm-dropdown-item {
         display: flex;
@@ -587,14 +696,19 @@
         -webkit-backdrop-filter: blur(16px);
         transition: box-shadow .25s ease;
     }
-    .mod-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.35); }
-    .cbm-light .mod-card:hover { box-shadow: 0 8px 28px rgba(37,99,235,.12); }
+    .mod-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.3); }
+    .cbm-light .mod-card:hover { box-shadow: 0 6px 24px rgba(30,58,138,.14); }
 
     /* Colored top-border accent per module */
-    .mod-card-accent-blue   { border-top: 2px solid rgba(59,130,246,.6); }
-    .mod-card-accent-green  { border-top: 2px solid rgba(52,211,153,.6); }
-    .mod-card-accent-orange { border-top: 2px solid rgba(251,146,60,.6); }
-    .mod-card-accent-purple { border-top: 2px solid rgba(167,139,250,.6); }
+    .mod-card-accent-blue   { border-top: 2px solid rgba(59,130,246,.7); }
+    .mod-card-accent-green  { border-top: 2px solid rgba(52,211,153,.7); }
+    .mod-card-accent-orange { border-top: 2px solid rgba(251,146,60,.7); }
+    .mod-card-accent-purple { border-top: 2px solid rgba(167,139,250,.7); }
+    /* Light mode — more solid accent borders */
+    .cbm-light .mod-card-accent-blue   { border-top-color: #2563eb; }
+    .cbm-light .mod-card-accent-green  { border-top-color: #16a34a; }
+    .cbm-light .mod-card-accent-orange { border-top-color: #d97706; }
+    .cbm-light .mod-card-accent-purple { border-top-color: #7c3aed; }
 
     /* ── Toolbar ── */
     .mod-toolbar {
@@ -628,12 +742,14 @@
     /* ── Table ── */
     .mod-table-wrap { overflow-x: auto; }
     .mod-table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: .8125rem; }
-    .mod-table thead tr { background: var(--cbm-nav-hover); border-bottom: 1px solid var(--cbm-divider); }
+    .mod-table thead tr { background: var(--cbm-nav-hover); border-bottom: 2px solid var(--cbm-divider); }
     .mod-table thead th {
         padding: .75rem .875rem; font-size: .65rem; font-weight: 800;
-        text-transform: uppercase; letter-spacing: .08em; color: var(--cbm-text-sub);
+        text-transform: uppercase; letter-spacing: .08em; color: var(--cbm-text-muted);
         text-align: left; white-space: nowrap;
     }
+    .cbm-light .mod-table thead tr { background: #f1f5f9; border-bottom-color: #cbd5e1; }
+    .cbm-light .mod-table thead th { color: #374151; }
     .mod-table tbody tr { border-bottom: 1px solid var(--cbm-divider); transition: background .15s ease; }
     .mod-table tbody tr:last-child { border-bottom: none; }
     .mod-table tbody tr:hover { background: var(--cbm-nav-hover); }
@@ -644,17 +760,29 @@
 
     /* ── Badges ── */
     @keyframes cbm-pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+
+    /* Dark mode badges (default) */
     .mod-badge-closed {
         display: inline-flex; align-items: center; gap: .3rem;
-        background: rgba(52,211,153,.12); color: #34d399;
+        background: rgba(74,222,128,.12); color: #4ade80;
         padding: .25rem .7rem; border-radius: 999px; font-size: .7rem; font-weight: 800;
-        white-space: nowrap; border: 1px solid rgba(52,211,153,.25);
+        white-space: nowrap; border: 1px solid rgba(74,222,128,.25);
     }
     .mod-badge-open {
         display: inline-flex; align-items: center; gap: .3rem;
         background: rgba(248,113,113,.12); color: #f87171;
         padding: .25rem .7rem; border-radius: 999px; font-size: .7rem; font-weight: 800;
         white-space: nowrap; border: 1px solid rgba(248,113,113,.25);
+    }
+
+    /* Light mode badges — richer, more saturated colors */
+    .cbm-light .mod-badge-closed {
+        background: rgba(22,163,74,.10); color: #15803d;
+        border-color: rgba(22,163,74,.30);
+    }
+    .cbm-light .mod-badge-open {
+        background: rgba(220,38,38,.08); color: #b91c1c;
+        border-color: rgba(220,38,38,.25);
     }
     .mod-badge-dot {
         width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
@@ -854,8 +982,12 @@
     /* ═══════════════════════════════════════════════════
        STATUS SELECT — colour-coded
     ═══════════════════════════════════════════════════ */
+    /* Dark mode (default) */
     .cbm-status-open  { border-color: rgba(248,113,113,.5) !important; background: rgba(248,113,113,.06) !important; color: #f87171 !important; }
     .cbm-status-closed{ border-color: rgba(74,222,128,.5)  !important; background: rgba(74,222,128,.06)  !important; color: #4ade80 !important; }
+    /* Light mode */
+    .cbm-light .cbm-status-open  { border-color: rgba(220,38,38,.4) !important; background: rgba(220,38,38,.05) !important; color: #b91c1c !important; }
+    .cbm-light .cbm-status-closed{ border-color: rgba(22,163,74,.4) !important; background: rgba(22,163,74,.05) !important; color: #15803d !important; }
 
     /* ═══════════════════════════════════════════════════
        UPLOAD ZONE
@@ -918,8 +1050,12 @@
         line-height: 1.4;
     }
     .cbm-flash svg { width: 1rem; height: 1rem; flex-shrink: 0; margin-top: .05rem; }
+    /* Dark mode flash */
     .cbm-flash-success { background: rgba(74,222,128,.1); color: #4ade80; border: 1px solid rgba(74,222,128,.25); }
     .cbm-flash-error   { background: rgba(248,113,113,.1); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
+    /* Light mode flash */
+    .cbm-light .cbm-flash-success { background: rgba(22,163,74,.08); color: #15803d; border-color: rgba(22,163,74,.3); }
+    .cbm-light .cbm-flash-error   { background: rgba(220,38,38,.07); color: #b91c1c; border-color: rgba(220,38,38,.2); }
 
     /* ═══════════════════════════════════════════════════
        LOADING SPINNER

@@ -8,7 +8,7 @@
             </div>
             <div>
                 <h1 class="cbm-greeting" style="font-size: 1.5rem;">Verification Queue</h1>
-                <p class="cbm-greeting-sub">Antrean verifikasi data dari stasiun lapangan</p>
+                <p class="cbm-greeting-sub">Antrean verifikasi data dari station lapangan</p>
             </div>
         </div>
     </div>

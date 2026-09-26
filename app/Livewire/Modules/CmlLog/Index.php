@@ -2,21 +2,27 @@
 
 namespace App\Livewire\Modules\CmlLog;
 
+use App\Exports\CmlExport;
+use App\Imports\CmlImport;
+use App\Livewire\Traits\WithAdvancedFilter;
 use App\Models\CmlLog;
+use App\Notifications\SystemNotification;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\CmlImport;
 
 class Index extends Component
 {
-    use WithFileUploads;
+    use WithAdvancedFilter, WithFileUploads;
 
     public $file;
+
     public $isImportModalOpen = false;
-    
-    public $search = '';
-    public $dateFilter = '';
+
+    public function mount()
+    {
+        $this->mountWithAdvancedFilter();
+    }
 
     public function importCml()
     {
@@ -28,42 +34,32 @@ class Index extends Component
             Excel::import(new CmlImport, $this->file);
             $this->isImportModalOpen = false;
             $this->file = null;
-            session()->flash('message', 'Data CML berhasil diimport.');
+            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data CML berhasil diimport.']);
+            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data CML berhasil diimport.']));
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan saat mengimport data: ' . $e->getMessage());
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]);
+            auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]));
         }
+    }
+
+    public function exportExcel()
+    {
+        $search = property_exists($this, 'search') ? $this->search : '';
+        $dateFilter = property_exists($this, 'dateFilter') ? $this->dateFilter : '';
+        $activeTab = property_exists($this, 'activeTab') ? $this->activeTab : '';
+
+        return Excel::download(new CmlExport($search, $dateFilter, $activeTab), 'CmlExport-'.date('Y-m-d').'.xlsx');
     }
 
     public function render()
     {
-        $query = CmlLog::query();
-        $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
-        
-        $query->where(function ($q) use ($activeDate) {
-            $q->whereHas('dailyJobAssignment', function ($q2) use ($activeDate) {
-                $q2->whereDate('date', $activeDate);
-            })->orWhere(function ($q2) use ($activeDate) {
-                $q2->whereNull('dja_id')->whereDate('date', $activeDate);
-            });
-        });
-        
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('aircraft_registration', 'like', '%' . $this->search . '%')
-                  ->orWhere('status', 'like', '%' . $this->search . '%')
-                  ->orWhere('doc_type', 'like', '%' . $this->search . '%')
-                  ->orWhere('no_doc', 'like', '%' . $this->search . '%');
-            });
-        }
-        
-        if ($this->dateFilter) {
-            $query->whereDate('date', $this->dateFilter);
-        }
-        
-        $query->orderBy('date', 'asc');
+        $query = CmlLog::query()->with('dailyJobAssignment');
+
+        $searchFields = ['aircraft_registration', 'status', 'doc_type', 'no_doc', 'station', 'operator', 'ac_status', 'description'];
+        $query = $this->scopeAdvancedFilter($query, $searchFields);
 
         return view('livewire.modules.cml-log.index', [
-            'logs' => $query->get(),
+            'logs' => $query->with('dailyJobAssignment')->get(),
         ])->layout('components.layouts.app', ['title' => 'CML Logs']);
     }
 }

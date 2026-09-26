@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Division;
+use App\Models\Position;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -29,6 +31,16 @@ class DatabaseSeeder extends Seeder
             Role::firstOrCreate(['name' => $role]);
         }
 
+        $this->call([
+            DivisionSeeder::class,
+            PositionSeeder::class,
+            AirportSeeder::class,
+        ]);
+
+        // Helper to get ids
+        $getDivId = fn ($name) => Division::firstOrCreate(['name' => $name])->id;
+        $getPosId = fn ($name) => Position::firstOrCreate(['name' => $name])->id;
+
         // ── Super Admin ──────────────────────────────────
         $superAdmin = User::firstOrCreate(
             ['nik' => '000000'],
@@ -36,9 +48,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@bat.local',
                 'password' => Hash::make('password123'),
-                'jabatan' => 'System Administrator',
-                'divisi' => 'IT',
-                'kode_stasiun' => 'CGK',
+                'position_id' => $getPosId('System Administrator'),
+                'division_id' => $getDivId('IT'),
+                'station' => 'CGK',
                 'status' => 'active',
                 'is_default_password' => false,
             ]
@@ -52,9 +64,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Budi Santoso',
                 'email' => 'manager@bat.local',
                 'password' => Hash::make('password123'),
-                'jabatan' => 'Manager Cabin Maintenance',
-                'divisi' => 'Cabin',
-                'kode_stasiun' => 'CGK',
+                'position_id' => $getPosId('Manager Cabin Maintenance'),
+                'division_id' => $getDivId('Cabin'),
+                'station' => 'CGK',
                 'status' => 'active',
                 'is_default_password' => false,
             ]
@@ -68,9 +80,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Dewi Rahayu',
                 'email' => 'pic.cabin@bat.local',
                 'password' => Hash::make('password123'),
-                'jabatan' => 'PIC Cabin Maintenance',
-                'divisi' => 'Cabin',
-                'kode_stasiun' => 'CGK',
+                'position_id' => $getPosId('PIC Cabin Maintenance'),
+                'division_id' => $getDivId('Cabin'),
+                'station' => 'CGK',
                 'status' => 'active',
                 'is_default_password' => false,
             ]
@@ -84,9 +96,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Rizki Pratama',
                 'email' => 'pic.aic@bat.local',
                 'password' => Hash::make('password123'),
-                'jabatan' => 'PIC Aircraft Interior Cleaning',
-                'divisi' => 'AIC',
-                'kode_stasiun' => 'CGK',
+                'position_id' => $getPosId('PIC Aircraft Interior Cleaning'),
+                'division_id' => $getDivId('AIC'),
+                'station' => 'CGK',
                 'status' => 'active',
                 'is_default_password' => false,
             ]
@@ -100,9 +112,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Ahmad Fauzi',
                 'email' => 'pic.painting@bat.local',
                 'password' => Hash::make('password123'),
-                'jabatan' => 'PIC Painting',
-                'divisi' => 'Painting',
-                'kode_stasiun' => 'CGK',
+                'position_id' => $getPosId('PIC Painting'),
+                'division_id' => $getDivId('Painting'),
+                'station' => 'CGK',
                 'status' => 'active',
                 'is_default_password' => false,
             ]
@@ -116,9 +128,9 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Sari Indah',
                 'email' => 'pic.supporting@bat.local',
                 'password' => Hash::make('password123'),
-                'jabatan' => 'PIC Supporting',
-                'divisi' => 'Supporting',
-                'kode_stasiun' => 'CGK',
+                'position_id' => $getPosId('PIC Supporting'),
+                'division_id' => $getDivId('Supporting'),
+                'station' => 'CGK',
                 'status' => 'active',
                 'is_default_password' => false,
             ]
@@ -141,9 +153,9 @@ class DatabaseSeeder extends Seeder
                     'name' => $adminData['name'],
                     'email' => strtolower(str_replace(' ', '.', $adminData['name'])).'@bat.local',
                     'password' => Hash::make('password123'),
-                    'jabatan' => $adminData['jabatan'],
-                    'divisi' => $adminData['divisi'],
-                    'kode_stasiun' => 'CGK',
+                    'position_id' => $getPosId($adminData['jabatan']),
+                    'division_id' => $getDivId($adminData['divisi']),
+                    'station' => 'CGK',
                     'status' => 'active',
                     'is_default_password' => false,
                 ]

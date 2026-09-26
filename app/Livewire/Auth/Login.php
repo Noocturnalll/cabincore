@@ -21,7 +21,7 @@ class Login extends Component
         if (Auth::attempt(['nik' => $this->nik, 'password' => $this->password])) {
             session()->regenerate();
 
-            return redirect()->intended(route('dashboard'));
+            return redirect()->route('dashboard');
         }
 
         $this->addError('nik', 'ID Karyawan atau password yang Anda masukkan salah.');
@@ -29,6 +29,6 @@ class Login extends Component
 
     public function render()
     {
-        return view('livewire.auth.login')->layout('components.layouts.guest');
+        return view('livewire.auth.login')->layout('components.layouts.bare');
     }
 }

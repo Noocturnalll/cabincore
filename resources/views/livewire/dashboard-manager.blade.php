@@ -1,8 +1,8 @@
 <div>
 <style>
-/* ═══ Dashboard — Enterprise Colorful Edition ═══ */
+/* â•â•â• Dashboard &mdash; Enterprise Colorful Edition â•â•â• */
 
-/* ── Page header ── */
+/* â”€â”€ Page header â”€â”€ */
 .cbm-page-header { margin-bottom: 2rem; }
 .cbm-greeting {
     font-size: clamp(1.5rem, 3vw, 2.125rem);
@@ -24,10 +24,10 @@
     font-weight: 500;
 }
 
-/* ── Stat Cards Grid ── */
+/* â”€â”€ Stat Cards Grid â”€â”€ */
 .cbm-stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 1.25rem;
     margin-bottom: 1.375rem;
 }
@@ -125,7 +125,7 @@
 }
 .cbm-light .cbm-stat-chip { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.08); }
 
-/* ── KPI Row ── */
+/* â”€â”€ KPI Row â”€â”€ */
 .cbm-kpi-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -159,7 +159,7 @@
 .cbm-kpi-value { font-size: 1.375rem; font-weight: 800; color: var(--cbm-text); margin-top: .1rem; letter-spacing: -.015em; }
 .cbm-kpi-sub   { font-size: .75rem; color: var(--cbm-text-muted); margin-top: .2rem; font-weight: 500; }
 
-/* ── Charts Row ── */
+/* â”€â”€ Charts Row â”€â”€ */
 .cbm-charts-row {
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr;
@@ -192,7 +192,7 @@
 .cbm-card-sub   { font-size: .8125rem; color: var(--cbm-text-muted); margin-top: .2rem; font-weight: 500; }
 .cbm-chart-container { flex: 1; min-height: 230px; position: relative; }
 
-/* ── Donut ── */
+/* â”€â”€ Donut â”€â”€ */
 .cbm-donut-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
 .cbm-donut-center {
     position: absolute; top: 50%; left: 50%;
@@ -208,12 +208,12 @@
 .cbm-dli-val    { font-weight: 800; color: var(--cbm-text); }
 .cbm-dli-detail { font-size: .7rem; color: var(--cbm-text-muted); padding-left: 1.25rem; margin-top: .15rem; }
 
-/* ── Legend chips ── */
+/* â”€â”€ Legend chips â”€â”€ */
 .cbm-legend { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
 .cbm-legend-item { display: flex; align-items: center; gap: .35rem; font-size: .75rem; font-weight: 700; color: var(--cbm-text-muted); }
 .cbm-legend-dot { width: .5rem; height: .5rem; border-radius: 50%; }
 
-/* ── Table at bottom ── */
+/* â”€â”€ Table at bottom â”€â”€ */
 .cbm-bottom-table {
     background: var(--cbm-card-bg);
     border: 1px solid var(--cbm-card-border);
@@ -223,7 +223,7 @@
     overflow: hidden;
 }
 
-/* ── Responsive: main page wrapper ── */
+/* â”€â”€ Responsive: main page wrapper â”€â”€ */
 @media (max-width: 640px) {
     .cbm-stats-grid { gap: .875rem; }
     .cbm-kpi-row    { gap: .875rem; }
@@ -241,17 +241,27 @@
     $cmlClosed      = $stats['cml_closed']    ?? 0;
     $djaCloseRate   = $stats['dja_close_rate']  ?? 0;
     $unplannedCloseRate = $unplanned['all_rate'] ?? 0;
+    $targetDate = $stats['target_date'] ?? now()->format('Y-m-d');
+    $targetDateFormatted = \Carbon\Carbon::parse($targetDate)->locale('id')->isoFormat('dddd, D MMMM YYYY');
 @endphp
 
-{{-- ════ PAGE HEADER ════ --}}
+{{-- â•â•â•â• PAGE HEADER â•â•â•â• --}}
 <div class="cbm-page-header">
-    <div class="cbm-greeting">
-        Selamat datang, <span>{{ explode(' ', auth()->user()->name)[0] }}</span> 👋
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:.75rem;">
+        <div>
+            <div class="cbm-greeting">
+                Selamat datang, <span>{{ explode(' ', auth()->user()->name)[0] }}</span> &#x1F44B;
+            </div>
+            <div class="cbm-greeting-sub">Monitor operasional cabin maintenance harian Anda</div>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:.5rem;background:var(--cbm-nav-active);border:1px solid var(--cbm-card-border);border-radius:.875rem;padding:.5rem 1rem;font-size:.8125rem;font-weight:700;color:var(--cbm-nav-active-t);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:1rem;height:1rem;"><path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" /></svg>
+            Data: {{ $targetDateFormatted }}
+        </div>
     </div>
-    <div class="cbm-greeting-sub">Monitor seluruh operasional cabin maintenance — {{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</div>
 </div>
 
-{{-- ════ TOP 4 STAT CARDS ════ --}}
+{{-- â•â•â•â• TOP 4 STAT CARDS â•â•â•â• --}}
 <div class="cbm-stats-grid">
 
     {{-- Card 1: Total DJA --}}
@@ -316,9 +326,68 @@
         </div>
     </div>
 
+    {{-- Card 5: Total ICT Findings --}}
+    <div class="cbm-stat-card cbm-sc-orange">
+        <div class="cbm-stat-top">
+            <div class="cbm-stat-label">Total ICT Findings</div>
+            <div class="cbm-stat-icon" style="background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(245,158,11,.15));color:#f59e0b; width: 2.75rem; height: 2.75rem; border-radius: .875rem; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.5rem;height:1.5rem;"><path fill-rule="evenodd" d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" /><path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" /></svg>
+            </div>
+        </div>
+        <div class="cbm-stat-value">{{ $stats['ict']['total'] ?? 0 }}</div>
+        <div class="cbm-stat-sub-row">
+            <span class="cbm-stat-chip">Open: {{ $stats['ict']['open'] ?? 0 }}</span>
+            <span class="cbm-stat-chip">Closed: {{ $stats['ict']['closed'] ?? 0 }}</span>
+        </div>
+        
+    </div>
+
+    {{-- Card 6: Aircraft Cleaning --}}
+    <div class="cbm-stat-card cbm-sc-green">
+        <div class="cbm-stat-top">
+            <div class="cbm-stat-label">Aircraft Cleaning</div>
+            <div class="cbm-stat-icon cbm-si-green">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.971 1.816A5.208 5.208 0 0014.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.258 5.258 0 013.39 1.258A.75.75 0 0021 8.25V5.25a2.25 2.25 0 00-2.25-2.25h-5.25c-.2 0-.398.026-.579.066zm-1.942 0a5.258 5.258 0 00-3.39 1.258A.75.75 0 006.5 2.5V5.25a2.25 2.25 0 002.25 2.25h5.25c.2 0 .398-.026.579-.066A5.208 5.208 0 0012.971 1.816z" clip-rule="evenodd"/>
+                    <path fill-rule="evenodd" d="M14.25 8.25v-1.875a3.708 3.708 0 00-1.026-2.58A3.758 3.758 0 0115.5 5.25h1.875a3.75 3.75 0 012.125.666v2.334h-5.25zm-4.5 0h5.25v12a2.25 2.25 0 01-2.25 2.25H9A2.25 2.25 0 016.75 20.25v-12h2.25a3.708 3.708 0 001.026 2.58A3.758 3.758 0 019.5 8.25z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+        </div>
+        <div class="cbm-stat-value">{{ $stats['ac']['total'] ?? 0 }}</div>
+        <div class="cbm-stat-sub-row">
+            <span class="cbm-stat-chip">GC: {{ $stats['ac']['gc_total'] ?? 0 }}</span>
+            <span class="cbm-stat-chip">DCI: {{ $stats['ac']['dci_total'] ?? 0 }}</span>
+            <span class="cbm-stat-chip">DCE: {{ $stats['ac']['dce_total'] ?? 0 }}</span>
+            <span class="cbm-stat-chip">TC: {{ $stats['ac']['tc_total'] ?? 0 }}</span>
+        </div>
+    </div>
+
 </div>
 
-{{-- ════ KPI ROW ════ --}}
+{{-- â•â•â•â• KPI ROW â•â•â•â• --}}
+{{-- â• â• â• â•  MAN POWER & MAN HOURS ROW â• â• â• â•  --}}
+<div class="cbm-kpi-row" style="margin-bottom: 1.5rem; grid-template-columns: repeat(2, 1fr);">
+    <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(59,130,246,.05) 0%, rgba(99,102,241,.02) 100%);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 6px 16px rgba(59,130,246,.4);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" /></svg>
+        </div>
+        <div>
+            <div class="cbm-kpi-label">Total Man Power (PIC)</div>
+            <div class="cbm-kpi-value">{{ $stats['man_power'] ?? 0 }} <span style="font-size:1rem;color:var(--cbm-text-muted);">Personel</span></div>
+            <div class="cbm-kpi-sub">Total teknisi / PIC di sistem</div>
+        </div>
+    </div>
+    <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(168,85,247,.05) 0%, rgba(236,72,153,.02) 100%);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899);box-shadow:0 6px 16px rgba(168,85,247,.4);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" /></svg>
+        </div>
+        <div>
+            <div class="cbm-kpi-label">Man Hours (WO)</div>
+            <div class="cbm-kpi-value">{{ $stats['man_hours'] ?? 0 }} <span style="font-size:1rem;color:var(--cbm-text-muted);">Jam</span></div>
+            <div class="cbm-kpi-sub">Total estimasi man hour dari log WO hari ini</div>
+        </div>
+    </div>
+</div>
 <div class="cbm-kpi-row">
     <div class="cbm-kpi-card">
         <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);box-shadow:0 6px 16px rgba(6,182,212,.4);">
@@ -362,13 +431,16 @@
     </div>
 </div>
 
-{{-- ════ CHARTS ROW ════ --}}
+{{-- â•â•â•â• CHARTS ROW â•â•â•â• --}}
 @php
     $stationStats = $stats['stationStats'] ?? [];
     $stationLabels  = array_keys($stationStats);
     $stationWo      = array_map(function($s) { return $s['details']['wo']['closed'] + $s['details']['wo']['open']; }, array_values($stationStats));
     $stationDmi     = array_map(function($s) { return $s['details']['dmi']['closed'] + $s['details']['dmi']['open']; }, array_values($stationStats));
     $stationNsrdi   = array_map(function($s) { return $s['details']['nsrdi']['closed'] + $s['details']['nsrdi']['open']; }, array_values($stationStats));
+    $stationGc      = array_map(function($s) { return ($s['details']['ac_gc']['closed'] ?? 0) + ($s['details']['ac_gc']['open'] ?? 0); }, array_values($stationStats));
+    $stationDci     = array_map(function($s) { return ($s['details']['ac_dci']['closed'] ?? 0) + ($s['details']['ac_dci']['open'] ?? 0); }, array_values($stationStats));
+    $stationDce     = array_map(function($s) { return ($s['details']['ac_dce']['closed'] ?? 0) + ($s['details']['ac_dce']['open'] ?? 0); }, array_values($stationStats));
     $stationDetails = array_column(array_values($stationStats), 'details');
 
     $trendLabels     = $stats['trendLabels']     ?? [];
@@ -395,7 +467,7 @@
 
 <div class="cbm-charts-row">
 
-    {{-- Chart 1: Bar Chart — DJA per Station --}}
+    {{-- Chart 1: Bar Chart &mdash; DJA per Station --}}
     <div class="cbm-chart-card">
         <div class="cbm-card-header">
             <div>
@@ -419,12 +491,38 @@
         </div>
     </div>
 
+    {{-- Chart 1.5: AC Bar Chart &mdash; Aircraft Cleaning per Station --}}
+    <div class="cbm-chart-card">
+        <div class="cbm-card-header">
+            <div>
+                <div class="cbm-card-title">Aircraft Cleaning per Station</div>
+                <div class="cbm-card-sub">GC, DCI, DCE, dan TC per bandara</div>
+            </div>
+            <div class="cbm-legend">
+                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#22c55e;"></div>GC</div>
+                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#10b981;"></div>DCI</div>
+                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#047857;"></div>DCE</div>
+                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#0891b2;"></div>TC</div>
+            </div>
+        </div>
+        <div class="cbm-chart-container" wire:ignore>
+            <canvas id="ac-bar-chart" height="230"
+                data-labels='@json($stationLabels)'
+                data-gc='@json($stationGc)'
+                data-dci='@json($stationDci)'
+                data-dce='@json($stationDce)'
+                data-tc='@json(array_map(function($s) { return ($s["details"]["ac_tc"]["closed"] ?? 0) + ($s["details"]["ac_tc"]["open"] ?? 0); }, array_values($stationStats)))'
+                data-details='@json($stationDetails)'>
+            </canvas>
+        </div>
+    </div>
+
     {{-- Chart 2: Line Chart --}}
     <div class="cbm-chart-card">
         <div class="cbm-card-header">
             <div>
                 <div class="cbm-card-title">Grafik Penyelesaian</div>
-                <div class="cbm-card-sub">Pekerjaan harian — 7 hari terakhir</div>
+                <div class="cbm-card-sub">Pekerjaan harian &mdash; 7 hari terakhir</div>
             </div>
         </div>
         <div class="cbm-chart-container" wire:ignore>
@@ -484,7 +582,44 @@
 
 </div>
 
-{{-- ════ BOTTOM TABLE ════ --}}
+{{-- â•â•â•â• ICT CHARTS ROW â•â•â•â• --}}
+<div class="cbm-charts-row" style="grid-template-columns: repeat(2, 1fr); margin-top: 1.375rem;">
+    {{-- Chart 4: ICT Daily Chart --}}
+    <div class="cbm-chart-card">
+        <div class="cbm-card-header">
+            <div>
+                <div class="cbm-card-title">ICT Harian per Maskapai</div>
+                <div class="cbm-card-sub">Data tanggal {{ $targetDateFormatted }}: Open vs Closed</div>
+            </div>
+        </div>
+        <div class="cbm-chart-container" wire:ignore>
+            <canvas id="ict-daily-chart" height="230"
+                data-labels='@json($stats["ict"]["charts"]["daily"]["labels"] ?? [])'
+                data-open='@json($stats["ict"]["charts"]["daily"]["open"] ?? [])'
+                data-closed='@json($stats["ict"]["charts"]["daily"]["closed"] ?? [])'>
+            </canvas>
+        </div>
+    </div>
+
+    {{-- Chart 5: ICT Monthly Chart --}}
+    <div class="cbm-chart-card">
+        <div class="cbm-card-header">
+            <div>
+                <div class="cbm-card-title">ICT Bulanan per Maskapai</div>
+                <div class="cbm-card-sub">Data bulan ini: Open vs Closed</div>
+            </div>
+        </div>
+        <div class="cbm-chart-container" wire:ignore>
+            <canvas id="ict-monthly-chart" height="230"
+                data-labels='@json($stats["ict"]["charts"]["monthly"]["labels"] ?? [])'
+                data-open='@json($stats["ict"]["charts"]["monthly"]["open"] ?? [])'
+                data-closed='@json($stats["ict"]["charts"]["monthly"]["closed"] ?? [])'>
+            </canvas>
+        </div>
+    </div>
+</div>
+
+{{-- â•â•â•â• BOTTOM TABLE â•â•â•â• --}}
 <div class="cbm-bottom-table">
     <div class="cbm-card-header" style="margin-bottom:1.25rem;">
         <div>
@@ -530,10 +665,27 @@
     </div>
 </div>
 
+    <div class="cbm-charts-row" style="margin-top: 1.5rem; grid-template-columns: 1fr;">
+        <div class="cbm-chart-card">
+            <div class="cbm-card-header">
+                <div>
+                    <div class="cbm-card-title">NSRDI Overdue (Status: Open)</div>
+                    <div class="cbm-card-sub">Laporan NSRDI yang melewati batas Plan Date (Batik, Lion, SAJ, Wings)</div>
+                </div>
+            </div>
+            <div class="cbm-chart-container" wire:ignore>
+                <canvas id="nsrdi-overdue-chart" height="230"
+                    data-values='@json(array_values($stats["nsrdi_overdue"] ?? []))'
+                    data-labels='@json(array_keys($stats["nsrdi_overdue"] ?? []))'>
+                </canvas>
+            </div>
+        </div>
+    </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 var isLight = document.getElementById('cbm-html').classList.contains('cbm-light');
-var barChart, lineChart, donutChart;
+var barChart, lineChart, donutChart, ictDailyChart, ictMonthlyChart, nsrdiOverdueChart;
 
 function textColor()  { return isLight ? '#0f172a' : '#f1f5f9'; }
 function mutedColor() { return isLight ? '#64748b' : '#94a3b8'; }
@@ -554,13 +706,16 @@ function cbmInitCharts() {
     var isLightNow = document.getElementById('cbm-html').classList.contains('cbm-light');
     isLight = isLightNow;
 
-    /* ─── BAR CHART ─── */
+    /* â”€â”€â”€ BAR CHART â”€â”€â”€ */
     var barEl = document.getElementById('cbm-bar-chart');
     if (!barEl) return;
 
     if (barChart) { barChart.destroy(); barChart = null; }
     if (lineChart) { lineChart.destroy(); lineChart = null; }
     if (donutChart) { donutChart.destroy(); donutChart = null; }
+    if (ictDailyChart) { ictDailyChart.destroy(); ictDailyChart = null; }
+    if (ictMonthlyChart) { ictMonthlyChart.destroy(); ictMonthlyChart = null; }
+    if (nsrdiOverdueChart) { nsrdiOverdueChart.destroy(); nsrdiOverdueChart = null; }
 
     var barLabels  = JSON.parse(barEl.dataset.labels  || '[]');
     var barWo      = JSON.parse(barEl.dataset.wo      || '[]');
@@ -612,7 +767,62 @@ function cbmInitCharts() {
         }
     });
 
-    /* ─── LINE CHART ─── */
+    /* ─── AC BAR CHART ─── */
+    var acBarEl = document.getElementById('ac-bar-chart');
+    if (acBarEl) {
+        var acGc   = JSON.parse(acBarEl.dataset.gc  || '[]');
+        var acDci  = JSON.parse(acBarEl.dataset.dci || '[]');
+        var acDce  = JSON.parse(acBarEl.dataset.dce || '[]');
+        var acTc   = JSON.parse(acBarEl.dataset.tc  || '[]');
+
+        new Chart(acBarEl.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [
+                    { label:'GC',  data: acGc,  backgroundColor:'rgba(34,197,94,.85)',  borderRadius:5, barPercentage:0.65, categoryPercentage:0.75 },
+                    { label:'DCI', data: acDci, backgroundColor:'rgba(16,185,129,.85)', borderRadius:5, barPercentage:0.65, categoryPercentage:0.75 },
+                    { label:'DCE', data: acDce, backgroundColor:'rgba(4,120,87,.85)',   borderRadius:5, barPercentage:0.65, categoryPercentage:0.75 },
+                    { label:'TC',  data: acTc,  backgroundColor:'rgba(6,182,212,.85)',  borderRadius:5, barPercentage:0.65, categoryPercentage:0.75 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode:'index', intersect:false },
+                plugins: {
+                    legend: { display:false },
+                    tooltip: {
+                        backgroundColor: tooltipBg(), titleColor: textColor(), bodyColor: mutedColor(),
+                        borderColor: isLight ? 'rgba(148,163,184,.3)' : 'rgba(255,255,255,.1)', borderWidth:1,
+                        padding:12, cornerRadius:10,
+                        callbacks: {
+                            afterBody: function(ctx) {
+                                var idx = ctx[0].dataIndex;
+                                if (barDetails && barDetails[idx]) {
+                                    var d = barDetails[idx];
+                                    return [
+                                        '',
+                                        'Rincian Open/Closed:',
+                                        '  GC: ' + (d.ac_gc?.open||0) + ' Open / ' + (d.ac_gc?.closed||0) + ' Closed',
+                                        '  DCI: ' + (d.ac_dci?.open||0) + ' Open / ' + (d.ac_dci?.closed||0) + ' Closed',
+                                        '  DCE: ' + (d.ac_dce?.open||0) + ' Open / ' + (d.ac_dce?.closed||0) + ' Closed',
+                                        '  TC: ' + (d.ac_tc?.open||0) + ' Open / ' + (d.ac_tc?.closed||0) + ' Closed'
+                                    ];
+                                }
+                                return [];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked:true, grid:{display:false}, ticks:{color:mutedColor(),font:{weight:'700',size:10}}, border:{display:false} },
+                    y: { stacked:true, grid:{color:gridColor()}, ticks:Object.assign({color:mutedColor(),font:{weight:'700'}}, cbmIntTicks()), border:{display:false} }
+                }
+            }
+        });
+    }
+
+    /* â”€â”€â”€ LINE CHART â”€â”€â”€ */
     var lineEl = document.getElementById('cbm-line-chart');
     var lineCtx = lineEl.getContext('2d');
 
@@ -647,7 +857,7 @@ function cbmInitCharts() {
         }
     });
 
-    /* ─── DONUT CHART ─── */
+    /* â”€â”€â”€ DONUT CHART â”€â”€â”€ */
     var donutEl = document.getElementById('cbm-donut-chart');
     var dClosed    = parseInt(donutEl.dataset.closed    || 0);
     var dOpen      = parseInt(donutEl.dataset.open      || 0);
@@ -668,10 +878,95 @@ function cbmInitCharts() {
         }
     });
 
-    /* ─── THEME UPDATER ─── */
+        /* â”€â”€â”€ ICT DAILY CHART â”€â”€â”€ */
+    var ictDailyEl = document.getElementById('ict-daily-chart');
+    if (ictDailyEl) {
+        var dLabels = JSON.parse(ictDailyEl.dataset.labels || '[]');
+        var dOpen   = JSON.parse(ictDailyEl.dataset.open || '[]');
+        var dClosed = JSON.parse(ictDailyEl.dataset.closed || '[]');
+
+        ictDailyChart = new Chart(ictDailyEl.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: dLabels,
+                datasets: [
+                    { label:'Closed', data: dClosed, backgroundColor:'rgba(52,211,153,.85)', borderRadius:5, barPercentage:0.7, categoryPercentage:0.8 },
+                    { label:'Open', data: dOpen, backgroundColor:'rgba(248,113,113,.85)', borderRadius:5, barPercentage:0.7, categoryPercentage:0.8 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display:true, position:'top', align:'end', labels:{color:mutedColor(),font:{weight:'700',size:11},usePointStyle:true,pointStyle:'circle'} },
+                    tooltip: { backgroundColor:tooltipBg(), titleColor:textColor(), bodyColor:mutedColor(), borderColor:isLight?'rgba(148,163,184,.3)':'rgba(255,255,255,.1)', borderWidth:1, padding:12, cornerRadius:10 }
+                },
+                scales: {
+                    x: { grid:{display:false}, ticks:{color:mutedColor(),font:{weight:'700',size:10}}, border:{display:false} },
+                    y: { grid:{color:gridColor()}, ticks:Object.assign({color:mutedColor(),font:{weight:'700'}}, cbmIntTicks()), border:{display:false} }
+                }
+            }
+        });
+    }
+
+    /* â”€â”€â”€ ICT MONTHLY CHART â”€â”€â”€ */
+    var ictMonthlyEl = document.getElementById('ict-monthly-chart');
+    if (ictMonthlyEl) {
+        var mLabels = JSON.parse(ictMonthlyEl.dataset.labels || '[]');
+        var mOpen   = JSON.parse(ictMonthlyEl.dataset.open || '[]');
+        var mClosed = JSON.parse(ictMonthlyEl.dataset.closed || '[]');
+
+        ictMonthlyChart = new Chart(ictMonthlyEl.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: mLabels,
+                datasets: [
+                    { label:'Closed', data: mClosed, backgroundColor:'rgba(52,211,153,.85)', borderRadius:5, barPercentage:0.7, categoryPercentage:0.8 },
+                    { label:'Open', data: mOpen, backgroundColor:'rgba(248,113,113,.85)', borderRadius:5, barPercentage:0.7, categoryPercentage:0.8 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display:true, position:'top', align:'end', labels:{color:mutedColor(),font:{weight:'700',size:11},usePointStyle:true,pointStyle:'circle'} },
+                    tooltip: { backgroundColor:tooltipBg(), titleColor:textColor(), bodyColor:mutedColor(), borderColor:isLight?'rgba(148,163,184,.3)':'rgba(255,255,255,.1)', borderWidth:1, padding:12, cornerRadius:10 }
+                },
+                scales: {
+                    x: { grid:{display:false}, ticks:{color:mutedColor(),font:{weight:'700',size:10}}, border:{display:false} },
+                    y: { grid:{color:gridColor()}, ticks:Object.assign({color:mutedColor(),font:{weight:'700'}}, cbmIntTicks()), border:{display:false} }
+                }
+            }
+        });
+    }
+
+    /* ─── NSRDI OVERDUE CHART ─── */
+    var nsrdiOverdueEl = document.getElementById('nsrdi-overdue-chart');
+    if (nsrdiOverdueEl) {
+        var nValues = JSON.parse(nsrdiOverdueEl.dataset.values || '[]');
+        var nLabels = JSON.parse(nsrdiOverdueEl.dataset.labels || '[]');
+        nsrdiOverdueChart = new Chart(nsrdiOverdueEl.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: nLabels,
+                datasets: [{ label:'Overdue Count', data: nValues, backgroundColor:'rgba(239,68,68,.85)', borderRadius:5, barPercentage:0.6, categoryPercentage:0.7 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display:false },
+                    tooltip: { backgroundColor:tooltipBg(), titleColor:textColor(), bodyColor:mutedColor(), borderColor:isLight?'rgba(148,163,184,.3)':'rgba(255,255,255,.1)', borderWidth:1, padding:12, cornerRadius:10 }
+                },
+                scales: {
+                    x: { grid:{display:false}, ticks:{color:mutedColor(),font:{weight:'700',size:10}}, border:{display:false} },
+                    y: { grid:{color:gridColor()}, ticks:Object.assign({color:mutedColor(),font:{weight:'700'}}, cbmIntTicks()), border:{display:false} }
+                }
+            }
+        });
+    }
+
+    /* â”€â”€â”€ THEME UPDATER â”€â”€â”€ */
     window.cbmUpdateChartTheme = function(theme) {
         isLight = (theme === 'light');
-        [barChart, lineChart, donutChart].forEach(function(c) {
+        [barChart, lineChart, donutChart, ictDailyChart, ictMonthlyChart, nsrdiOverdueChart].forEach(function(c) {
             if (!c) return;
             if (c.options.scales) {
                 ['x','y'].forEach(function(ax) {
@@ -695,7 +990,7 @@ function cbmInitCharts() {
         donutChart.data.datasets[0].borderColor = isLight ? '#eef2ff' : '#0d1117';
         donutChart.update();
     };
-    window.cbmCharts = [barChart, lineChart, donutChart];
+    window.cbmCharts = [barChart, lineChart, donutChart, ictDailyChart, ictMonthlyChart, nsrdiOverdueChart];
 }
 
 document.addEventListener('DOMContentLoaded', function() { requestAnimationFrame(cbmInitCharts); });
@@ -703,3 +998,4 @@ document.addEventListener('livewire:navigated', function() { requestAnimationFra
 </script>
 
 </div>
+

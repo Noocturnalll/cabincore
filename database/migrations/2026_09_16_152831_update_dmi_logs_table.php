@@ -30,10 +30,10 @@ return new class extends Migration
     {
         Schema::table('dmi_logs', function (Blueprint $table) {
             $table->renameColumn('act_station', 'station');
-            
+
             $table->dropColumn([
                 'date', 'pn_required', 'dmi_number', 'dmi_category',
-                'plan_station', 'category', 'remarks'
+                'plan_station', 'category', 'remarks',
             ]);
 
             $table->enum('hold_reason_category', ['Awaiting Sparepart', 'Aircraft Re-routed', 'Awaiting Ground Time', 'Manpower Shortage'])->nullable();

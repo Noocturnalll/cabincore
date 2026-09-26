@@ -3,12 +3,14 @@
 namespace App\Exports;
 
 use App\Models\IctFinding;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class IctFindingExport implements FromCollection, WithHeadings
 {
     protected $search;
+
     protected $dateFilter;
 
     public function __construct($search = '', $dateFilter = '')
@@ -17,15 +19,15 @@ class IctFindingExport implements FromCollection, WithHeadings
         $this->dateFilter = $dateFilter;
     }
 
-    public function collection()
+    public function collection(): Collection
     {
         $query = IctFinding::query();
 
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('no_finding', 'like', '%' . $this->search . '%')
-                  ->orWhere('aircraft_registration', 'like', '%' . $this->search . '%')
-                  ->orWhere('defect_description', 'like', '%' . $this->search . '%');
+            $query->where(function ($q) {
+                $q->where('no_finding', 'like', '%'.$this->search.'%')
+                    ->orWhere('aircraft_registration', 'like', '%'.$this->search.'%')
+                    ->orWhere('defect_description', 'like', '%'.$this->search.'%');
             });
         }
 
@@ -53,7 +55,7 @@ class IctFindingExport implements FromCollection, WithHeadings
             'Aircraft Registration',
             'Defect Description',
             'Remarks',
-            'Status'
+            'Status',
         ];
     }
 }

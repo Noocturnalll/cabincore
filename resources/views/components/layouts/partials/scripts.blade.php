@@ -55,4 +55,31 @@
         setTimeout(function() { overlay.style.display = 'none'; }, 300);
     };
 })();
+
+// Listen for SweetAlert Toast notifications from Livewire
+document.addEventListener('livewire:initialized', () => {
+    Livewire.on('notify', (event) => {
+        // Event data could be an array of arguments, so handle appropriately
+        const data = Array.isArray(event) ? event[0] : event;
+        
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: data.timer || 3000,
+            timerProgressBar: true,
+            background: 'var(--cbm-sidebar-bg)',
+            color: 'var(--cbm-text)',
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+        
+        Toast.fire({
+            icon: data.icon || "success",
+            title: data.title || data.message || "Berhasil"
+        });
+    });
+});
 </script>

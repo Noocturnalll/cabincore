@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Import;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Imports\DjaImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class DjaImportController extends Controller
 {
@@ -23,25 +24,25 @@ class DjaImportController extends Controller
             });
 
             return response()->json([
-                'message' => 'DJA imported successfully.'
+                'message' => 'DJA imported successfully.',
             ], 200);
 
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        } catch (ValidationException $e) {
             $failures = $e->failures();
             $errors = [];
             foreach ($failures as $failure) {
-                $errors[] = 'Row ' . $failure->row() . ': ' . implode(', ', $failure->errors());
+                $errors[] = 'Row '.$failure->row().': '.implode(', ', $failure->errors());
             }
 
             return response()->json([
                 'message' => 'Validation failed',
-                'errors' => $errors
+                'errors' => $errors,
             ], 422);
 
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Import failed',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

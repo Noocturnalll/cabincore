@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use App\Notifications\SystemNotification;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 
@@ -32,7 +33,8 @@ class Index extends Component
         ]);
 
         $this->reset(['current_password', 'password', 'password_confirmation']);
-        session()->flash('success', 'Password berhasil diperbarui.');
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Password berhasil diperbarui.']);
+        auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Password berhasil diperbarui.']));
     }
 
     public function setTab($tab)

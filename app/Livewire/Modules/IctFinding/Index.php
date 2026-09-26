@@ -2,28 +2,34 @@
 
 namespace App\Livewire\Modules\IctFinding;
 
-use Livewire\Component;
-use App\Models\IctFinding;
-use App\Imports\IctFindingImport;
 use App\Exports\IctFindingExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\IctFindingImport;
+use App\Models\IctFinding;
+use App\Notifications\SystemNotification;
+use Livewire\Component;
 use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
     use WithFileUploads;
 
     public $search = '';
+
     public $dateFilter = '';
-    
+
     // For import
     public $file;
+
     public $isImportModalOpen = false;
 
     // For editing
     public $editingId = null;
+
     public $editRemarks = '';
+
     public $editStatus = 'Open';
+
     public $showEditModal = false;
 
     public function mount()
@@ -39,11 +45,13 @@ class Index extends Component
 
         try {
             Excel::import(new IctFindingImport, $this->file);
-            session()->flash('success', 'Data ICT Finding berhasil diimport!');
+            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data ICT Finding berhasil diimport!']);
+            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data ICT Finding berhasil diimport!']));
             $this->reset('file');
             $this->isImportModalOpen = false;
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal mengimport data: ' . $e->getMessage());
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal mengimport data: '.$e->getMessage()]);
+            auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Gagal mengimport data: '.$e->getMessage()]));
         }
     }
 
@@ -72,7 +80,8 @@ class Index extends Component
                 'status' => $this->editStatus,
             ]);
             $this->showEditModal = false;
-            session()->flash('success', 'Finding berhasil diupdate!');
+            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Finding berhasil diupdate!']);
+            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Finding berhasil diupdate!']));
         }
     }
 
@@ -86,10 +95,13 @@ class Index extends Component
         $query = IctFinding::query();
 
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('no_finding', 'like', '%' . $this->search . '%')
-                  ->orWhere('aircraft_registration', 'like', '%' . $this->search . '%')
-                  ->orWhere('defect_description', 'like', '%' . $this->search . '%');
+            $query->where(function ($q) {
+                $q->where('no_finding', 'like', '%'.$this->search.'%')
+                    ->orWhere('aircraft_registration', 'like', '%'.$this->search.'%')
+                    ->orWhere('defect_description', 'like', '%'.$this->search.'%')
+                    ->orWhere('operator', 'like', '%'.$this->search.'%')
+                    ->orWhere('remarks', 'like', '%'.$this->search.'%')
+                    ->orWhere('status', 'like', '%'.$this->search.'%');
             });
         }
 

@@ -1,14 +1,14 @@
 <div>
-    <div class="cbm-page-header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
+    <div class="cbm-page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1.25rem;">
             <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(59,130,246,0.3);">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.75rem; height: 1.75rem;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
                 </svg>
             </div>
             <div>
-                <h1 class="cbm-greeting" style="font-size: 1.5rem;">Tools & Equipment</h1>
-                <p class="cbm-greeting-sub">Ketersediaan alat dan inventaris perbaikan</p>
+                <h1 class="cbm-greeting" style="font-size: 1.75rem; font-weight: 800; margin: 0; letter-spacing: -0.025em;">Tools & Equipment</h1>
+                <p class="cbm-greeting-sub" style="font-size: 0.875rem; opacity: 0.8; margin-top: 0.25rem;">Ketersediaan alat dan inventaris perbaikan</p>
             </div>
         </div>
     </div>

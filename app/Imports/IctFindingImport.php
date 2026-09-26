@@ -3,17 +3,18 @@
 namespace App\Imports;
 
 use App\Models\IctFinding;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class IctFindingImport implements ToModel, WithHeadingRow, WithValidation
 {
-    public function model(array $row): \Illuminate\Database\Eloquent\Model|array|null
+    public function model(array $row): Model|array|null
     {
-        $date = isset($row['date']) && is_numeric($row['date']) 
+        $date = isset($row['date']) && is_numeric($row['date'])
             ? Carbon::instance(Date::excelToDateTimeObject($row['date']))->format('Y-m-d')
             : (isset($row['date']) ? Carbon::parse($row['date'])->format('Y-m-d') : null);
 
@@ -29,7 +30,7 @@ class IctFindingImport implements ToModel, WithHeadingRow, WithValidation
                 'operator' => $row['operator'] ?? null,
                 'defect_description' => $row['defect_description'] ?? null,
                 // do not overwrite remarks or status if it already exists and user uploaded again?
-                // For safety, we update it, but usually imports overwrite. 
+                // For safety, we update it, but usually imports overwrite.
                 // Let's just update if it's there. The user can edit later.
                 'remarks' => $row['remarks'] ?? null,
                 'status' => $row['status'] ?? 'Open',

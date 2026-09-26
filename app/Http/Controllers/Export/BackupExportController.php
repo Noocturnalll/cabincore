@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Export;
 
+use App\Exports\MonthlyBackupExport;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Exports\MonthlyBackupExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BackupExportController extends Controller

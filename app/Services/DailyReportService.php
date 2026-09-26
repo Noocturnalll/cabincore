@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\DailyJobAssignment;
 use App\Models\CmlLog;
+use App\Models\DailyJobAssignment;
+use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
-use App\Models\DmiLog;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class DailyReportService
@@ -14,8 +15,8 @@ class DailyReportService
     /**
      * Get aggregated daily report grouped by station for a specific date.
      *
-     * @param string $date (Y-m-d)
-     * @return \Illuminate\Support\Collection
+     * @param  string  $date  (Y-m-d)
+     * @return Collection
      */
     public function getSummaryByDate($date)
     {
@@ -36,7 +37,7 @@ class DailyReportService
             $djaR01Closed = WoLog::whereHas('dailyJobAssignment', function ($q) use ($date, $station) {
                 $q->where('date', $date)->where('station', $station)->where('job_type', 'R01/WO');
             })->where('status', 'Closed')->count();
-            
+
             $djaR01Open = $djaR01Deploy - $djaR01Closed; // Or query Open status specifically
 
             // 2. DJA AOC (NSRDI R01)
@@ -78,10 +79,10 @@ class DailyReportService
 
             // Calculate Totals
             $closedTotal = $djaR01Closed + $djaAocClosed + $dmiClosed + $unplannedWoClosed + $unplannedNsrdiClosed + $unplannedDmiClosed + $cmlClosed;
-            
+
             // Only add station to report if there's any activity or deploy
             $totalActivity = $djaR01Deploy + $djaAocDeploy + $dmiDeploy + $closedTotal;
-            
+
             // We want to show the station anyway for reporting purposes, even if 0, matching the Excel template
             $report[] = [
                 'station' => $station,

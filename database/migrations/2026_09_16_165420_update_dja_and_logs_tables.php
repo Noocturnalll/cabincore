@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('daily_job_assignments', function (Blueprint $table) {
-            if (!Schema::hasColumn('daily_job_assignments', 'source_spreadsheet_id')) {
+            if (! Schema::hasColumn('daily_job_assignments', 'source_spreadsheet_id')) {
                 $table->string('source_spreadsheet_id')->nullable()->after('id');
             }
         });
@@ -20,13 +20,13 @@ return new class extends Migration
         $tables = ['wo_logs', 'cml_logs', 'dmi_logs', 'nsrdi_logs'];
         foreach ($tables as $tableName) {
             Schema::table($tableName, function (Blueprint $table) use ($tableName) {
-                if (!Schema::hasColumn($tableName, 'hold_reason_category')) {
+                if (! Schema::hasColumn($tableName, 'hold_reason_category')) {
                     $table->string('hold_reason_category')->nullable();
                 }
-                if (!Schema::hasColumn($tableName, 'hold_remarks')) {
+                if (! Schema::hasColumn($tableName, 'hold_remarks')) {
                     $table->text('hold_remarks')->nullable();
                 }
-                if (!Schema::hasColumn($tableName, 'evidence_path')) {
+                if (! Schema::hasColumn($tableName, 'evidence_path')) {
                     $table->string('evidence_path')->nullable();
                 }
             });

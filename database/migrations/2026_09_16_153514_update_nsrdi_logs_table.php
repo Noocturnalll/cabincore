@@ -40,11 +40,11 @@ return new class extends Migration
     {
         Schema::table('nsrdi_logs', function (Blueprint $table) {
             $table->renameColumn('act_station', 'station');
-            
+
             $table->dropColumn([
                 'refresh_date', 'work_group', 'nsrdi_number', 'category', 'report_date',
                 'due_date', 'part_number', 'part_description', 'defer', 'aoc', 'type',
-                'plan_station', 'plan_date', 'remarks', 'close_date', 'reason_open', 'code_open'
+                'plan_station', 'plan_date', 'remarks', 'close_date', 'reason_open', 'code_open',
             ]);
 
             $table->enum('hold_reason_category', ['Awaiting Sparepart', 'Aircraft Re-routed', 'Awaiting Ground Time', 'Manpower Shortage'])->nullable();

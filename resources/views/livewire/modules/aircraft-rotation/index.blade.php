@@ -51,11 +51,11 @@
 
     <div class="mod-card mod-card-accent-purple" style="margin-bottom: 2rem;">
         <div class="mod-toolbar" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-            <form wire:submit.prevent="import" style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" wire:model="importFile" class="mod-search-input cbm-file-input" accept=".xlsx,.xls" style="padding-top: 5px; width: auto;" required>
-                <button type="submit" class="mod-btn" style="background: var(--cbm-accent-purple); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600;" wire:loading.attr="disabled">
-                    <span wire:loading.remove wire:target="import">Upload & Render Excel</span>
-                    <span wire:loading wire:target="import">Memproses...</span>
+            <form action="{{ route('import.aircraft-rotation') }}" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center;" onsubmit="this.querySelector('button').disabled=true; this.querySelector('span').innerText='Memproses...';">
+                @csrf
+                <input type="file" name="importFile" class="mod-search-input cbm-file-input" accept=".xlsx,.xls" style="padding-top: 5px; width: auto;" required>
+                <button type="submit" class="mod-btn" style="background: var(--cbm-accent-purple); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    <span>Upload & Render Excel</span>
                 </button>
             </form>
             @error('importFile') <span style="color: #f87171; font-size: 0.85rem;">{{ $message }}</span> @enderror

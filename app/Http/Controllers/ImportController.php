@@ -83,21 +83,29 @@ class ImportController extends Controller
         try {
             Log::info('Importing Aircraft Rotation file: '.$file->getClientOriginalName());
 
-            // FIX: Prevent SQLite "General error 14 unable to open database file" on Windows
-            // by forcing SQLite to store temporary tables and statement journals in memory.
-            DB::unprepared('PRAGMA temp_store = MEMORY;');
+            $filename = $file->getClientOriginalName();
+            $path = $file->store('rotations');
+            
+            $renderer = app(\App\Services\ExcelHtmlRenderer::class);
+            $html = $renderer->render(\Illuminate\Support\Facades\Storage::path($path));
+            
+            $htmlPath = 'rotations/' . pathinfo($path, PATHINFO_FILENAME) . '.html';
+            \Illuminate\Support\Facades\Storage::put($htmlPath, $html);
+            
+            \App\Models\Rotation::create([
+                'title' => pathinfo($filename, PATHINFO_FILENAME),
+                'file_path' => $path,
+                'html_path' => $htmlPath,
+            ]);
 
-            // Process the excel file
-            Excel::import(new AircraftRotationImport, $file);
-
-            $msg = 'Data Aircraft Rotation berhasil diimport.';
+            $msg = 'File Rotasi berhasil diunggah dan dirender.';
             auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => $msg]));
 
             return back()->with('message', $msg);
         } catch (\Throwable $e) {
             Log::error('Import Aircraft Rotation gagal: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
-            $msg = 'Terjadi kesalahan saat mengimport data: '.$e->getMessage();
+            $msg = 'Terjadi kesalahan saat memproses data: '.$e->getMessage();
             auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => $msg]));
 
             return back()->with('error', $msg);

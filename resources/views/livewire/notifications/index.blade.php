@@ -1,5 +1,5 @@
 <div>
-    <div class="cbm-page-header">
+    <div class="cbm-page-header" style="margin-bottom: 2rem;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cbm-yellow), var(--cbm-red)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(245,158,11,0.3);">
@@ -81,6 +81,7 @@
         
         .notif-content {
             flex: 1;
+            min-width: 0; /* Ensures flex child can shrink and text can wrap */
         }
         .notif-title {
             font-size: 0.9375rem;
@@ -93,6 +94,12 @@
             color: var(--cbm-text-muted);
             line-height: 1.5;
             margin-bottom: 0.5rem;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         .notif-time {
             font-size: 0.75rem;
@@ -103,7 +110,7 @@
 
     <div class="notif-list">
         @forelse($notifications as $notif)
-        <div class="notif-card {{ !$notif->read_at ? 'unread' : '' }}" @if(!$notif->read_at) wire:click="markAsRead('{{ $notif->id }}')" style="cursor: pointer;" title="Tandai dibaca" @endif>
+        <div class="notif-card {{ !$notif->read_at ? 'unread' : '' }}" @if(!$notif->read_at) wire:click="markAsRead('{{ $notif->id }}')" style="cursor: pointer;" title="Tandai dibaca" @endif x-data>
             <div class="notif-icon icon-{{ $notif->data['type'] ?? 'info' }}">
                 @if(($notif->data['type'] ?? 'info') === 'success')
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
@@ -118,6 +125,17 @@
             <div class="notif-content">
                 <div class="notif-title">{{ $notif->data['title'] ?? 'Notifikasi' }}</div>
                 <div class="notif-message">{{ $notif->data['message'] ?? 'Tidak ada pesan.' }}</div>
+                
+                @if(strlen($notif->data['message'] ?? '') > 100)
+                <a href="#" @click.prevent.stop="Swal.fire({
+                    title: {{ json_encode($notif->data['title'] ?? 'Notifikasi') }},
+                    text: {{ json_encode($notif->data['message'] ?? '') }},
+                    icon: '{{ ($notif->data['type'] ?? 'info') === 'error' ? 'error' : (($notif->data['type'] ?? 'info') === 'success' ? 'success' : 'info') }}',
+                    confirmButtonColor: '#3b82f6',
+                    customClass: { popup: 'cbm-swal' }
+                })" style="font-size: 0.75rem; color: var(--cbm-blue); text-decoration: none; font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">Lihat Detail</a>
+                @endif
+                
                 <div class="notif-time">{{ $notif->created_at->diffForHumans() }}</div>
             </div>
             

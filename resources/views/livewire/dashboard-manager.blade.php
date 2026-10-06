@@ -233,6 +233,7 @@
 </style>
 
 @php
+    $period = $this->period ?? 'daily';
     $dja = $stats['dja'] ?? [];
     $unplanned = $stats['unplanned'] ?? [];
     $djaTotal   = $dja['total']  ?? 0;
@@ -433,6 +434,7 @@
 
 {{-- â•â•â•â• CHARTS ROW â•â•â•â• --}}
 @php
+    $period = $this->period ?? 'daily';
     $stationStats = $stats['stationStats'] ?? [];
     $stationLabels  = array_keys($stationStats);
     $stationWo      = array_map(function($s) { return $s['details']['wo']['closed'] + $s['details']['wo']['open']; }, array_values($stationStats));
@@ -620,6 +622,8 @@
 </div>
 
 {{-- â•â•â•â• BOTTOM TABLE â•â•â•â• --}}
+@include('livewire.partials.dashboard-kpi')
+
 <div class="cbm-bottom-table">
     <div class="cbm-card-header" style="margin-bottom:1.25rem;">
         <div>
@@ -650,7 +654,7 @@
                     <td style="padding: 1rem 0.5rem;"><span style="background: rgba(248, 113, 113, 0.15); color: #ef4444; padding: 0.35rem 0.75rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.75rem;">Open</span></td>
                     <td style="padding: 1rem 0.5rem; font-weight: 600; color: var(--cbm-text);">1</td>
                     <td style="padding: 1rem 0.5rem; text-align: right; color: var(--cbm-blue); font-weight: 600;">
-                        <a href="{{ route('modules.ict') }}" style="color: inherit; text-decoration: none;">Update &rarr;</a>
+                        <a href="{{ route('modules.ict-pi') }}" style="color: inherit; text-decoration: none;">Update &rarr;</a>
                     </td>
                 </tr>
                 @empty

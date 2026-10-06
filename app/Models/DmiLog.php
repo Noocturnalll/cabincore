@@ -26,6 +26,8 @@ class DmiLog extends Model
         'status',
         'remarks',
         'photo_evidence_path',
+        'is_submitted',
+        'import_source',
     ];
 
     public function dailyJobAssignment()

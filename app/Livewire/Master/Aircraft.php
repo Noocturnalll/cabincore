@@ -69,6 +69,7 @@ class Aircraft extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Aircraft berhasil ditambahkan.']);
     }
 
     public function update()
@@ -90,11 +91,13 @@ class Aircraft extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Aircraft berhasil diperbarui.']);
     }
 
     public function delete($id)
     {
         AircraftModel::findOrFail($id)->delete();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Aircraft berhasil dihapus.']);
     }
 
     public function close()

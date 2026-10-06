@@ -17,8 +17,8 @@ class EnsurePasswordIsChanged
     {
         if ($request->user() && $request->user()->is_default_password) {
             // Prevent redirect loops by checking if the user is already on the password change route
-            if (! $request->routeIs('password.force-change', 'logout')) {
-                return redirect()->route('password.force-change')
+            if (! $request->routeIs('force-password-reset', 'logout')) {
+                return redirect()->route('force-password-reset')
                     ->with('warning', 'You must change your default password to continue.');
             }
         }

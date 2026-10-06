@@ -4,7 +4,7 @@ import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
 
-Alpine.start();
+// Alpine.start();
 
 // Import SweetAlert2 globally
 import Swal from 'sweetalert2';

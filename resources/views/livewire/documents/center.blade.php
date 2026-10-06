@@ -1,6 +1,6 @@
 <div>
-    <div class="cbm-page-header">
-        <div style="display: flex; align-items: center; gap: 1rem; justify-content: space-between;">
+    <div class="cbm-page-header" style="margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; justify-content: space-between; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-cyan)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(59,130,246,0.3);">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.75rem; height: 1.75rem;">
@@ -8,12 +8,12 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="cbm-greeting" style="font-size: 1.5rem;">Document Center</h1>
+                    <h1 class="cbm-greeting" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Document Center</h1>
                     <p class="cbm-greeting-sub">Unduh template laporan, SOP, dan regulasi terbaru.</p>
                 </div>
             </div>
             
-            <div style="display: flex; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari dokumen..." style="background: var(--cbm-input-bg); border: 1px solid var(--cbm-input-border); border-radius: 0.75rem; padding: 0.5rem 1rem; color: var(--cbm-text); outline: none; font-family: inherit; font-size: 0.875rem;">
                 <select wire:model.live="category" style="background: var(--cbm-input-bg); border: 1px solid var(--cbm-input-border); border-radius: 0.75rem; padding: 0.5rem 1rem; color: var(--cbm-text); outline: none; font-family: inherit; font-size: 0.875rem;">
                     <option value="all">Semua Kategori</option>
@@ -99,29 +99,29 @@
         @forelse($documents as $doc)
         <div class="doc-card">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div class="doc-icon icon-{{ $doc['ext'] }}">
-                    {{ strtoupper($doc['ext']) }}
+                <div class="doc-icon icon-{{ $doc->file_extension }}">
+                    {{ strtoupper($doc->file_extension) }}
                 </div>
                 <span style="font-size: 0.6875rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 99px; background: var(--cbm-nav-hover); color: var(--cbm-text-sub); text-transform: uppercase;">
-                    {{ $doc['category'] }}
+                    {{ $doc->category }}
                 </span>
             </div>
             
             <div>
-                <h3 class="doc-title">{{ $doc['title'] }}</h3>
+                <h3 class="doc-title">{{ $doc->title }}</h3>
             </div>
             
             <div style="margin-top: auto;">
                 <div class="doc-meta" style="margin-bottom: 0.75rem;">
-                    <span>{{ $doc['size'] }}</span>
-                    <span>Diperbarui: {{ $doc['date'] }}</span>
+                    <span>{{ $doc->file_size }}</span>
+                    <span>Diperbarui: {{ $doc->updated_at->format('d M Y') }}</span>
                 </div>
-                <button type="button" class="doc-btn" style="width: 100%;">
+                <a href="{{ \Illuminate\Support\Facades\Storage::url($doc->file_path) }}" target="_blank" class="doc-btn" style="width: 100%;">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1rem; height: 1rem;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
                     Unduh Dokumen
-                </button>
+                </a>
             </div>
         </div>
         @empty

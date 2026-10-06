@@ -113,6 +113,6 @@ class Index extends Component
 
         return view('livewire.modules.ict-finding.index', [
             'findings' => $findings,
-        ])->layout('components.layouts.app');
+        ])->layout('components.layouts.app', ['title' => 'Findings ICT PI']);
     }
 }

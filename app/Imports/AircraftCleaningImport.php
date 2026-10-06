@@ -4,17 +4,25 @@ namespace App\Imports;
 
 use App\Models\AircraftCleaning;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Import;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class AircraftCleaningImport implements ToCollection, WithHeadingRow
+class AircraftCleaningImport extends CalculatedValueBinder implements Import, ToCollection, WithChunkReading, WithCustomValueBinder, WithHeadingRow
 {
+    public function chunkSize(): int
+    {
+        return 500;
+    }
+
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
             // Check if essential columns are present
-            if (!isset($row['aircraft_registration']) || !isset($row['date'])) {
+            if (! isset($row['aircraft_registration']) || ! isset($row['date'])) {
                 continue;
             }
 

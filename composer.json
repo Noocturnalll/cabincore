@@ -8,7 +8,7 @@
     "require": {
         "php": "^8.3",
         "flowframe/laravel-trend": "*",
-        "google/apiclient": "^1.1",
+        "google/apiclient": "^2.20",
         "guzzlehttp/guzzle": "*",
         "jenssegers/agent": "*",
         "laravel/breeze": "*",
@@ -19,6 +19,7 @@
         "league/flysystem-aws-s3-v3": "*",
         "livewire/livewire": "^4.4",
         "maatwebsite/excel": "^4.0",
+        "phpoffice/phpspreadsheet": "*",
         "power-components/livewire-powergrid": "*",
         "pusher/pusher-php-server": "^7.3",
         "sentry/sentry-laravel": "*",

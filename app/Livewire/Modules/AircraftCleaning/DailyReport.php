@@ -2,21 +2,27 @@
 
 namespace App\Livewire\Modules\AircraftCleaning;
 
+use App\Exports\AircraftCleaningExport;
+use App\Imports\AircraftCleaningImport;
 use App\Models\AircraftCleaning;
+use App\Notifications\SystemNotification;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Notifications\SystemNotification;
 
 class DailyReport extends Component
 {
     use WithFileUploads, WithPagination;
 
     public $activeTab = 'Transit'; // Tabs: Transit, General, DCI, DCE
+
     public $isImportModalOpen = false;
+
     public $file;
+
     public $search = '';
+
     public $dateFilter = '';
 
     public function setTab($tab)
@@ -31,12 +37,13 @@ class DailyReport extends Component
         ]);
 
         try {
-            Excel::import(new \App\Imports\AircraftCleaningImport, $this->file);
+            Excel::import(new AircraftCleaningImport, $this->file);
             $this->isImportModalOpen = false;
             $this->file = null;
             $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data Aircraft Cleaning berhasil diimport.']);
             auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data Aircraft Cleaning berhasil diimport.']));
         } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan saat mengimport data: '.$e->getMessage());
             $this->dispatch('notify', ['icon' => 'error', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]);
             auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]));
         }
@@ -44,13 +51,13 @@ class DailyReport extends Component
 
     public function exportExcel()
     {
-        return Excel::download(new \App\Exports\AircraftCleaningExport($this->search, $this->dateFilter, $this->activeTab), 'AircraftCleaningExport-'.date('Y-m-d').'.xlsx');
+        return Excel::download(new AircraftCleaningExport($this->search, $this->dateFilter, $this->activeTab), 'AircraftCleaningExport-'.date('Y-m-d').'.xlsx');
     }
 
     public function render()
     {
         $query = AircraftCleaning::query();
-        
+
         $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
 
         if ($this->search) {

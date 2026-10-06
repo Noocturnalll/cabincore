@@ -1,5 +1,5 @@
 <div>
-    <div class="cbm-page-header">
+    <div class="cbm-page-header" style="margin-bottom: 2rem;">
         <div style="display: flex; align-items: center; gap: 1rem;">
             <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(59,130,246,0.3);">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.75rem; height: 1.75rem;">
@@ -13,11 +13,62 @@
         </div>
     </div>
 
-    <div class="cbm-card" style="text-align: center; padding: 4rem 2rem;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width: 4rem; height: 4rem; margin: 0 auto 1rem; color: var(--cbm-text-muted); opacity: 0.5;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--cbm-text); margin-bottom: 0.5rem;">Modul Segera Hadir</h3>
-        <p style="color: var(--cbm-text-sub); font-size: 0.875rem; max-width: 400px; margin: 0 auto;">Antarmuka dan fungsionalitas untuk modul <strong>Audit Trail</strong> sedang dalam tahap pengembangan sesuai dengan desain sistem role-based.</p>
+    <div class="cbm-card" style="padding: 0; overflow: hidden; border: 1px solid var(--cbm-card-border);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                <thead>
+                    <tr style="background: var(--cbm-nav-hover); border-bottom: 1px solid var(--cbm-card-border); text-align: left;">
+                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em; width: 180px;">Waktu</th>
+                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em; width: 250px;">Pengguna</th>
+                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em; width: 150px;">Aktivitas</th>
+                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Detail</th>
+                    </tr>
+                </thead>
+                <tbody style="background: var(--cbm-card-bg);">
+                    @forelse($logs as $log)
+                    <tr style="border-bottom: 1px solid var(--cbm-card-border);">
+                        <td style="padding: 1rem 1.5rem; font-size: 0.875rem; color: var(--cbm-text-muted);">
+                            <span style="font-weight: 600; color: var(--cbm-text);">{{ $log->created_at->format('d M Y') }}</span><br>
+                            {{ $log->created_at->format('H:i:s') }}
+                        </td>
+                        <td style="padding: 1rem 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 2rem; height: 2rem; border-radius: 999px; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.75rem;">
+                                    {{ $log->user ? substr($log->user->name, 0, 1) : 'S' }}
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">{{ $log->user ? $log->user->name : 'Sistem' }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--cbm-text-muted);">{{ $log->user ? $log->user->email : 'Otomatis' }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 1rem 1.5rem;">
+                            <span style="font-size: 0.6875rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 99px; background: rgba(59,130,246,0.1); color: #3b82f6; text-transform: uppercase;">
+                                {{ $log->action }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem 1.5rem; font-size: 0.875rem; color: var(--cbm-text-muted);">
+                            {{ $log->description ?: '-' }}
+                            @if($log->ip_address)
+                            <div style="font-size: 0.6875rem; margin-top: 0.25rem; opacity: 0.7;">IP: {{ $log->ip_address }}</div>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" style="padding: 3rem 1.5rem; text-align: center; color: var(--cbm-text-muted); font-size: 0.875rem;">
+                            Belum ada riwayat aktivitas di sistem.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        
+        @if($logs->hasPages())
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--cbm-card-border); background: var(--cbm-card-bg);">
+            {{ $logs->links() }}
+        </div>
+        @endif
     </div>
 </div>

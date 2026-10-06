@@ -43,6 +43,40 @@
     background: var(--cbm-card-border);
 }
 
+/* ── Tabs Navigation ── */
+.cbm-tabs-container {
+    position: sticky; top: 70px; z-index: 40;
+    margin: 0 0 2rem 0;
+    padding: 0.5rem 0.75rem;
+    background: var(--cbm-card-bg);
+    border: 1px solid var(--cbm-card-border);
+    border-radius: 1.125rem;
+    box-shadow: var(--cbm-card-shadow);
+    display: flex; gap: 0.5rem;
+    overflow-x: auto;
+    backdrop-filter: blur(12px);
+}
+.cbm-tab-btn {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8125rem; font-weight: 700;
+    color: var(--cbm-text-muted);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s ease;
+    border: 1px solid transparent; 
+    background: transparent;
+}
+.cbm-tab-btn:hover { 
+    color: var(--cbm-text); 
+    background: rgba(148, 163, 184, 0.1); 
+}
+.cbm-tab-btn.active {
+    background: var(--cbm-nav-active);
+    color: var(--cbm-nav-active-t);
+    border: 1px solid var(--cbm-card-border);
+}
+
 /* ── Stats Grid ── */
 .cbm-stats-grid {
     display: grid;
@@ -259,6 +293,7 @@
 </style>
 
 @php
+    $period = $this->period ?? 'daily';
     $dja        = $stats['dja']       ?? [];
     $unplanned  = $stats['unplanned'] ?? [];
     $cmlData    = $stats['cml']       ?? [];
@@ -301,7 +336,54 @@
     </div>
 </div>
 
+{{-- ════ PERIOD SELECTION ════ --}}
+<div class="cbm-tabs-container" style="margin-bottom: 1rem; border-color: transparent; background: transparent; box-shadow: none; padding: 0;">
+    <button wire:click="$set('period','daily')"   class="cbm-tab-btn {{ $period==='daily'   ? 'active' : '' }}">Harian</button>
+    <button wire:click="$set('period','weekly')"  class="cbm-tab-btn {{ $period==='weekly'  ? 'active' : '' }}">Mingguan</button>
+    <button wire:click="$set('period','monthly')" class="cbm-tab-btn {{ $period==='monthly' ? 'active' : '' }}">Bulanan</button>
+</div>
+
+{{-- ════ TABS NAVIGATION ════ --}}
+<div class="cbm-tabs-container">
+    <button class="cbm-tab-btn active" data-target="sec-overview">Ringkasan</button>
+    <button class="cbm-tab-btn" data-target="sec-recurring-ns" style="color: #ef4444;">⚠️ Recurring NS</button>
+    <button class="cbm-tab-btn" data-target="sec-dja">DJA & Unplanned</button>
+    <button class="cbm-tab-btn" data-target="sec-cml-ict">CML & ICT</button>
+    <button class="cbm-tab-btn" data-target="sec-ac">Aircraft Cleaning</button>
+    <button class="cbm-tab-btn" data-target="sec-ims">Inventory & Repair</button>
+    <button class="cbm-tab-btn" data-target="sec-charts">Analitik & Grafik</button>
+    <button class="cbm-tab-btn" data-target="sec-kpi">KPI & Performance</button>
+</div>
+
 {{-- ════ MAN POWER & MAN HOURS ════ --}}
+<div id="sec-overview" class="cbm-section" style="scroll-margin-top: 130px;"></div>
+
+@if(!empty($stats['recurring_ns']) && count($stats['recurring_ns']) > 0)
+{{-- ════ SECTION: RECURRING NO SPARE (WARNING) ════ --}}
+<div id="sec-recurring-ns" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px; color: #ef4444; margin-top: 0; margin-bottom: 1rem;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+    Recurring "No Spare" Warning
+</div>
+<div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+    <div style="font-size: 0.8rem; color: #ef4444; font-weight: 600;">Terdapat NSRDI yang dirilis kembali namun sebelumnya berstatus NO SPARE dalam 30 hari terakhir.</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+        @foreach($stats['recurring_ns'] as $ns)
+            <div style="background: var(--cbm-card-bg); border: 1px solid rgba(239,68,68,0.3); border-radius: 0.75rem; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid #ef4444;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 800; font-size: 0.9rem; color: var(--cbm-text);">{{ $ns->nsrdi_number }}</span>
+                    <span style="font-size: 0.7rem; font-weight: 700; background: rgba(239,68,68,0.1); color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 99px;">{{ $ns->aircraft_registration ?? 'N/A' }}</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--cbm-text-muted); margin-bottom: 0.75rem; line-height: 1.4;"><x-text-popup :text="$ns->description" /></div>
+                <div style="font-size: 0.7rem; color: var(--cbm-text); background: rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 0.5rem;">
+                    <div style="margin-bottom: 0.25rem;"><strong>Status Lalu ({{ \Carbon\Carbon::parse($ns->past_ns_date)->format('d M') }}):</strong> <span style="color:#ef4444;">{{ $ns->past_ns_reason }}</span></div>
+                    <div><strong>Rilis Sekarang:</strong> {{ \Carbon\Carbon::parse($ns->plan_date ?? $ns->report_date)->format('d M') }} ({{ $ns->status }})</div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <div class="cbm-kpi-row" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 1rem;">
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(59,130,246,.06) 0%, rgba(99,102,241,.03) 100%);">
         <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 6px 16px rgba(59,130,246,.4);">
@@ -346,7 +428,7 @@
 </div>
 
 {{-- ════ SECTION: DJA & UNPLANNED ════ --}}
-<div class="cbm-section-title">
+<div id="sec-dja" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 16.352V17.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clip-rule="evenodd"/></svg>
     DJA & Unplanned
 </div>
@@ -440,7 +522,7 @@
 </div>
 
 {{-- ════ SECTION: CML & ICT ════ --}}
-<div class="cbm-section-title">
+<div id="sec-cml-ict" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
     CML & ICT Findings
 </div>
@@ -492,7 +574,7 @@
 </div>
 
 {{-- ════ SECTION: AIRCRAFT CLEANING ════ --}}
-<div class="cbm-section-title">
+<div id="sec-ac" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
     Aircraft Cleaning
 </div>
@@ -573,13 +655,83 @@
     </div>
 </div>
 
+<!-- ==============================================
+     INVENTORY & REPAIR
+=============================================== -->
+<div id="sec-ims" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.2rem;height:1.2rem;"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm3.75-1.5a.75.75 0 01.75.75v6a.75.75 0 01-1.5 0v-6a.75.75 0 01.75-.75z" clip-rule="evenodd" /></svg>
+    Inventory Management & Repair
+</div>
+<div class="cbm-stats-grid-6">
+    <!-- Transaksi Masuk -->
+    <div class="cbm-stat-card cbm-sc-teal">
+        <div class="cbm-stat-top">
+            <span class="cbm-stat-label">Stock In (Today)</span>
+            <div class="cbm-stat-icon cbm-si-teal">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+            </div>
+        </div>
+        <div class="cbm-stat-value">{{ number_format($stats['ims']['in']) }}</div>
+        <div class="cbm-stat-sub-row"><span class="cbm-stat-chip">Total Tx: {{ number_format($stats['ims']['transactions']) }}</span></div>
+    </div>
+    
+    <!-- Transaksi Keluar -->
+    <div class="cbm-stat-card cbm-sc-rose">
+        <div class="cbm-stat-top">
+            <span class="cbm-stat-label">Stock Out (Today)</span>
+            <div class="cbm-stat-icon cbm-si-rose">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+            </div>
+        </div>
+        <div class="cbm-stat-value">{{ number_format($stats['ims']['out']) }}</div>
+        <div class="cbm-stat-sub-row"><span class="cbm-stat-chip">Total Tx: {{ number_format($stats['ims']['transactions']) }}</span></div>
+    </div>
+
+    <!-- Repair Waiting -->
+    <div class="cbm-stat-card cbm-sc-orange">
+        <div class="cbm-stat-top">
+            <span class="cbm-stat-label">Repair Waiting</span>
+            <div class="cbm-stat-icon cbm-si-orange">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+        </div>
+        <div class="cbm-stat-value">{{ number_format($stats['ims']['repair_waiting']) }}</div>
+        <div class="cbm-stat-sub-row"><span class="cbm-stat-chip">In Queue</span></div>
+    </div>
+
+    <!-- Repair In Progress -->
+    <div class="cbm-stat-card cbm-sc-blue">
+        <div class="cbm-stat-top">
+            <span class="cbm-stat-label">Repair Process</span>
+            <div class="cbm-stat-icon cbm-si-blue">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.022h-.008v-.022z" /></svg>
+            </div>
+        </div>
+        <div class="cbm-stat-value">{{ number_format($stats['ims']['repair_progress']) }}</div>
+        <div class="cbm-stat-sub-row"><span class="cbm-stat-chip">Workshop</span></div>
+    </div>
+
+    <!-- Repair Completed -->
+    <div class="cbm-stat-card cbm-sc-green">
+        <div class="cbm-stat-top">
+            <span class="cbm-stat-label">Repair Done</span>
+            <div class="cbm-stat-icon cbm-si-green">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+        </div>
+        <div class="cbm-stat-value">{{ number_format($stats['ims']['repair_completed']) }}</div>
+        <div class="cbm-stat-sub-row"><span class="cbm-stat-chip">Today</span></div>
+    </div>
+</div>
+
 {{-- ════ CHARTS ROW 1: Station Charts ════ --}}
-<div class="cbm-section-title">
+<div id="sec-charts" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 01-.784.785l-1.192.24a1 1 0 000 1.962l1.192.24a1 1 0 01.785.785l.24 1.192a1 1 0 001.962 0l.24-1.192a1 1 0 01.785-.785l1.192-.24a1 1 0 000-1.962l-1.192-.24a1 1 0 01-.785-.785l-.24-1.192zM6.949 5.684a1 1 0 00-1.898 0l-.683 2.051a1 1 0 01-.633.633l-2.051.683a1 1 0 000 1.898l2.051.683a1 1 0 01.633.633l.683 2.051a1 1 0 001.898 0l.683-2.051a1 1 0 01.633-.633l2.051-.683a1 1 0 000-1.898l-2.051-.683a1 1 0 01-.633-.633L6.95 5.684z"/></svg>
     Analitik & Grafik
 </div>
 
 @php
+    $period = $this->period ?? 'daily';
     $stationStats   = $stats['stationStats']   ?? [];
     $stationLabels  = array_keys($stationStats);
     $stationWo      = array_map(fn($s) => ($s['details']['wo']['closed'] ?? 0) + ($s['details']['wo']['open'] ?? 0), array_values($stationStats));
@@ -811,6 +963,8 @@
     </div>
 </div>
 
+@include('livewire.partials.dashboard-kpi')
+
 {{-- ════ BOTTOM TABLE: Open ICT ════ --}}
 <div class="cbm-bottom-table" style="margin-top: 1rem;">
     <div class="cbm-card-header" style="margin-bottom:1.125rem;">
@@ -818,7 +972,7 @@
             <div class="cbm-card-title">Prioritas Laporan – ICT Finding Open</div>
             <div class="cbm-card-sub">ICT Finding berstatus Open yang butuh ditindaklanjuti segera.</div>
         </div>
-        <a href="{{ route('modules.ict') }}" style="font-size:.75rem;font-weight:700;color:var(--cbm-blue);text-decoration:none;">Lihat Semua →</a>
+        <a href="{{ route('modules.ict-pi') }}" style="font-size:.75rem;font-weight:700;color:var(--cbm-blue);text-decoration:none;">Lihat Semua →</a>
     </div>
     <div style="overflow-x:auto;">
         <table style="width:100%;text-align:left;border-collapse:collapse;font-size:.8375rem;">
@@ -844,7 +998,7 @@
                     <td style="padding: .75rem .625rem; font-size:.8rem; color:var(--cbm-text-muted);">{{ \Carbon\Carbon::parse($finding->date)->format('d M Y') }}</td>
                     <td style="padding: .75rem .625rem;"><span class="cbm-badge-open">Open</span></td>
                     <td style="padding: .75rem .625rem; text-align: right;">
-                        <a href="{{ route('modules.ict') }}" style="color: var(--cbm-blue); font-weight: 600; font-size:.8rem; text-decoration:none;">Update →</a>
+                        <a href="{{ route('modules.ict-pi') }}" style="color: var(--cbm-blue); font-weight: 600; font-size:.8rem; text-decoration:none;">Update →</a>
                     </td>
                 </tr>
                 @empty
@@ -1145,8 +1299,65 @@ function cbmInitCharts() {
     window.cbmCharts = charts;
 }
 
-document.addEventListener('DOMContentLoaded', function() { requestAnimationFrame(cbmInitCharts); });
-document.addEventListener('livewire:navigated', function() { requestAnimationFrame(cbmInitCharts); });
+function cbmInitTabs() {
+    const tabs = document.querySelectorAll('.cbm-tab-btn');
+    const sections = Array.from(document.querySelectorAll('.cbm-section'));
+    const scroller = document.querySelector('.cbm-main') || window;
+
+    if (tabs.length === 0 || sections.length === 0) return;
+
+    // Helper for manual clicks
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = tab.getAttribute('data-target');
+            const targetSec = document.getElementById(targetId);
+            if (targetSec) {
+                targetSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // Use Intersection Observer for reliable scrolling detection
+    const observerOptions = {
+        root: null, // viewport
+        rootMargin: '-150px 0px -40% 0px', // trigger when section is near top
+        threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                tabs.forEach(t => t.classList.remove('active'));
+                const activeTab = document.querySelector(`.cbm-tab-btn[data-target="${entry.target.id}"]`);
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                    // Center the tab in the scrollable container smoothly
+                    const container = activeTab.parentElement;
+                    const scrollLeft = activeTab.offsetLeft - (container.clientWidth / 2) + (activeTab.clientWidth / 2);
+                    container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                }
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(sec => observer.observe(sec));
+}
+
+document.addEventListener('DOMContentLoaded', function() { 
+    requestAnimationFrame(cbmInitCharts); 
+    cbmInitTabs();
+});
+document.addEventListener('livewire:navigated', function() { 
+    requestAnimationFrame(cbmInitCharts); 
+    cbmInitTabs();
+});
+document.addEventListener('livewire:initialized', () => {
+    Livewire.hook('morph.updated', () => {
+        requestAnimationFrame(cbmInitCharts);
+    });
+});
 </script>
 
 </div>
+

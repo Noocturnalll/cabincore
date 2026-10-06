@@ -61,7 +61,7 @@ class Airports extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
-        // You might want to dispatch a toast notification here
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Airport berhasil ditambahkan.']);
     }
 
     public function update()
@@ -83,11 +83,13 @@ class Airports extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Airport berhasil diperbarui.']);
     }
 
     public function delete($id)
     {
         Airport::findOrFail($id)->delete();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Airport berhasil dihapus.']);
     }
 
     public function close()

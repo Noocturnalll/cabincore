@@ -50,6 +50,7 @@ class Index extends Component
             $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data DMI berhasil diimport.']);
             auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data DMI berhasil diimport.']));
         } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan saat mengimport data: '.$e->getMessage());
             $this->dispatch('notify', ['icon' => 'error', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]);
             auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]));
         }

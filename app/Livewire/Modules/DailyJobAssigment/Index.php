@@ -4,10 +4,7 @@ namespace App\Livewire\Modules\DailyJobAssigment;
 
 use App\Exports\DjaExport;
 use App\Imports\DjaImport;
-use App\Models\DailyJobAssignment;
-use App\Models\DmiLog;
-use App\Models\NsrdiLog;
-use App\Models\WoLog;
+use App\Models\SyncSetting;
 use App\Notifications\SystemNotification;
 use App\Services\GoogleSheetsSyncService;
 use Livewire\Component;
@@ -34,61 +31,44 @@ class Index extends Component
             auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data DJA berhasil diimport dari Excel!']));
             $this->reset('file');
         } catch (\Exception $e) {
+            session()->flash('error', 'Gagal mengimport data: '.$e->getMessage());
             $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal mengimport data: '.$e->getMessage()]);
             auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Gagal mengimport data: '.$e->getMessage()]));
         }
     }
 
+    public function mount(): void
+    {
+        $this->sheetUrl = SyncSetting::for(SyncSetting::Dja)->sheetUrl() ?? '';
+    }
+
     public function syncNow(GoogleSheetsSyncService $syncService)
     {
         $this->validate([
-            'sheetUrl' => 'required|url',
+            'sheetUrl' => 'required|string',
         ]);
 
-        preg_match('/\/d\/([a-zA-Z0-9-_]+)/', $this->sheetUrl, $matches);
-        $spreadsheetId = $matches[1] ?? null;
+        $spreadsheetId = SyncSetting::extractSpreadsheetId($this->sheetUrl);
 
         if (! $spreadsheetId) {
-            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Invalid Google Sheet URL.']);
-            auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Invalid Google Sheet URL.']));
+            $this->notifyUser('error', 'Link / ID Google Sheet tidak valid.');
 
             return;
         }
 
-        $pulledTaskIds = $syncService->pullSync($spreadsheetId);
+        // Sheet DJA berganti tiap hari: link terakhir yang di-sync menjadi sheet aktif untuk auto-sync.
+        $setting = SyncSetting::saveSpreadsheetId(SyncSetting::Dja, $spreadsheetId);
+        $this->sheetUrl = $setting->sheetUrl();
 
-        if (is_array($pulledTaskIds)) {
-            // Ghost Task Protocol
-            $ghostTasks = DailyJobAssignment::where('source_spreadsheet_id', $spreadsheetId)
-                ->whereNotIn('task_id', $pulledTaskIds)->get();
+        $result = $syncService->syncDja($spreadsheetId);
 
-            foreach ($ghostTasks as $ghost) {
-                $logClass = null;
-                if ($ghost->job_type === 'R01/WO') {
-                    $logClass = WoLog::class;
-                } elseif ($ghost->job_type === 'DMI') {
-                    $logClass = DmiLog::class;
-                } elseif ($ghost->job_type === 'AOC/NSRDI') {
-                    $logClass = NsrdiLog::class;
-                }
+        $this->notifyUser($result['success'] ? 'success' : 'error', $result['message']);
+    }
 
-                if ($logClass) {
-                    $log = $logClass::where('dja_id', $ghost->id)->first();
-                    if ($log) {
-                        $log->dja_id = null;
-                        $log->hold_remarks = $log->hold_remarks."\n[SYSTEM] Task removed from DJA by Planner. Converted to Unplanned.";
-                        $log->save();
-                    }
-                }
-                $ghost->delete();
-            }
-
-            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Sync completed successfully!']);
-            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Sync completed successfully!']));
-        } else {
-            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Sync failed. Please check logs and credentials.']);
-            auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Sync failed. Please check logs and credentials.']));
-        }
+    protected function notifyUser(string $type, string $message): void
+    {
+        $this->dispatch('notify', ['icon' => $type, 'message' => $message]);
+        auth()->user()->notify(new SystemNotification(['type' => $type, 'title' => 'Sistem', 'message' => $message]));
     }
 
     public function exportExcel()
@@ -102,7 +82,8 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.modules.daily-job-assigment.index')
-            ->layout('components.layouts.app');
+        return view('livewire.modules.daily-job-assigment.index', [
+            'syncSetting' => SyncSetting::for(SyncSetting::Dja),
+        ])->layout('components.layouts.app');
     }
 }

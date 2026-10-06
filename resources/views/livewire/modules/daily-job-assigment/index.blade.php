@@ -102,6 +102,11 @@
                 </button>
             </div>
 
+            @include('livewire.modules.partials.sync-status', [
+                'syncSetting' => $syncSetting,
+                'hint' => 'Sheet DJA berganti tiap hari: tempel link sheet hari ini lalu klik sinkronisasi. Setelah itu sistem auto-sync tiap 15 menit.',
+            ])
+
             @if (session()->has('success'))
                 <div style="margin-top: 1.25rem; padding: 0.875rem 1rem; background: #ECFDF5; color: #065F46; border-radius: 0.5rem; font-size: 0.8125rem; border: 1px solid #A7F3D0; text-align: left; display: flex; gap: 0.5rem; align-items: flex-start;">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

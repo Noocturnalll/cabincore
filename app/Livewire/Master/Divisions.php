@@ -51,6 +51,7 @@ class Divisions extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Divisi berhasil ditambahkan.']);
     }
 
     public function update()
@@ -68,6 +69,7 @@ class Divisions extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Divisi berhasil diperbarui.']);
     }
 
     public function delete($id)
@@ -81,6 +83,7 @@ class Divisions extends Component
         }
 
         $division->delete();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Divisi berhasil dihapus.']);
     }
 
     public function close()

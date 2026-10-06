@@ -27,13 +27,64 @@
 /* ── Stat Cards Grid ── */
 .cbm-stats-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
     gap: 1.25rem;
     margin-bottom: 1.375rem;
 }
-@media (max-width: 1200px) { .cbm-stats-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px)  { .cbm-stats-grid { grid-template-columns: 1fr; } }
+.cbm-grid-6 { grid-template-columns: repeat(6, 1fr); }
+.cbm-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.cbm-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.cbm-grid-1 { grid-template-columns: 1fr; }
+@media (max-width: 1200px) {
+    .cbm-grid-6, .cbm-grid-4, .cbm-grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+    .cbm-grid-6, .cbm-grid-4, .cbm-grid-2 { grid-template-columns: 1fr; }
+}
 
+/* ── Tabs Navigation ── */
+.cbm-tabs-container {
+    position: sticky; top: 70px; z-index: 40;
+    padding: 0 1rem;
+    margin: 1.5rem 0 2rem 0;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    display: flex; gap: 1.5rem;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--cbm-card-border);
+}
+.cbm-light .cbm-tabs-container { background: rgba(255,255,255,0.85); }
+html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"] .cbm-tabs-container {
+    background: rgba(15,23,42,0.85);
+}
+.cbm-tab-btn {
+    padding: 1rem 0.25rem;
+    font-size: 0.9375rem; font-weight: 700;
+    color: var(--cbm-text-muted);
+    border-radius: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    margin-bottom: -1px;
+}
+.cbm-tab-btn:hover { color: var(--cbm-text); }
+.cbm-tab-btn.active {
+    color: #fbbf24;
+    border-bottom: 2px solid #fbbf24;
+}
+.cbm-light .cbm-tab-btn.active {
+    color: #3b82f6;
+    border-bottom: 2px solid #3b82f6;
+}
+.cbm-section-title {
+    font-size: 1.375rem; font-weight: 800; color: var(--cbm-text);
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;
+}
+.cbm-section {
+    scroll-margin-top: 150px;
+}
 .cbm-stat-card {
     position: relative;
     border-radius: 1.25rem;
@@ -237,6 +288,7 @@
 </style>
 
 @php
+    $period = $this->period ?? 'daily';
     $dja = $stats['dja'] ?? [];
     $unplanned = $stats['unplanned'] ?? [];
     $djaTotal   = $dja['total']  ?? 0;
@@ -265,8 +317,30 @@
     </div>
 </div>
 
+{{-- ════ PERIOD SELECTION ════ --}}
+<div class="cbm-tabs-container" style="margin-bottom: 1rem; border-color: transparent; background: transparent; box-shadow: none; padding: 0;">
+    <button wire:click="$set('period','daily')"   class="cbm-tab-btn {{ $period==='daily'   ? 'active' : '' }}">Harian</button>
+    <button wire:click="$set('period','weekly')"  class="cbm-tab-btn {{ $period==='weekly'  ? 'active' : '' }}">Mingguan</button>
+    <button wire:click="$set('period','monthly')" class="cbm-tab-btn {{ $period==='monthly' ? 'active' : '' }}">Bulanan</button>
+</div>
+
+{{-- ════ TABS NAVIGATION ════ --}}
+<div class="cbm-tabs-container" id="cbm-tabs-nav">
+    <button class="cbm-tab-btn active" data-target="sec-cbm">Cabin Maintenance (CBM)</button>
+    <button class="cbm-tab-btn" data-target="sec-ac">Aircraft Cleaning (AC)</button>
+    <button class="cbm-tab-btn" data-target="sec-ict">Information & Comm. Technology (ICT)</button>
+    <button class="cbm-tab-btn" data-target="sec-kpi">KPI & Performance</button>
+</div>
+
+{{-- ════ SECTION CBM ════ --}}
+<div id="sec-cbm" class="cbm-section">
+    <div class="cbm-section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.75rem;height:1.75rem;color:#3b82f6;"><path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.905 1.905 0 00-2.207.559l-1.559 2.7a1.9 1.9 0 00.15 2.261l.889 1.05c.08.093.102.247.072.39a7.514 7.514 0 000 1.063c.03.143.008.297-.072.39l-.889 1.05a1.9 1.9 0 00-.15 2.262l1.56 2.699a1.905 1.905 0 002.206.56l1.018-.38c.116-.044.284-.033.45.082.3.214.63.4.986.57.182.088.277.228.297.348l.178 1.072c.151.904.933 1.567 1.85 1.567h3.144c.917 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.348.356-.17.686-.356.986-.57.166-.115.334-.126.45-.083l1.018.381a1.905 1.905 0 002.207-.56l1.559-2.699a1.9 1.9 0 00-.15-2.262l-.889-1.05c-.08-.093-.102-.247-.072-.39a7.514 7.514 0 000-1.063c-.03-.143-.008-.297.072-.39l.889-1.05a1.9 1.9 0 00.15-2.261l-1.56-2.7a1.905 1.905 0 00-2.206-.559l-1.018.38c-.116.043-.284.032-.45-.082a7.493 7.493 0 00-.986-.57c-.182-.088-.277-.228-.297-.348l-.178-1.072a1.85 1.85 0 00-1.85-1.567h-3.144zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" clip-rule="evenodd" /></svg>
+        Cabin Maintenance (CBM)
+    </div>
+
 {{-- ════ TOP 4 STAT CARDS ════ --}}
-<div class="cbm-stats-grid">
+<div class="cbm-stats-grid cbm-grid-4">
 
     {{-- Card 1: Total DJA --}}
     <div class="cbm-stat-card cbm-sc-blue">
@@ -327,42 +401,6 @@
         <div class="cbm-stat-value">{{ $cmlClosed }}</div>
         <div class="cbm-stat-sub-row">
             <span class="cbm-stat-chip">Dokumen CML selesai</span>
-        </div>
-    </div>
-
-    {{-- Card 5: Total ICT Findings --}}
-    <div class="cbm-stat-card cbm-sc-orange">
-        <div class="cbm-stat-top">
-            <div class="cbm-stat-label">Total ICT Findings</div>
-            <div class="cbm-stat-icon" style="background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(245,158,11,.15));color:#f59e0b; width: 2.75rem; height: 2.75rem; border-radius: .875rem; display: flex; align-items: center; justify-content: center;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.5rem;height:1.5rem;"><path fill-rule="evenodd" d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" /><path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" /></svg>
-            </div>
-        </div>
-        <div class="cbm-stat-value">{{ $stats['ict']['total'] ?? 0 }}</div>
-        <div class="cbm-stat-sub-row">
-            <span class="cbm-stat-chip">Open: {{ $stats['ict']['open'] ?? 0 }}</span>
-            <span class="cbm-stat-chip">Closed: {{ $stats['ict']['closed'] ?? 0 }}</span>
-        </div>
-        
-    </div>
-
-    {{-- Card 6: Aircraft Cleaning --}}
-    <div class="cbm-stat-card cbm-sc-green">
-        <div class="cbm-stat-top">
-            <div class="cbm-stat-label">Aircraft Cleaning</div>
-            <div class="cbm-stat-icon cbm-si-green">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd" d="M12.971 1.816A5.208 5.208 0 0014.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.258 5.258 0 013.39 1.258A.75.75 0 0021 8.25V5.25a2.25 2.25 0 00-2.25-2.25h-5.25c-.2 0-.398.026-.579.066zm-1.942 0a5.258 5.258 0 00-3.39 1.258A.75.75 0 006.5 2.5V5.25a2.25 2.25 0 002.25 2.25h5.25c.2 0 .398-.026.579-.066A5.208 5.208 0 0012.971 1.816z" clip-rule="evenodd"/>
-                    <path fill-rule="evenodd" d="M14.25 8.25v-1.875a3.708 3.708 0 00-1.026-2.58A3.758 3.758 0 0115.5 5.25h1.875a3.75 3.75 0 012.125.666v2.334h-5.25zm-4.5 0h5.25v12a2.25 2.25 0 01-2.25 2.25H9A2.25 2.25 0 016.75 20.25v-12h2.25a3.708 3.708 0 001.026 2.58A3.758 3.758 0 019.5 8.25z" clip-rule="evenodd"/>
-                </svg>
-            </div>
-        </div>
-        <div class="cbm-stat-value">{{ $stats['ac']['total'] ?? 0 }}</div>
-        <div class="cbm-stat-sub-row">
-            <span class="cbm-stat-chip">GC: {{ $stats['ac']['gc_total'] ?? 0 }}</span>
-            <span class="cbm-stat-chip">DCI: {{ $stats['ac']['dci_total'] ?? 0 }}</span>
-            <span class="cbm-stat-chip">DCE: {{ $stats['ac']['dce_total'] ?? 0 }}</span>
-            <span class="cbm-stat-chip">TC: {{ $stats['ac']['tc_total'] ?? 0 }}</span>
         </div>
     </div>
 
@@ -437,6 +475,7 @@
 
 {{-- ════ CHARTS ROW ════ --}}
 @php
+    $period = $this->period ?? 'daily';
     $stationStats = $stats['stationStats'] ?? [];
     $stationLabels  = array_keys($stationStats);
     $stationWo      = array_map(function($s) { return $s['details']['wo']['closed'] + $s['details']['wo']['open']; }, array_values($stationStats));
@@ -495,31 +534,7 @@
         </div>
     </div>
 
-    {{-- Chart 1.5: AC Bar Chart &mdash; Aircraft Cleaning per Station --}}
-    <div class="cbm-chart-card">
-        <div class="cbm-card-header">
-            <div>
-                <div class="cbm-card-title">Aircraft Cleaning per Station</div>
-                <div class="cbm-card-sub">GC, DCI, DCE, dan TC per bandara</div>
-            </div>
-            <div class="cbm-legend">
-                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#22c55e;"></div>GC</div>
-                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#10b981;"></div>DCI</div>
-                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#047857;"></div>DCE</div>
-                <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#0891b2;"></div>TC</div>
-            </div>
-        </div>
-        <div class="cbm-chart-container" wire:ignore>
-            <canvas id="ac-bar-chart" height="230"
-                data-labels='@json($stationLabels)'
-                data-gc='@json($stationGc)'
-                data-dci='@json($stationDci)'
-                data-dce='@json($stationDce)'
-                data-tc='@json(array_map(function($s) { return ($s["details"]["ac_tc"]["closed"] ?? 0) + ($s["details"]["ac_tc"]["open"] ?? 0); }, array_values($stationStats)))'
-                data-details='@json($stationDetails)'>
-            </canvas>
-        </div>
-    </div>
+
 
     {{-- Chart 2: Line Chart --}}
     <div class="cbm-chart-card">
@@ -586,7 +601,6 @@
 
 </div>
 
-{{-- ════ ICT CHARTS ROW ════ --}}
 <div class="cbm-charts-row" style="grid-template-columns: repeat(2, 1fr); margin-top: 1.375rem;">
     {{-- Chart 4: ICT Daily Chart --}}
     <div class="cbm-chart-card">
@@ -624,6 +638,8 @@
 </div>
 
 {{-- ════ BOTTOM TABLE ════ --}}
+@include('livewire.partials.dashboard-kpi')
+
 <div class="cbm-bottom-table">
     <div class="cbm-card-header" style="margin-bottom:1.25rem;">
         <div>
@@ -654,7 +670,7 @@
                     <td style="padding: 1rem 0.5rem;"><span style="background: rgba(248, 113, 113, 0.15); color: #ef4444; padding: 0.35rem 0.75rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.75rem;">Open</span></td>
                     <td style="padding: 1rem 0.5rem; font-weight: 600; color: var(--cbm-text);">1</td>
                     <td style="padding: 1rem 0.5rem; text-align: right; color: var(--cbm-blue); font-weight: 600;">
-                        <a href="{{ route('modules.ict') }}" style="color: inherit; text-decoration: none;">Update &rarr;</a>
+                        <a href="{{ route('modules.ict-pi') }}" style="color: inherit; text-decoration: none;">Update &rarr;</a>
                     </td>
                 </tr>
                 @empty
@@ -682,6 +698,95 @@
                     data-values='@json(array_values($stats["nsrdi_overdue"] ?? []))'
                     data-labels='@json(array_keys($stats["nsrdi_overdue"] ?? []))'>
                 </canvas>
+            </div>
+        </div>
+    </div>
+</div> {{-- END OF CBM SECTION --}}
+
+{{-- ════ SECTION AC ════ --}}
+<div id="sec-ac" class="cbm-section" style="margin-top: 3rem;">
+    <div class="cbm-section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.75rem;height:1.75rem;color:#22c55e;">
+            <path fill-rule="evenodd" d="M12.971 1.816A5.208 5.208 0 0014.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.258 5.258 0 013.39 1.258A.75.75 0 0021 8.25V5.25a2.25 2.25 0 00-2.25-2.25h-5.25c-.2 0-.398.026-.579.066zm-1.942 0a5.258 5.258 0 00-3.39 1.258A.75.75 0 006.5 2.5V5.25a2.25 2.25 0 002.25 2.25h5.25c.2 0 .398-.026.579-.066A5.208 5.208 0 0012.971 1.816z" clip-rule="evenodd"/>
+            <path fill-rule="evenodd" d="M14.25 8.25v-1.875a3.708 3.708 0 00-1.026-2.58A3.758 3.758 0 0115.5 5.25h1.875a3.75 3.75 0 012.125.666v2.334h-5.25zm-4.5 0h5.25v12a2.25 2.25 0 01-2.25 2.25H9A2.25 2.25 0 016.75 20.25v-12h2.25a3.708 3.708 0 001.026 2.58A3.758 3.758 0 019.5 8.25z" clip-rule="evenodd"/>
+        </svg>
+        Aircraft Cleaning (AC)
+    </div>
+
+    <div class="cbm-stats-grid cbm-grid-1" style="margin-bottom: 1.5rem;">
+        {{-- Card 6: Aircraft Cleaning --}}
+        <div class="cbm-stat-card cbm-sc-green">
+            <div class="cbm-stat-top">
+                <div class="cbm-stat-label">Aircraft Cleaning</div>
+                <div class="cbm-stat-icon cbm-si-green">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.971 1.816A5.208 5.208 0 0014.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.258 5.258 0 013.39 1.258A.75.75 0 0021 8.25V5.25a2.25 2.25 0 00-2.25-2.25h-5.25c-.2 0-.398.026-.579.066zm-1.942 0a5.258 5.258 0 00-3.39 1.258A.75.75 0 006.5 2.5V5.25a2.25 2.25 0 002.25 2.25h5.25c.2 0 .398-.026.579-.066A5.208 5.208 0 0012.971 1.816z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd" d="M14.25 8.25v-1.875a3.708 3.708 0 00-1.026-2.58A3.758 3.758 0 0115.5 5.25h1.875a3.75 3.75 0 012.125.666v2.334h-5.25zm-4.5 0h5.25v12a2.25 2.25 0 01-2.25 2.25H9A2.25 2.25 0 016.75 20.25v-12h2.25a3.708 3.708 0 001.026 2.58A3.758 3.758 0 019.5 8.25z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="cbm-stat-value">{{ $stats['ac']['total'] ?? 0 }}</div>
+            <div class="cbm-stat-sub-row">
+                <span class="cbm-stat-chip">GC: {{ $stats['ac']['gc_total'] ?? 0 }}</span>
+                <span class="cbm-stat-chip">DCI: {{ $stats['ac']['dci_total'] ?? 0 }}</span>
+                <span class="cbm-stat-chip">DCE: {{ $stats['ac']['dce_total'] ?? 0 }}</span>
+                <span class="cbm-stat-chip">TC: {{ $stats['ac']['tc_total'] ?? 0 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cbm-charts-row" style="grid-template-columns: 1fr;">
+        {{-- Chart 1.5: AC Bar Chart &mdash; Aircraft Cleaning per Station --}}
+        <div class="cbm-chart-card">
+            <div class="cbm-card-header">
+                <div>
+                    <div class="cbm-card-title">Aircraft Cleaning per Station</div>
+                    <div class="cbm-card-sub">GC, DCI, DCE, dan TC per bandara</div>
+                </div>
+                <div class="cbm-legend">
+                    <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#22c55e;"></div>GC</div>
+                    <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#10b981;"></div>DCI</div>
+                    <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#047857;"></div>DCE</div>
+                    <div class="cbm-legend-item"><div class="cbm-legend-dot" style="background:#0891b2;"></div>TC</div>
+                </div>
+            </div>
+            <div class="cbm-chart-container" wire:ignore>
+                <canvas id="ac-bar-chart" height="230"
+                    data-labels='@json($stationLabels)'
+                    data-gc='@json($stationGc)'
+                    data-dci='@json($stationDci)'
+                    data-dce='@json($stationDce)'
+                    data-tc='@json(array_map(function($s) { return ($s["details"]["ac_tc"]["closed"] ?? 0) + ($s["details"]["ac_tc"]["open"] ?? 0); }, array_values($stationStats)))'
+                    data-details='@json($stationDetails)'>
+                </canvas>
+            </div>
+        </div>
+    </div>
+</div> {{-- END OF AC SECTION --}}
+
+{{-- ════ SECTION ICT ════ --}}
+<div id="sec-ict" class="cbm-section" style="margin-top: 3rem;">
+    <div class="cbm-section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.75rem;height:1.75rem;color:#f59e0b;">
+            <path fill-rule="evenodd" d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+            <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+        </svg>
+        Information & Comm. Technology (ICT)
+    </div>
+
+    <div class="cbm-stats-grid cbm-grid-1" style="margin-bottom: 1.5rem;">
+        {{-- Card 5: Total ICT Findings --}}
+        <div class="cbm-stat-card cbm-sc-orange">
+            <div class="cbm-stat-top">
+                <div class="cbm-stat-label">Total ICT Findings</div>
+                <div class="cbm-stat-icon" style="background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(245,158,11,.15));color:#f59e0b; width: 2.75rem; height: 2.75rem; border-radius: .875rem; display: flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.5rem;height:1.5rem;"><path fill-rule="evenodd" d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" /><path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" /></svg>
+                </div>
+            </div>
+            <div class="cbm-stat-value">{{ $stats['ict']['total'] ?? 0 }}</div>
+            <div class="cbm-stat-sub-row">
+                <span class="cbm-stat-chip">Open: {{ $stats['ict']['open'] ?? 0 }}</span>
+                <span class="cbm-stat-chip">Closed: {{ $stats['ict']['closed'] ?? 0 }}</span>
             </div>
         </div>
     </div>
@@ -997,8 +1102,54 @@ function cbmInitCharts() {
     window.cbmCharts = [barChart, lineChart, donutChart, ictDailyChart, ictMonthlyChart, nsrdiOverdueChart];
 }
 
-document.addEventListener('DOMContentLoaded', function() { requestAnimationFrame(cbmInitCharts); });
-document.addEventListener('livewire:navigated', function() { requestAnimationFrame(cbmInitCharts); });
+function cbmInitTabs() {
+    const tabs = document.querySelectorAll('.cbm-tab-btn');
+    const sections = document.querySelectorAll('.cbm-section');
+
+    if (tabs.length === 0 || sections.length === 0) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = tab.getAttribute('data-target');
+            const targetSec = document.getElementById(targetId);
+            if (targetSec) {
+                const y = targetSec.getBoundingClientRect().top + window.scrollY - 120;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                tabs.forEach(t => t.classList.remove('active'));
+                const activeTab = document.querySelector(`.cbm-tab-btn[data-target="${entry.target.id}"]`);
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                    // Optional: scroll the tab container so the active tab is visible
+                    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+        });
+    }, { rootMargin: '-130px 0px -50% 0px' });
+
+    sections.forEach(sec => observer.observe(sec));
+}
+
+document.addEventListener('DOMContentLoaded', function() { 
+    requestAnimationFrame(cbmInitCharts); 
+    cbmInitTabs();
+});
+document.addEventListener('livewire:navigated', function() { 
+    requestAnimationFrame(cbmInitCharts); 
+    cbmInitTabs();
+});
+document.addEventListener('livewire:initialized', () => {
+    Livewire.hook('morph.updated', () => {
+        requestAnimationFrame(cbmInitCharts);
+    });
+});
 </script>
 
 </div>

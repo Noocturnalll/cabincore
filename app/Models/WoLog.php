@@ -31,6 +31,8 @@ class WoLog extends Model
         'reason_open',
         'code_open',
         'photo_evidence_path',
+        'is_submitted',
+        'import_source',
     ];
 
     public function dailyJobAssignment()

@@ -7,18 +7,22 @@
             <div class="mod-subtitle">Catatan harian perawatan kabin pesawat — semua log tercatat di sini.</div>
         </div>
         <div class="mod-actions">
-                        <button wire:click="exportExcel" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="exportExcel">
-                <span wire:loading.remove wire:target="exportExcel" style="display:inline-flex;align-items:center;gap:.4rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:1.25rem;height:1.25rem;"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                    Export Excel
+            <button wire:click="exportExcel" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="exportExcel">
+                <span wire:loading.remove wire:target="exportExcel">
+                    <span style="display:inline-flex;align-items:center;gap:.4rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                        Export Excel
+                    </span>
                 </span>
-                <span wire:loading wire:target="exportExcel" style="display:inline-flex;align-items:center;gap:.4rem;">
-                    <svg style="width:1.25rem;height:1.25rem;animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path></svg>
-                    Mengexport...
+                <span wire:loading wire:target="exportExcel">
+                    <span style="display:inline-flex;align-items:center;gap:.4rem;">
+                        <span class="cbm-spinner"></span>
+                        Mengexport...
+                    </span>
                 </span>
             </button>
             <button wire:click="$set('isImportModalOpen', true)" class="mod-btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
                 Import CML
             </button>
         </div>
@@ -107,6 +111,7 @@
     <div class="cbm-modal-overlay"
          x-data x-init
          x-on:keydown.escape.window="$wire.set('isImportModalOpen', false)"
+         wire:click.self="$set('isImportModalOpen', false)"
          x-show="true"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 scale-95"
@@ -154,7 +159,7 @@
                         <div class="cbm-upload-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
                         </div>
-                        <div class="cbm-upload-title">Klik untuk pilih file</div>
+                        <div class="cbm-upload-title">{{ $file ? $file->getClientOriginalName() : 'Klik untuk pilih file' }}</div>
                         <div class="cbm-upload-sub">atau drag &amp; drop ke sini</div>
                         <div class="cbm-upload-badge">
                             <span>.xlsx</span><span>.xls</span><span>.csv</span>
@@ -166,10 +171,10 @@
 
                 <div class="cbm-modal-footer">
                     <button type="button" wire:click="$set('isImportModalOpen', false)" class="mod-btn-outline">Batal</button>
-                    <button type="submit" class="mod-btn-primary" wire:loading.attr="disabled">
+                    <button type="submit" class="mod-btn-primary" wire:loading.attr="disabled" wire:target="file, importCml">
                         <span wire:loading.remove wire:target="importCml">
                             <span style="display:inline-flex;align-items:center;gap:.4rem;">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:.875rem;height:.875rem;"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
                                 Upload &amp; Import
                             </span>
                         </span>

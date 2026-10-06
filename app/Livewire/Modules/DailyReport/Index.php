@@ -4,6 +4,7 @@ namespace App\Livewire\Modules\DailyReport;
 
 use App\Exports\DailyReportExport;
 use App\Imports\DailyReportImport;
+use App\Models\Airport;
 use App\Models\CmlLog;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
@@ -64,7 +65,7 @@ class Index extends Component
 
         switch ($this->activeTab) {
             case 'dja-wo':
-                $query = WoLog::whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($q) use ($activeDate) {
+                $query = WoLog::whereNotNull('dja_id')->where('is_submitted', true)->whereHas('dailyJobAssignment', function ($q) use ($activeDate) {
                     $q->whereDate('date', '<', $activeDate);
                 });
                 if ($this->search) {
@@ -85,7 +86,7 @@ class Index extends Component
                 $logs = $query->latest()->get();
                 break;
             case 'unplanned-wo':
-                $query = WoLog::whereNull('dja_id')->whereDate('date', '<', $activeDate);
+                $query = WoLog::whereNull('dja_id')->where('is_submitted', true)->whereDate('date', '<', $activeDate);
                 if ($this->search) {
                     $query->where(function ($q) {
                         $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
@@ -102,7 +103,7 @@ class Index extends Component
                 $logs = $query->orderBy('date', 'desc')->get();
                 break;
             case 'dja-dmi':
-                $query = DmiLog::whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($q) use ($activeDate) {
+                $query = DmiLog::whereNotNull('dja_id')->where('is_submitted', true)->whereHas('dailyJobAssignment', function ($q) use ($activeDate) {
                     $q->whereDate('date', '<', $activeDate);
                 });
                 if ($this->search) {
@@ -122,7 +123,7 @@ class Index extends Component
                 $logs = $query->latest()->get();
                 break;
             case 'unplanned-dmi':
-                $query = DmiLog::whereNull('dja_id')->whereDate('date', '<', $activeDate);
+                $query = DmiLog::whereNull('dja_id')->where('is_submitted', true)->whereDate('date', '<', $activeDate);
                 if ($this->search) {
                     $query->where(function ($q) {
                         $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
@@ -138,8 +139,15 @@ class Index extends Component
                 $logs = $query->orderBy('date', 'desc')->get();
                 break;
             case 'dja-nsrdi':
-                $query = NsrdiLog::whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($q) use ($activeDate) {
-                    $q->whereDate('date', '<', $activeDate);
+                // Data dari modul DJA (dja_id terisi) ATAU hasil import sheet DJA (import_source = 'dja').
+                $query = NsrdiLog::where('is_submitted', true)->where(function ($q) use ($activeDate) {
+                    $q->where(function ($x) use ($activeDate) {
+                        $x->whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
+                            $d->whereDate('date', '<', $activeDate);
+                        });
+                    })->orWhere(function ($x) use ($activeDate) {
+                        $x->whereNull('dja_id')->where('import_source', 'dja')->whereDate('plan_date', '<', $activeDate);
+                    });
                 });
                 if ($this->search) {
                     $query->where(function ($q) {
@@ -152,14 +160,23 @@ class Index extends Component
                     });
                 }
                 if ($this->dateFilter) {
-                    $query->whereHas('dailyJobAssignment', function ($q) {
-                        $q->whereDate('date', $this->dateFilter);
+                    $query->where(function ($q) {
+                        $q->whereHas('dailyJobAssignment', function ($d) {
+                            $d->whereDate('date', $this->dateFilter);
+                        })->orWhere(function ($x) {
+                            $x->whereNull('dja_id')->where('import_source', 'dja')->whereDate('plan_date', $this->dateFilter);
+                        });
                     });
                 }
-                $logs = $query->latest()->get();
+                $logs = $query->orderByRaw('COALESCE(plan_date, created_at) DESC')->orderBy('id')->get();
                 break;
             case 'unplanned-nsrdi':
-                $query = NsrdiLog::whereNull('dja_id')->whereDate('report_date', '<', $activeDate);
+                // Tanggal unplanned = plan_date (hasil import) atau report_date (data manual lama).
+                $query = NsrdiLog::whereNull('dja_id')->where('is_submitted', true)
+                    ->where(function ($q) {
+                        $q->whereNull('import_source')->orWhere('import_source', 'unplanned');
+                    })
+                    ->whereRaw('DATE(COALESCE(plan_date, report_date)) < ?', [$activeDate]);
                 if ($this->search) {
                     $query->where(function ($q) {
                         $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
@@ -171,9 +188,9 @@ class Index extends Component
                     });
                 }
                 if ($this->dateFilter) {
-                    $query->whereDate('report_date', $this->dateFilter);
+                    $query->whereRaw('DATE(COALESCE(plan_date, report_date)) = ?', [$this->dateFilter]);
                 }
-                $logs = $query->orderBy('report_date', 'desc')->get();
+                $logs = $query->orderByRaw('COALESCE(plan_date, report_date) DESC')->orderBy('id')->get();
                 break;
             case 'cml':
                 $query = CmlLog::whereDate('date', '<', $activeDate);
@@ -191,6 +208,106 @@ class Index extends Component
                     $query->whereDate('date', $this->dateFilter);
                 }
                 $logs = $query->orderBy('date', 'desc')->get();
+                break;
+            case 'summary':
+                // Base filter logic matching other tabs
+                $woQuery = WoLog::where('is_submitted', true);
+                $dmiQuery = DmiLog::where('is_submitted', true);
+                $nsrdiQuery = NsrdiLog::where('is_submitted', true);
+                $cmlQuery = CmlLog::query();
+
+                // Adjust for date boundaries (same as other tabs: before activeDate, or exact dateFilter)
+                if ($this->dateFilter) {
+                    $woQuery->where(function ($q) {
+                        $q->whereHas('dailyJobAssignment', function ($d) {
+                            $d->whereDate('date', $this->dateFilter);
+                        })
+                            ->orWhereDate('date', $this->dateFilter);
+                    });
+                    $dmiQuery->where(function ($q) {
+                        $q->whereHas('dailyJobAssignment', function ($d) {
+                            $d->whereDate('date', $this->dateFilter);
+                        })
+                            ->orWhereDate('date', $this->dateFilter);
+                    });
+                    $nsrdiQuery->where(function ($q) {
+                        $q->whereHas('dailyJobAssignment', function ($d) {
+                            $d->whereDate('date', $this->dateFilter);
+                        })
+                            ->orWhereDate('plan_date', $this->dateFilter)
+                            ->orWhereDate('report_date', $this->dateFilter);
+                    });
+                    $cmlQuery->whereDate('date', $this->dateFilter);
+                } else {
+                    $woQuery->where(function ($q) use ($activeDate) {
+                        $q->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
+                            $d->whereDate('date', '<', $activeDate);
+                        })
+                            ->orWhereDate('date', '<', $activeDate);
+                    });
+                    $dmiQuery->where(function ($q) use ($activeDate) {
+                        $q->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
+                            $d->whereDate('date', '<', $activeDate);
+                        })
+                            ->orWhereDate('date', '<', $activeDate);
+                    });
+                    $nsrdiQuery->where(function ($q) use ($activeDate) {
+                        $q->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
+                            $d->whereDate('date', '<', $activeDate);
+                        })
+                            ->orWhereDate('plan_date', '<', $activeDate)
+                            ->orWhereDate('report_date', '<', $activeDate);
+                    });
+                    $cmlQuery->whereDate('date', '<', $activeDate);
+                }
+
+                $wos = $woQuery->get();
+                $dmis = $dmiQuery->get();
+                $nsrdis = $nsrdiQuery->get();
+                $cmls = $cmlQuery->get();
+
+                $summaryData = [];
+                // Initialize with Master Data Airports
+                $airports = Airport::where('status', 'Aktif')->orderBy('kode')->pluck('kode');
+                foreach ($airports as $airportCode) {
+                    $summaryData[strtoupper($airportCode)] = ['WO' => 0, 'DMI' => 0, 'NSRDI' => 0, 'CML' => 0, 'TOTAL' => 0];
+                }
+
+                foreach ($wos as $wo) {
+                    $sta = strtoupper(trim($wo->act_station ?? $wo->plan_station ?? ''));
+                    if (isset($summaryData[$sta])) {
+                        $summaryData[$sta]['WO']++;
+                        $summaryData[$sta]['TOTAL']++;
+                    }
+                }
+                foreach ($dmis as $dmi) {
+                    $sta = strtoupper(trim($dmi->act_station ?? $dmi->plan_station ?? ''));
+                    if (isset($summaryData[$sta])) {
+                        $summaryData[$sta]['DMI']++;
+                        $summaryData[$sta]['TOTAL']++;
+                    }
+                }
+                foreach ($nsrdis as $nsrdi) {
+                    $sta = strtoupper(trim($nsrdi->act_station ?? $nsrdi->plan_station ?? ''));
+                    if (isset($summaryData[$sta])) {
+                        $summaryData[$sta]['NSRDI']++;
+                        $summaryData[$sta]['TOTAL']++;
+                    }
+                }
+                foreach ($cmls as $cml) {
+                    $sta = strtoupper(trim($cml->station ?? ''));
+                    if (isset($summaryData[$sta])) {
+                        $summaryData[$sta]['CML']++;
+                        $summaryData[$sta]['TOTAL']++;
+                    }
+                }
+
+                // Sort by TOTAL desc
+                uasort($summaryData, function ($a, $b) {
+                    return $b['TOTAL'] <=> $a['TOTAL'];
+                });
+
+                $logs = $summaryData;
                 break;
         }
 

@@ -69,6 +69,7 @@ class Categories extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Kategori berhasil ditambahkan.']);
     }
 
     public function update()
@@ -90,11 +91,13 @@ class Categories extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Kategori berhasil diperbarui.']);
     }
 
     public function delete($id)
     {
         JobCategory::findOrFail($id)->delete();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Kategori berhasil dihapus.']);
     }
 
     public function close()

@@ -32,6 +32,13 @@ class Index extends Component
             'password' => Hash::make($this->password),
         ]);
 
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'Ganti Password',
+            'description' => 'Pengguna memperbarui kata sandi profil',
+            'ip_address' => request()->ip()
+        ]);
+
         $this->reset(['current_password', 'password', 'password_confirmation']);
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Password berhasil diperbarui.']);
         auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Password berhasil diperbarui.']));

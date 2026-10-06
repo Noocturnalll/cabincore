@@ -35,7 +35,13 @@ class NsrdiExport implements FromCollection, WithHeadings
         }
 
         if ($this->dateFilter) {
-            $query->whereDate('date', $this->dateFilter); // Adjust date column if needed
+            $query->where(function ($q) {
+                $q->whereDate('plan_date', $this->dateFilter)
+                    ->orWhereDate('report_date', $this->dateFilter)
+                    ->orWhereHas('dailyJobAssignment', function ($q2) {
+                        $q2->whereDate('date', $this->dateFilter);
+                    });
+            });
         }
 
         if ($this->activeTab) {
@@ -43,29 +49,67 @@ class NsrdiExport implements FromCollection, WithHeadings
                 $query->whereNotNull('dja_id');
             } elseif ($this->activeTab === 'unplanned') {
                 $query->whereNull('dja_id');
+            } elseif ($this->activeTab === 'nospare') {
+                $query->where(function ($q) {
+                    $q->where('hold_reason_category', 'NS')
+                        ->orWhere('code_open', 'NS');
+                });
             }
         }
 
-        // We return the raw collection, omitting standard eloquent hidden fields
-        // Exclude some internal fields if necessary, or just return all
         return $query->orderBy('id', 'desc')->get()->map(function ($item) {
-            return $item->makeHidden(['id', 'dja_id', 'created_at', 'updated_at']);
+            $planDate = $item->dailyJobAssignment
+                ? $item->dailyJobAssignment->date
+                : $item->plan_date;
+
+            return [
+                'plan_date' => $planDate,
+                'work_group' => $item->work_group,
+                'aircraft_registration' => $item->aircraft_registration,
+                'nsrdi_number' => $item->nsrdi_number,
+                'description' => $item->description,
+                'category' => $item->category,
+                'report_date' => $item->report_date,
+                'due_date' => $item->due_date,
+                'part_number' => $item->part_number,
+                'part_description' => $item->part_description,
+                'defer' => $item->defer,
+                'aoc' => $item->aoc,
+                'type' => $item->type,
+                'plan_station' => $item->plan_station,
+                'remarks' => $item->remarks,
+                'status' => $item->status,
+                'close_date' => $item->close_date,
+                'act_station' => $item->act_station,
+                'code_reason' => $item->hold_reason_category ?? $item->code_open,
+                'reason_open' => $item->hold_remarks ?? $item->reason_open,
+            ];
         });
     }
 
     public function headings(): array
     {
-        // Headings will be dynamically generated based on the first row's keys, or just left generic
-        // A simple trick if dynamic headings fail is to fetch a dummy instance
-        $dummy = new NsrdiLog;
-        $hidden = ['id', 'dja_id', 'created_at', 'updated_at'];
-        $keys = array_diff(array_keys($dummy->getAttributes() ?: (\Schema::getColumnListing($dummy->getTable()))), $hidden);
-
-        $headings = [];
-        foreach ($keys as $key) {
-            $headings[] = strtoupper(str_replace('_', ' ', $key));
-        }
-
-        return $headings;
+        return [
+            'PLAN DATE',
+            'WORK GROUP',
+            'A/C REG',
+            'NSRDI NUMBER',
+            'FINDING DESCRIPTION',
+            'CATEGORY',
+            'REPORT DATE',
+            'DUE DATE',
+            'PART NUMBER',
+            'PART DESCRIPTION',
+            'DEFER',
+            'AOC',
+            'TYPE',
+            'PLAN STA',
+            'REMARKS',
+            'STATUS',
+            'CLOSE DATE',
+            'ACT STA',
+            'CODE REASON',
+            'REASON OPEN',
+        ];
     }
 }

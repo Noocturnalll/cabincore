@@ -51,6 +51,7 @@ class Positions extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Jabatan berhasil ditambahkan.']);
     }
 
     public function update()
@@ -68,6 +69,7 @@ class Positions extends Component
 
         $this->isOpen = false;
         $this->resetInputFields();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Jabatan berhasil diperbarui.']);
     }
 
     public function delete($id)
@@ -81,6 +83,7 @@ class Positions extends Component
         }
 
         $position->delete();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Jabatan berhasil dihapus.']);
     }
 
     public function close()

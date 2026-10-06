@@ -109,15 +109,24 @@ class Index extends Component
     public function render()
     {
         $query = NsrdiLog::query();
-        $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
-
-        $query->where(function ($q) use ($activeDate) {
-            $q->whereHas('dailyJobAssignment', function ($q2) use ($activeDate) {
-                $q2->whereDate('date', $activeDate);
-            })->orWhere(function ($q2) use ($activeDate) {
-                $q2->whereNull('dja_id')->whereDate('plan_date', $activeDate);
+        if ($this->dateFilter) {
+            $query->where(function ($q) {
+                $q->whereHas('dailyJobAssignment', function ($q2) {
+                    $q2->whereDate('date', $this->dateFilter);
+                })->orWhere(function ($q2) {
+                    $q2->whereNull('dja_id')->whereDate('plan_date', $this->dateFilter);
+                });
             });
-        });
+        } else {
+            $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
+            $query->where(function ($q) use ($activeDate) {
+                $q->whereHas('dailyJobAssignment', function ($q2) use ($activeDate) {
+                    $q2->whereDate('date', $activeDate);
+                })->orWhere(function ($q2) use ($activeDate) {
+                    $q2->whereNull('dja_id')->whereDate('plan_date', $activeDate);
+                });
+            });
+        }
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -135,17 +144,17 @@ class Index extends Component
             });
         }
 
-        if ($this->dateFilter) {
-            // For NSRDI, 'report_date' is typically used
-            $query->whereDate('report_date', $this->dateFilter);
-        }
-
         $query->orderBy('report_date', 'asc');
 
         if ($this->activeTab === 'planned') {
             $query->whereNotNull('dja_id');
-        } else {
+        } elseif ($this->activeTab === 'unplanned') {
             $query->whereNull('dja_id');
+        } elseif ($this->activeTab === 'nospare') {
+            $query->where(function ($q) {
+                $q->where('hold_reason_category', 'NS')
+                    ->orWhere('code_open', 'NS');
+            });
         }
 
         return view('livewire.modules.nsrdi-log.index', [

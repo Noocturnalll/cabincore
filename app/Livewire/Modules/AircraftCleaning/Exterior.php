@@ -141,6 +141,32 @@ class Exterior extends Component
         $this->resetInputFields();
     }
 
+    public $isSyncModalOpen = false;
+    public $syncUrl = '';
+
+    public function openSyncModal()
+    {
+        $this->isSyncModalOpen = true;
+    }
+
+    public function closeSyncModal()
+    {
+        $this->isSyncModalOpen = false;
+        $this->syncUrl = '';
+    }
+
+    public function syncData()
+    {
+        // Placeholder for future Google Sheets Sync Service
+        $this->validate([
+            'syncUrl' => 'required|url'
+        ]);
+
+        sleep(1); // Simulate processing time
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Fitur Sync Aircraft Cleaning (UI) berhasil. Logika mapping TBD.']);
+        $this->closeSyncModal();
+    }
+
     private function resetInputFields()
     {
         $this->cleaningId = null;

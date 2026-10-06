@@ -5,10 +5,9 @@ namespace App\Services;
 use App\Models\DailyJobAssignment;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
+use App\Models\SyncSetting;
 use App\Models\WoLog;
 use Carbon\Carbon;
-use Google\Client;
-use Google\Service\Sheets;
 use Google\Service\Sheets\ValueRange;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -16,67 +15,159 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class GoogleSheetsSyncService
 {
-    protected $client;
+    public const Tabs = ['DJA', 'DJA DMI', 'DJA NSRD', 'DJA NSRDI'];
 
     protected $service;
 
-    public function __construct()
+    protected ?string $lastError = null;
+
+    public function __construct(protected GoogleSheetsReader $reader)
     {
-        if (class_exists(Client::class)) {
-            $this->client = new Client;
-            $this->client->setApplicationName('Cabin Core DJA Sync');
-            $this->client->setScopes([Sheets::SPREADSHEETS]);
-            $this->client->setAccessType('offline');
-
-            $path = storage_path('app/google-credentials.json');
-            if (file_exists($path)) {
-                $this->client->setAuthConfig($path);
-            } else {
-                Log::warning("Google credentials not found at $path");
-            }
-
-            $this->service = new Sheets($this->client);
-        }
+        $this->service = $reader->isReady() ? $reader->service() : null;
     }
 
+    public function lastError(): ?string
+    {
+        return $this->lastError;
+    }
+
+    /**
+     * Full DJA sync for one spreadsheet: pull tasks, then apply the Ghost Task Protocol.
+     *
+     * @return array{success: bool, message: string, synced: int, removed: int}
+     */
+    public function syncDja(string $spreadsheetId): array
+    {
+        $pulledTaskIds = $this->pullSync($spreadsheetId);
+
+        if (! is_array($pulledTaskIds)) {
+            $message = 'Sync DJA gagal: '.($this->lastError ?? 'unknown error');
+            SyncSetting::recordResult(SyncSetting::Dja, false, $message);
+
+            return ['success' => false, 'message' => $message, 'synced' => 0, 'removed' => 0];
+        }
+
+        // Jika ada tab yang gagal dibaca, jangan hapus task apapun (bisa jadi task-nya ada di tab tersebut)
+        $removed = $this->lastError ? 0 : $this->removeGhostTasks($spreadsheetId, $pulledTaskIds);
+        $synced = count(array_unique($pulledTaskIds));
+        $message = "DJA tersinkron: {$synced} task, {$removed} task dihapus dari DJA.";
+
+        if ($this->lastError) {
+            $message .= ' Catatan: '.$this->lastError;
+        }
+
+        SyncSetting::recordResult(SyncSetting::Dja, true, $message);
+
+        return ['success' => true, 'message' => $message, 'synced' => $synced, 'removed' => $removed];
+    }
+
+    /**
+     * Ghost Task Protocol: tasks of this spreadsheet no longer present in the sheet are detached from their logs
+     * (converted to Unplanned) and soft deleted.
+     *
+     * @param  array<int, string>  $pulledTaskIds
+     */
+    public function removeGhostTasks(string $spreadsheetId, array $pulledTaskIds): int
+    {
+        $ghostTasks = DailyJobAssignment::where('source_spreadsheet_id', $spreadsheetId)
+            ->whereNotIn('task_id', $pulledTaskIds)
+            ->get();
+
+        foreach ($ghostTasks as $ghost) {
+            $logClass = match ($ghost->job_type) {
+                'R01/WO' => WoLog::class,
+                'DMI' => DmiLog::class,
+                'AOC/NSRDI' => NsrdiLog::class,
+                default => null,
+            };
+
+            if ($logClass) {
+                $log = $logClass::where('dja_id', $ghost->id)->first();
+                if ($log) {
+                    $log->dja_id = null;
+                    $log->hold_remarks = trim($log->hold_remarks."\n[SYSTEM] Task removed from DJA by Planner. Converted to Unplanned.");
+                    $log->save();
+                }
+            }
+
+            $ghost->delete();
+        }
+
+        return $ghostTasks->count();
+    }
+
+    /**
+     * Pulls DJA tabs into the database. Returns the synced task IDs, or false when nothing could be read.
+     *
+     * @return array<int, string>|false
+     */
     public function pullSync($spreadsheetId)
     {
-        if (! $this->service || ! file_exists(storage_path('app/google-credentials.json'))) {
+        $this->lastError = null;
+
+        if (! $this->service) {
+            $this->lastError = 'File kredensial Google (storage/app/google-credentials.json) tidak ditemukan.';
             Log::error('Cannot sync: Missing Google Credentials or SDK.');
 
             return false;
         }
 
-        $tabs = ['DJA', 'DJA DMI', 'DJA NSRD', 'DJA NSRDI'];
-        $pulledTaskIds = [];
+        try {
+            $tabs = $this->reader->resolveTabs(self::Tabs, $this->reader->tabTitles($spreadsheetId));
+        } catch (\Throwable $e) {
+            $this->lastError = 'Spreadsheet tidak bisa dibuka. Pastikan sheet sudah di-share ke email service account. Detail: '.mb_substr($e->getMessage(), 0, 300);
+            Log::error("DJA sync: cannot open spreadsheet {$spreadsheetId}: ".$e->getMessage());
 
-        foreach ($tabs as $tabName) {
+            return false;
+        }
+
+        if ($tabs === []) {
+            $this->lastError = 'Tidak ada tab DJA / DJA DMI / DJA NSRDI di spreadsheet ini.';
+
+            return false;
+        }
+
+        $pulledTaskIds = [];
+        $tabsRead = 0;
+        $failedTabs = [];
+
+        foreach ($tabs as $tabName => $actualTitle) {
             try {
-                $response = $this->service->spreadsheets_values->get($spreadsheetId, $tabName);
-                $values = $response->getValues();
+                $values = $this->reader->values($spreadsheetId, $actualTitle);
+                $tabsRead++;
 
                 if (empty($values)) {
                     continue;
                 }
 
-                $headers = array_shift($values);
+                $header = $this->reader->locateHeader($values, [
+                    'TASK ID', 'WO NUMBER', 'NO WO', 'WO', 'AC REG', 'A/C REG', 'AIRCRAFT', 'REG',
+                    'DESCRIPTION', 'WO DESCRIPTION', 'TASK CARD DESCRIPTION', 'CATEGORY', 'TRADE', 'ATA', 'STATUS',
+                ], 1);
 
-                // Header Mapping
-                $headerMap = [];
-                foreach ($headers as $index => $header) {
-                    $headerMap[strtoupper(trim($header))] = $index;
-                }
+                $headerIndex = $header['index'] ?? 0;
+                $headerMap = $header['map'] ?? [];
 
-                foreach ($values as $row) {
+                foreach (array_slice($values, $headerIndex + 1) as $row) {
                     $taskId = $this->processRow($row, $headerMap, $tabName, $spreadsheetId);
                     if ($taskId) {
                         $pulledTaskIds[] = $taskId;
                     }
                 }
-            } catch (\Exception $e) {
-                // Ignore 404s for tabs that might not exist (like if DJA NSRD is used instead of DJA NSRDI)
-                Log::warning("Skipped tab {$tabName}: ".$e->getMessage());
+            } catch (\Throwable $e) {
+                $failedTabs[] = $actualTitle;
+                Log::warning("Skipped tab {$actualTitle}: ".$e->getMessage());
             }
+        }
+
+        if ($tabsRead === 0) {
+            $this->lastError = 'Semua tab gagal dibaca: '.implode(', ', $failedTabs);
+
+            return false;
+        }
+
+        if ($failedTabs) {
+            $this->lastError = 'Tab gagal dibaca: '.implode(', ', $failedTabs);
         }
 
         return $pulledTaskIds;
@@ -210,9 +301,9 @@ class GoogleSheetsSyncService
                 $jobType = 'AOC/NSRDI';
             }
 
-            // Cegah error jika taskId kosong
+            // Task ID stabil untuk baris tanpa nomor, supaya sync berulang tidak membuat duplikat
             if (empty($taskId)) {
-                $taskId = 'AUTO-'.strtoupper(uniqid());
+                $taskId = 'AUTO-'.strtoupper(substr(md5($tabName.'|'.$acReg.'|'.$description), 0, 12));
             }
 
             $dja = DailyJobAssignment::updateOrCreate(
@@ -236,7 +327,7 @@ class GoogleSheetsSyncService
                 ]);
             } elseif ($jobType === 'AOC/NSRDI') {
                 NsrdiLog::firstOrCreate(['dja_id' => $dja->id], [
-                    'date' => $date, 'aircraft_registration' => $acReg, 'description' => $description, 'status' => 'Open',
+                    'plan_date' => $date, 'report_date' => $date, 'aircraft_registration' => $acReg, 'description' => $description, 'status' => 'Open',
                 ]);
             }
 
@@ -248,23 +339,33 @@ class GoogleSheetsSyncService
 
     public function pushSync($spreadsheetId, $tabName, $taskId, $status, $remarks)
     {
-        if (! $this->service || ! file_exists(storage_path('app/google-credentials.json'))) {
+        if (! $this->service || empty($spreadsheetId)) {
             return false;
         }
 
         try {
-            $response = $this->service->spreadsheets_values->get($spreadsheetId, $tabName);
-            $values = $response->getValues();
+            $isNsrdi = in_array($tabName, ['DJA NSRD', 'DJA NSRDI']);
+            $candidates = $isNsrdi ? ['DJA NSRDI', 'DJA NSRD'] : [$tabName];
+            $resolved = $this->reader->resolveTabs($candidates, $this->reader->tabTitles($spreadsheetId));
+            $actualTitle = reset($resolved);
+
+            if (! $actualTitle) {
+                Log::error("Push sync failed: tab {$tabName} not found in spreadsheet {$spreadsheetId}");
+
+                return false;
+            }
+
+            $values = $this->reader->values($spreadsheetId, $actualTitle);
+            $range = "'".str_replace("'", "''", $actualTitle)."'";
 
             if (empty($values)) {
                 return false;
             }
 
-            $headers = array_shift($values);
-            $headerMap = [];
-            foreach ($headers as $index => $header) {
-                $headerMap[strtoupper(trim($header))] = $index;
-            }
+            $header = $this->reader->locateHeader($values, ['TASK ID', 'WO NUMBER', 'NO WO', 'WO', 'STATUS', 'REMARKS', 'DESCRIPTION', 'AC REG', 'REG'], 1);
+            $headerIndex = $header['index'] ?? 0;
+            $headerMap = $header['map'] ?? [];
+            $values = array_slice($values, $headerIndex + 1);
 
             $getIndex = function ($possibleNames, $fallbackIndex) use ($headerMap) {
                 foreach ($possibleNames as $name) {
@@ -281,7 +382,7 @@ class GoogleSheetsSyncService
                 $taskFallback = 3;
             } elseif ($tabName === 'DJA DMI') {
                 $taskFallback = 4;
-            } elseif (in_array($tabName, ['DJA NSRD', 'DJA NSRDI'])) {
+            } elseif ($isNsrdi) {
                 $taskFallback = 3;
             }
 
@@ -299,7 +400,7 @@ class GoogleSheetsSyncService
             foreach ($values as $idx => $row) {
                 $currentTask = isset($row[$taskIdx]) ? trim($row[$taskIdx]) : '';
                 if ($currentTask === $taskId) {
-                    $targetRowIndex = $idx + 2; // +1 for header, +1 for 1-based indexing in sheets
+                    $targetRowIndex = $headerIndex + $idx + 2; // rows above header + header + 1-based indexing
                     break;
                 }
             }
@@ -318,17 +419,17 @@ class GoogleSheetsSyncService
             if ($remarksIdx === $statusIdx + 1) {
                 $cellRange = "{$statusColLetter}{$targetRowIndex}:{$remarksColLetter}{$targetRowIndex}";
                 $body = new ValueRange(['values' => [[$status, $remarks]]]);
-                $this->service->spreadsheets_values->update($spreadsheetId, "{$tabName}!{$cellRange}", $body, $params);
+                $this->service->spreadsheets_values->update($spreadsheetId, "{$range}!{$cellRange}", $body, $params);
             } else {
                 $bodyStatus = new ValueRange(['values' => [[$status]]]);
-                $this->service->spreadsheets_values->update($spreadsheetId, "{$tabName}!{$statusColLetter}{$targetRowIndex}", $bodyStatus, $params);
+                $this->service->spreadsheets_values->update($spreadsheetId, "{$range}!{$statusColLetter}{$targetRowIndex}", $bodyStatus, $params);
 
                 $bodyRemarks = new ValueRange(['values' => [[$remarks]]]);
-                $this->service->spreadsheets_values->update($spreadsheetId, "{$tabName}!{$remarksColLetter}{$targetRowIndex}", $bodyRemarks, $params);
+                $this->service->spreadsheets_values->update($spreadsheetId, "{$range}!{$remarksColLetter}{$targetRowIndex}", $bodyRemarks, $params);
             }
 
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Push sync failed: '.$e->getMessage());
 
             return false;

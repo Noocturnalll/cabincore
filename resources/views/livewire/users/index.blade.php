@@ -19,7 +19,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: var(--cbm-text-muted);">
                     <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                 </svg>
-                <input type="text" placeholder="Cari Pengguna (Nama/NIK/Email)..." class="cbm-input" style="padding-left: 2.75rem; width: 100%; height: 2.75rem; border-radius: .875rem; background: var(--cbm-bg); border: 1px solid var(--cbm-card-border); color: var(--cbm-text);" wire:model.live.debounce.300ms="search">
+                <input type="text" placeholder="Cari Pengguna (Nama/ID/Email)..." class="cbm-input" style="padding-left: 2.75rem; width: 100%; height: 2.75rem; border-radius: .875rem; background: var(--cbm-bg); border: 1px solid var(--cbm-card-border); color: var(--cbm-text);" wire:model.live.debounce.300ms="search">
             </div>
             <button type="button" wire:click.prevent="create" class="cbm-btn cbm-btn-primary" style="background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); box-shadow: 0 4px 12px rgba(59,130,246,0.3); border: none; color: white; padding: 0 1.5rem; height: 2.75rem; border-radius: .875rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1.25rem; height: 1.25rem;">
@@ -112,7 +112,7 @@
             <div style="padding: 1.5rem; overflow-y: auto;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div>
-                        <label style="display: block; font-size: .875rem; font-weight: 600; color: var(--cbm-text); margin-bottom: .5rem;">NIK</label>
+                        <label style="display: block; font-size: .875rem; font-weight: 600; color: var(--cbm-text); margin-bottom: .5rem;">ID</label>
                         <input type="text" wire:model="nik" class="cbm-input" style="width: 100%; padding: .75rem 1rem; border-radius: .75rem; background: var(--cbm-bg); border: 1px solid var(--cbm-card-border); color: var(--cbm-text);">
                         @error('nik') <span style="color: #ef4444; font-size: .75rem; margin-top: .25rem; display: block;">{{ $message }}</span> @enderror
                     </div>

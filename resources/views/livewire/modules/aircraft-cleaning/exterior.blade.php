@@ -164,4 +164,44 @@
         </div>
     </div>
     @endif
+
+    <!-- Modal Sync -->
+    @if($isSyncModalOpen)
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; backdrop-filter: blur(4px);">
+        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--cbm-card-border); display: flex; justify-content: space-between; align-items: center; background: var(--cbm-nav-hover);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; color: #3b82f6;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 1.5rem; height: 1.5rem;"><path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0013.621-4.004.75.75 0 00-.53-.919z" clip-rule="evenodd" /></svg>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--cbm-text); margin: 0;">Sync Data dari Spreadsheet</h3>
+                </div>
+                <button wire:click="closeSyncModal()" style="background: transparent; border: none; color: var(--cbm-text-muted); cursor: pointer; transition: color 0.2s;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.5rem; height: 1.5rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <form wire:submit.prevent="syncData" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+                
+                <div style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); padding: 1rem; border-radius: 0.75rem;">
+                    <p style="margin: 0; font-size: 0.875rem; color: var(--cbm-text-muted); line-height: 1.5;">Masukkan URL Google Sheets yang berisi data operasional Aircraft Cleaning. Pastikan file tersebut sudah memiliki izin akses (*Share*) agar sistem dapat membacanya.</p>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">Google Sheets URL <span style="color: #ef4444;">*</span></label>
+                    <input type="text" wire:model="syncUrl" class="cbm-input" placeholder="https://docs.google.com/spreadsheets/d/..." style="padding: 0.75rem; border-radius: 0.75rem; border: 1px solid var(--cbm-input-border); background: var(--cbm-bg); color: var(--cbm-text);">
+                    @error('syncUrl') <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span> @enderror
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <button type="button" wire:click="closeSyncModal()" class="cbm-btn" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; background: transparent; border: 1px solid var(--cbm-input-border); color: var(--cbm-text); cursor: pointer; transition: background 0.2s;">Batal</button>
+                    <button type="submit" class="cbm-btn cbm-btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg wire:loading wire:target="syncData" style="animation: spin 1s linear infinite; width: 1.25rem; height: 1.25rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Mulai Sync
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 </div>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Cabin Core Dashboard - Batam Aero Technic">
     <title>{{ $title ?? 'Dashboard' }} — Cabin Core - Batam Aero Technic</title>
     <link rel="icon" type="image/png" href="{{ asset('images/lion-logo.png') }}">
@@ -511,13 +512,21 @@
     }
     .cbm-icon-btn:hover { background: var(--cbm-nav-hover); color: var(--cbm-text); }
     .cbm-icon-btn svg { width: 1.125rem; height: 1.125rem; }
-    .cbm-notif-dot {
+    .cbm-notif-badge {
         position: absolute;
-        top: .375rem; right: .375rem;
-        width: .5rem; height: .5rem;
-        background: #f87171;
-        border-radius: 50%;
-        border: 1.5px solid var(--cbm-topbar-bg);
+        top: -0.125rem; right: -0.125rem;
+        min-width: 1.125rem;
+        height: 1.125rem;
+        padding: 0 0.25rem;
+        background: #f43f5e;
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--cbm-topbar-bg);
     }
 
     /* Topbar user */
@@ -652,8 +661,9 @@
     .mod-actions { display: flex; gap: .5rem; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
 
     /* ── Buttons ── */
-    .mod-btn-outline {
-        display: inline-flex; align-items: center; gap: .4rem;
+    .mod-btn-outline,
+    .mod-btn-secondary {
+        display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
         background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border);
         color: var(--cbm-text-muted); padding: .5625rem 1rem;
         border-radius: .75rem; font-size: .8125rem; font-weight: 700;
@@ -661,17 +671,27 @@
         transition: all .2s cubic-bezier(.4,0,.2,1);
         white-space: nowrap;
     }
-    .mod-btn-outline:hover {
+    .mod-btn-outline:hover,
+    .mod-btn-secondary:hover {
         border-color: var(--cbm-blue); color: var(--cbm-blue);
         background: rgba(59,130,246,.06);
         transform: translateY(-1px);
         box-shadow: 0 4px 12px var(--cbm-blue-glow);
     }
-    .mod-btn-outline:active { transform: translateY(0); box-shadow: none; }
-    .mod-btn-outline svg { width: .875rem; height: .875rem; flex-shrink: 0; }
+    .mod-btn-outline:active,
+    .mod-btn-secondary:active { transform: translateY(0); box-shadow: none; }
+    .mod-btn-outline:disabled,
+    .mod-btn-secondary:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    .mod-btn-outline svg,
+    .mod-btn-secondary svg { width: 1rem; height: 1rem; flex-shrink: 0; }
 
     .mod-btn-primary {
-        display: inline-flex; align-items: center; gap: .4rem;
+        display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
         background: linear-gradient(135deg, #3b82f6, #6366f1);
         color: white; border: none;
         padding: .5625rem 1.125rem; border-radius: .75rem;
@@ -682,8 +702,8 @@
     }
     .mod-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(59,130,246,.5); }
     .mod-btn-primary:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(59,130,246,.35); }
-    .mod-btn-primary:disabled { opacity: .7; cursor: not-allowed; transform: none; }
-    .mod-btn-primary svg { width: .875rem; height: .875rem; flex-shrink: 0; }
+    .mod-btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .mod-btn-primary svg { width: 1rem; height: 1rem; flex-shrink: 0; }
 
     /* ── Card ── */
     .mod-card {
@@ -1064,8 +1084,8 @@
     .cbm-spinner {
         display: inline-block;
         width: .875rem; height: .875rem;
-        border: 2px solid rgba(255,255,255,.3);
-        border-top-color: white;
+        border: 2px solid rgba(150,150,150,.3);
+        border-top-color: currentColor;
         border-radius: 50%;
         animation: cbm-spin .65s linear infinite;
         flex-shrink: 0;
@@ -1096,6 +1116,8 @@
     [x-cloak] { display: none !important; }
 
     </style>
+    <!-- SweetAlert2 for popups -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 <div id="cbm-app" class="cbm-app">
@@ -1145,19 +1167,30 @@
                 </button>
 
                 {{-- Notifications --}}
+                @php
+                    $unreadNotifCount = auth()->check() ? auth()->user()->unreadNotifications->count() : 0;
+                @endphp
                 <div class="cbm-dropdown-container" x-data="{ open: false }">
-                    <button class="cbm-icon-btn" @click="open = !open" @click.outside="open = false">
+                    <button class="cbm-icon-btn" @click="open = !open" @click.outside="open = false" style="position: relative;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.25 9a6.75 6.75 0 0113.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 01-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 11-7.48 0 24.585 24.585 0 01-4.831-1.244.75.75 0 01-.298-1.205A8.217 8.217 0 005.25 9.75V9zm4.502 8.9a2.25 2.25 0 104.496 0 25.057 25.057 0 01-4.496 0z" clip-rule="evenodd" />
                         </svg>
-                        <span class="cbm-notif-dot"></span>
+                        @if($unreadNotifCount > 0)
+                        <span class="cbm-notif-badge">{{ $unreadNotifCount > 99 ? '99+' : $unreadNotifCount }}</span>
+                        @endif
                     </button>
                     <div class="cbm-dropdown-menu" x-show="open" style="display: none; right: -2rem;" x-transition>
                         <div class="cbm-dropdown-header">Notifikasi Terbaru</div>
                         <div class="cbm-dropdown-divider"></div>
+                        @if($unreadNotifCount > 0)
+                        <div style="padding: 1rem 0.5rem; text-align: center; color: var(--cbm-text); font-size: 0.8125rem;">
+                            Anda memiliki <strong>{{ $unreadNotifCount }}</strong> notifikasi baru.
+                        </div>
+                        @else
                         <div style="padding: 1rem 0.5rem; text-align: center; color: var(--cbm-text-muted); font-size: 0.8125rem;">
                             Tidak ada notifikasi baru
                         </div>
+                        @endif
                         <div class="cbm-dropdown-divider"></div>
                         <a href="{{ route('notifications.index') }}" class="cbm-dropdown-item" style="justify-content: center; color: var(--cbm-blue);">
                             Lihat Semua Notifikasi

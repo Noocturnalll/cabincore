@@ -114,25 +114,24 @@
         }
     </style>
 
-    <div class="mod-card" style="padding: 1.5rem 2rem;">
+    <div class="mod-card" style="padding: 1.5rem 2rem;" x-data="{ activeTab: 'info' }">
         
         {{-- Navigation Tabs --}}
         <div class="profile-nav">
-            <button type="button" wire:click="setTab('info')" class="profile-tab {{ $activeTab === 'info' ? 'active' : '' }}">Informasi Akun</button>
-            <button type="button" wire:click="setTab('security')" class="profile-tab {{ $activeTab === 'security' ? 'active' : '' }}">Keamanan</button>
-            <button type="button" wire:click="setTab('audit')" class="profile-tab {{ $activeTab === 'audit' ? 'active' : '' }}">Aktivitas Saya</button>
-            <button type="button" wire:click="setTab('faq')" class="profile-tab {{ $activeTab === 'faq' ? 'active' : '' }}">FAQ</button>
+            <button type="button" @click="activeTab = 'info'" class="profile-tab" :class="activeTab === 'info' ? 'active' : ''">Informasi Akun</button>
+            <button type="button" @click="activeTab = 'security'" class="profile-tab" :class="activeTab === 'security' ? 'active' : ''">Keamanan</button>
+            <button type="button" @click="activeTab = 'audit'" class="profile-tab" :class="activeTab === 'audit' ? 'active' : ''">Aktivitas Saya</button>
+            <button type="button" @click="activeTab = 'faq'" class="profile-tab" :class="activeTab === 'faq' ? 'active' : ''">FAQ</button>
         </div>
 
         {{-- Tab: Informasi Akun --}}
-        @if($activeTab === 'info')
-        <div style="max-width: 500px;">
+        <div x-show="activeTab === 'info'" style="max-width: 500px; display: none;">
             <div class="cbm-input-group">
                 <label class="cbm-label">Nama Lengkap</label>
                 <input type="text" class="cbm-input" value="{{ $user->name }}" disabled>
             </div>
             <div class="cbm-input-group">
-                <label class="cbm-label">ID Karyawan (NIK)</label>
+                <label class="cbm-label">ID Karyawan</label>
                 <input type="text" class="cbm-input" value="{{ $user->nik }}" disabled>
             </div>
             <div class="cbm-input-group">
@@ -143,11 +142,9 @@
                 * Informasi akun dikelola secara terpusat oleh Super Admin. Jika terdapat kesalahan data, harap hubungi administrator.
             </p>
         </div>
-        @endif
 
         {{-- Tab: Keamanan (Ganti Password) --}}
-        @if($activeTab === 'security')
-        <div style="max-width: 500px;">
+        <div x-show="activeTab === 'security'" style="max-width: 500px; display: none;">
             @if (session()->has('success'))
                 <div style="background: rgba(74,222,128,0.15); color: #4ade80; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; font-weight: 600;">
                     {{ session('success') }}
@@ -173,11 +170,9 @@
                 <button type="submit" class="cbm-btn">Simpan Password</button>
             </form>
         </div>
-        @endif
 
         {{-- Tab: Aktivitas Saya (Audit Trail) --}}
-        @if($activeTab === 'audit')
-        <div>
+        <div x-show="activeTab === 'audit'" style="display: none;">
             <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">Riwayat Aktivitas Terakhir</h3>
             <div class="cbm-table-wrap">
                 <table class="cbm-table">
@@ -202,10 +197,9 @@
                 </table>
             </div>
         </div>
-        @endif
 
         {{-- Tab: FAQ --}}
-        @if($activeTab === 'faq')
+        <div x-show="activeTab === 'faq'" style="display: none;">
         <div style="max-width: 700px;" x-data="{ selected: 1 }">
             <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1.5rem;">Pertanyaan yang Sering Diajukan (FAQ)</h3>
             
@@ -233,17 +227,17 @@
 
             <div class="faq-item">
                 <div class="faq-question" @click="selected !== 3 ? selected = 3 : selected = null">
-                    <span>Apakah saya bisa mengganti NIK atau nama saya sendiri?</span>
+                    <span>Apakah saya bisa mengganti ID atau nama saya sendiri?</span>
                     <svg x-show="selected !== 3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                     <svg x-show="selected === 3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="display:none; width: 1.25rem; height: 1.25rem; flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
                 </div>
                 <div class="faq-answer" x-show="selected === 3" x-collapse style="display:none;">
-                    Tidak bisa. Informasi profil personal seperti NIK dan Nama Lengkap dikunci demi integritas data dan riwayat audit. Anda hanya diizinkan untuk mengubah password Anda.
+                    Tidak bisa. Informasi profil personal seperti ID dan Nama Lengkap dikunci demi integritas data dan riwayat audit. Anda hanya diizinkan untuk mengubah password Anda.
                 </div>
             </div>
             
         </div>
-        @endif
+        </div>
 
     </div>
 </div>

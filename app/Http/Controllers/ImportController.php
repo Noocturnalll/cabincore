@@ -81,6 +81,9 @@ class ImportController extends Controller
         ]);
 
         try {
+            // Proses file Excel ke HTML memakan waktu lama untuk file besar (misal 12 sheet)
+            set_time_limit(300);
+            
             Log::info('Importing Aircraft Rotation file: '.$file->getClientOriginalName());
 
             $filename = $file->getClientOriginalName();

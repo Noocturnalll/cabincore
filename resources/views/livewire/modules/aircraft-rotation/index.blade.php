@@ -110,7 +110,7 @@
                     </div>
                     <span style="font-size: 0.75rem; color: var(--cbm-text-muted); font-family: monospace; margin-left: 0.5rem;">Rotations Viewer</span>
                 </div>
-                <iframe name="rotation_frame" src="{{ route('rotations.view', $rotations->first()->id) }}" style="width:100%; height:calc(100% - 2.5rem); border:0; background: var(--cbm-bg);"></iframe>
+                <iframe name="rotation_frame" src="{{ route('rotations.view', $rotations->first()->id) }}" style="width:100%; height:calc(100% - 2.5rem); border:0; background: #ffffff;"></iframe>
             </div>
         </div>
     @else

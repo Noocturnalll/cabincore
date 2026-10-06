@@ -16,7 +16,7 @@
             position: relative;
             background: var(--cbm-bg);
             padding: 0.35rem;
-            border-radius: 999px;
+            border-radius: 62.4375rem;
             border: 1px solid var(--cbm-card-border);
             display: inline-flex;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
@@ -26,19 +26,19 @@
             top: 0.35rem;
             bottom: 0.35rem;
             left: 0.35rem;
-            border-radius: 999px;
+            border-radius: 62.4375rem;
             background: linear-gradient(135deg, #ec4899, #be185d);
-            box-shadow: 0 4px 12px rgba(236,72,153,0.3);
+            box-shadow: 0 4px 0.75rem rgba(236,72,153,0.3);
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            width: 100px;
+            width: 6.25rem;
             z-index: 0;
         }
         .toggle-btn {
             position: relative;
             padding: 0.5rem 0;
-            width: 100px;
+            width: 6.25rem;
             text-align: center;
-            border-radius: 999px;
+            border-radius: 62.4375rem;
             font-size: 0.875rem;
             font-weight: 700;
             cursor: pointer;
@@ -73,7 +73,7 @@
             background: rgba(var(--kpi-r), var(--kpi-g), var(--kpi-b), 0.12);
             border: 1px solid rgba(var(--kpi-r), var(--kpi-g), var(--kpi-b), 0.25);
         }
-        .kpi-box:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+        .kpi-box:hover { transform: translateY(-4px); box-shadow: 0 0.625rem 0.9375rem -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
         .kpi-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; z-index: 1; }
         .kpi-val { font-size: 2rem; font-weight: 800; color: var(--cbm-text); line-height: 1.1; z-index: 1; }
         .kpi-sub { font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem; z-index: 1; }
@@ -83,13 +83,13 @@
         .station-table th { padding: 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--cbm-text-muted); border-bottom: 1px solid var(--cbm-card-border); background: var(--cbm-bg); }
         .station-table td { padding: 1rem; border-bottom: 1px solid var(--cbm-card-border); color: var(--cbm-text); vertical-align: middle; }
         .station-table tr:last-child td { border-bottom: none; }
-        .progress-bar { height: 0.5rem; border-radius: 999px; background: var(--cbm-bg); overflow: hidden; display: flex; width: 100px; margin-top: 0.25rem; }
-        .progress-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+        .progress-bar { height: 0.5rem; border-radius: 62.4375rem; background: var(--cbm-bg); overflow: hidden; display: flex; width: 6.25rem; margin-top: 0.25rem; }
+        .progress-fill { height: 100%; border-radius: 62.4375rem; transition: width 0.5s ease; }
     </style>
 
     <div class="cbm-page-header no-print" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
         <div style="display: flex; align-items: center; gap: 1.25rem;">
-            <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #ec4899, #be185d); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(236,72,153,0.3);">
+            <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #ec4899, #be185d); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 1rem rgba(236,72,153,0.3);">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1.75rem;height:1.75rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>
             </div>
             <div>
@@ -322,9 +322,9 @@
                     <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--cbm-text); margin: 0;">Station Performance & Analytics (Target 100%)</h3>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--cbm-text-muted); display: flex; gap: 1rem; align-items: center;">
-                    <span style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 999px; background: #22c55e;"></div> > 80% Baik</span>
-                    <span style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 999px; background: #f59e0b;"></div> 50-80% Waspada</span>
-                    <span style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 999px; background: #ef4444;"></div> < 50% Kritis</span>
+                    <span style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 62.4375rem; background: #22c55e;"></div> > 80% Baik</span>
+                    <span style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 62.4375rem; background: #f59e0b;"></div> 50-80% Waspada</span>
+                    <span style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 0.5rem; height: 0.5rem; border-radius: 62.4375rem; background: #ef4444;"></div> < 50% Kritis</span>
                 </div>
             </div>
             
@@ -427,13 +427,13 @@
                     <div style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0 1.25rem;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">
                             <span style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span style="background: rgba(236,72,153,0.1); color: #ec4899; width: 1.5rem; height: 1.5rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">{{ $index + 1 }}</span>
+                                <span style="background: rgba(236,72,153,0.1); color: #ec4899; width: 1.5rem; height: 1.5rem; border-radius: 62.4375rem; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">{{ $index + 1 }}</span>
                                 {{ $issue['wo_category'] ?? 'Uncategorized' }}
                             </span>
                             <span>{{ $issue['total'] }} Laporan</span>
                         </div>
-                        <div class="progress-bar" style="width: 100%; height: 0.5rem; background: var(--cbm-card-border); border-radius: 999px;">
-                            <div class="progress-fill" style="width: {{ ($issue['total'] / $maxTotal) * 100 }}%; background: linear-gradient(90deg, #ec4899, #be185d); border-radius: 999px;"></div>
+                        <div class="progress-bar" style="width: 100%; height: 0.5rem; background: var(--cbm-card-border); border-radius: 62.4375rem;">
+                            <div class="progress-fill" style="width: {{ ($issue['total'] / $maxTotal) * 100 }}%; background: linear-gradient(90deg, #ec4899, #be185d); border-radius: 62.4375rem;"></div>
                         </div>
                     </div>
                 @endforeach

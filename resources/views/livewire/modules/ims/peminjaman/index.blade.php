@@ -41,7 +41,7 @@
                             <tr>
                                 <th>Barang</th>
                                 <th>Lokasi Sumber</th>
-                                <th style="width: 100px;">Qty</th>
+                                <th style="width: 6.25rem;">Qty</th>
                                 <th style="text-align: right;">Aksi</th>
                             </tr>
                         </thead>
@@ -59,7 +59,7 @@
                                     <td>
                                         <input type="number" min="1" max="{{ $item['available'] ?? 1 }}" value="{{ $item['qty'] }}" 
                                             wire:change="updateQty({{ $id }}, $event.target.value)"
-                                            class="mod-search-input" style="width: 80px; padding: 0.25rem 0.5rem; text-align: center;">
+                                            class="mod-search-input" style="width: 5rem; padding: 0.25rem 0.5rem; text-align: center;">
                                     </td>
                                     <td style="text-align: right;">
                                         <button wire:click="removeItem({{ $id }})" style="color: #ef4444; background: none; border: none; cursor: pointer;">
@@ -150,7 +150,7 @@
                             <td class="mod-aircraft-name">{{ $trx->code }}</td>
                             <td>{{ $trx->requested_at->format('d M Y H:i') }}</td>
                             <td>
-                                <div style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $trx->purpose_description }}</div>
+                                <div style="max-width: 18.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $trx->purpose_description }}</div>
                                 <div class="mod-aircraft-sub">{{ $trx->items->count() }} item</div>
                             </td>
                             <td>

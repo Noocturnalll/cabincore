@@ -124,16 +124,19 @@
     /* ═══════════════════════════════════════════════════
        DARK MODE (default) — Rich dark navy, clear contrast
     ═══════════════════════════════════════════════════ */
+    html {
+        font-size: clamp(12px, 0.35vw + 9.5px, 16px);
+    }
     :root {
         /* Backgrounds — layered so content always pops */
         --cbm-bg:            #0f1623;   /* page background — deep navy */
         --cbm-sidebar-bg:    #141b2d;   /* sidebar — slightly lighter than page bg */
-        --cbm-sidebar-w:     260px;
+        --cbm-sidebar-w:     16rem;
         --cbm-topbar-bg:     rgba(20,27,45,.95); /* topbar — near-solid for clarity */
         --cbm-card-bg:       #1a2238;   /* cards — clearly distinct from page bg */
         --cbm-card-border:   rgba(99,130,180,.18);
         --cbm-border:        rgba(148,163,200,.15);
-        --cbm-card-shadow:   0 4px 24px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+        --cbm-card-shadow:   0 4px 1.5rem rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
 
         /* Text — strong hierarchy, nothing too faded */
         --cbm-text:          #e8edf5;   /* primary — off-white, easier on eyes than pure white */
@@ -183,7 +186,7 @@
         --cbm-card-bg:       #ffffff;   /* cards — pure white, pops from f0f4f8 bg */
         --cbm-card-border:   rgba(100,116,139,.18);
         --cbm-border:        #cbd5e1;   /* clear visible borders */
-        --cbm-card-shadow:   0 2px 12px rgba(30,58,138,.08), 0 1px 3px rgba(0,0,0,.06);
+        --cbm-card-shadow:   0 2px 0.75rem rgba(30,58,138,.08), 0 1px 3px rgba(0,0,0,.06);
 
         /* Text — strong, no ambiguity */
         --cbm-text:          #1e293b;   /* primary — very dark blue-grey, not pure black */
@@ -266,7 +269,7 @@
     @media (max-width: 1023px) {
         .cbm-sidebar {
             transform: translateX(-100%);
-            box-shadow: 4px 0 40px rgba(0,0,0,.3);
+            box-shadow: 4px 0 2.5rem rgba(0,0,0,.3);
         }
         .cbm-sidebar.cbm-open { transform: translateX(0); }
     }
@@ -287,7 +290,7 @@
         display: flex; align-items: center; justify-content: center;
         color: white;
         flex-shrink: 0;
-        box-shadow: 0 4px 12px var(--cbm-blue-glow);
+        box-shadow: 0 4px 0.75rem var(--cbm-blue-glow);
     }
     .cbm-sidebar-logo svg { width: 1.125rem; height: 1.125rem; }
     .cbm-sidebar-brand { line-height: 1.2; }
@@ -364,7 +367,7 @@
         font-size: .6875rem;
         font-weight: 700;
         padding: .1rem .4rem;
-        border-radius: 999px;
+        border-radius: 62.4375rem;
         line-height: 1.4;
     }
 
@@ -520,7 +523,7 @@
         padding: 0 0.25rem;
         background: #f43f5e;
         color: white;
-        border-radius: 9999px;
+        border-radius: 624.9375rem;
         font-size: 0.65rem;
         font-weight: 700;
         display: flex;
@@ -622,7 +625,7 @@
     .cbm-content {
         flex: 1;
         padding: 1.75rem 1.5rem 2.5rem;
-        max-width: 1600px;
+        max-width: 100%;
         width: 100%;
         position: relative;
         z-index: 10;
@@ -642,7 +645,7 @@
     .mod-title-accent {
         display: inline-block;
         font-size: .6875rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-        padding: .2rem .625rem; border-radius: 999px; margin-bottom: .5rem;
+        padding: .2rem .625rem; border-radius: 62.4375rem; margin-bottom: .5rem;
     }
     .mod-title-accent-blue   { background: rgba(59,130,246,.15);  color: #60a5fa;  border: 1px solid rgba(59,130,246,.25); }
     .mod-title-accent-green  { background: rgba(52,211,153,.15);  color: #34d399;  border: 1px solid rgba(52,211,153,.25); }
@@ -676,7 +679,7 @@
         border-color: var(--cbm-blue); color: var(--cbm-blue);
         background: rgba(59,130,246,.06);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px var(--cbm-blue-glow);
+        box-shadow: 0 4px 0.75rem var(--cbm-blue-glow);
     }
     .mod-btn-outline:active,
     .mod-btn-secondary:active { transform: translateY(0); box-shadow: none; }
@@ -696,11 +699,11 @@
         color: white; border: none;
         padding: .5625rem 1.125rem; border-radius: .75rem;
         font-size: .8125rem; font-weight: 700; cursor: pointer; font-family: inherit;
-        box-shadow: 0 4px 14px rgba(59,130,246,.4);
+        box-shadow: 0 4px 0.875rem rgba(59,130,246,.4);
         transition: all .2s cubic-bezier(.4,0,.2,1);
         white-space: nowrap;
     }
-    .mod-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(59,130,246,.5); }
+    .mod-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 1.375rem rgba(59,130,246,.5); }
     .mod-btn-primary:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(59,130,246,.35); }
     .mod-btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
     .mod-btn-primary svg { width: 1rem; height: 1rem; flex-shrink: 0; }
@@ -716,8 +719,8 @@
         -webkit-backdrop-filter: blur(16px);
         transition: box-shadow .25s ease;
     }
-    .mod-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.3); }
-    .cbm-light .mod-card:hover { box-shadow: 0 6px 24px rgba(30,58,138,.14); }
+    .mod-card:hover { box-shadow: 0 8px 2rem rgba(0,0,0,.3); }
+    .cbm-light .mod-card:hover { box-shadow: 0 6px 1.5rem rgba(30,58,138,.14); }
 
     /* Colored top-border accent per module */
     .mod-card-accent-blue   { border-top: 2px solid rgba(59,130,246,.7); }
@@ -755,13 +758,13 @@
     .mod-record-count {
         font-size: .75rem; font-weight: 700; color: var(--cbm-text-muted);
         background: var(--cbm-input-bg); border: 1px solid var(--cbm-input-border);
-        padding: .35rem .75rem; border-radius: 999px;
+        padding: .35rem .75rem; border-radius: 62.4375rem;
         white-space: nowrap;
     }
 
     /* ── Table ── */
     .mod-table-wrap { overflow-x: auto; }
-    .mod-table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: .8125rem; }
+    .mod-table { width: 100%; border-collapse: collapse; min-width: 0; font-size: .8125rem; }
     .mod-table thead tr { background: var(--cbm-nav-hover); border-bottom: 2px solid var(--cbm-divider); }
     .mod-table thead th {
         padding: .75rem .875rem; font-size: .65rem; font-weight: 800;
@@ -785,13 +788,13 @@
     .mod-badge-closed {
         display: inline-flex; align-items: center; gap: .3rem;
         background: rgba(74,222,128,.12); color: #4ade80;
-        padding: .25rem .7rem; border-radius: 999px; font-size: .7rem; font-weight: 800;
+        padding: .25rem .7rem; border-radius: 62.4375rem; font-size: .7rem; font-weight: 800;
         white-space: nowrap; border: 1px solid rgba(74,222,128,.25);
     }
     .mod-badge-open {
         display: inline-flex; align-items: center; gap: .3rem;
         background: rgba(248,113,113,.12); color: #f87171;
-        padding: .25rem .7rem; border-radius: 999px; font-size: .7rem; font-weight: 800;
+        padding: .25rem .7rem; border-radius: 62.4375rem; font-size: .7rem; font-weight: 800;
         white-space: nowrap; border: 1px solid rgba(248,113,113,.25);
     }
 
@@ -901,10 +904,10 @@
     .cbm-modal-panel {
         background: var(--cbm-sidebar-bg);
         border: 1px solid var(--cbm-card-border);
-        box-shadow: 0 25px 60px rgba(0,0,0,.45);
+        box-shadow: 0 1.5625rem 3.75rem rgba(0,0,0,.45);
         border-radius: 1.25rem;
         width: 100%;
-        max-width: 480px;
+        max-width: 30rem;
         overflow: hidden;
     }
     .cbm-modal-header {
@@ -985,7 +988,7 @@
         background: var(--cbm-sidebar-bg);
         color: var(--cbm-text);
     }
-    .cbm-form-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    .cbm-form-textarea { resize: vertical; min-height: 5rem; line-height: 1.5; }
     .cbm-select-wrap { position: relative; }
     .cbm-select-wrap::after {
         content: '';
@@ -1053,7 +1056,7 @@
         font-size: .6875rem; font-weight: 700;
         background: var(--cbm-input-bg);
         color: var(--cbm-text-muted);
-        padding: .15rem .5rem; border-radius: 999px;
+        padding: .15rem .5rem; border-radius: 62.4375rem;
         border: 1px solid var(--cbm-input-border);
     }
 

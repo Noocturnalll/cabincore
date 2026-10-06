@@ -7,14 +7,14 @@
         </div>
     </div>
 
-    <div class="mod-card mod-card-accent-purple" style="padding: 24px;">
-        <div class="mod-tabs" style="display: flex; gap: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; padding-bottom: 10px;">
+    <div class="mod-card mod-card-accent-purple" style="padding: 1.5rem;">
+        <div class="mod-tabs" style="display: flex; gap: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.25rem; padding-bottom: 0.625rem;">
             <button wire:click="setTab('stations')" style="background:none; border:none; color: {{ $activeTab == 'stations' ? '#8b5cf6' : 'var(--cbm-text)' }}; font-weight: {{ $activeTab == 'stations' ? '700' : '400' }}; font-size: 1rem; cursor: pointer;">Stations</button>
             <button wire:click="setTab('targets')" style="background:none; border:none; color: {{ $activeTab == 'targets' ? '#8b5cf6' : 'var(--cbm-text)' }}; font-weight: {{ $activeTab == 'targets' ? '700' : '400' }}; font-size: 1rem; cursor: pointer;">NSRDI Targets</button>
         </div>
 
         @if($activeTab == 'stations')
-            <div style="margin-bottom: 15px; display: flex; justify-content: flex-end;">
+            <div style="margin-bottom: 0.9375rem; display: flex; justify-content: flex-end;">
                 <button wire:click="createStation" class="mod-btn mod-btn-primary">
                     <i class="fas fa-plus"></i> Add Station
                 </button>
@@ -43,8 +43,8 @@
                             <td>{{ $s->code_store }}</td>
                             <td>{{ $s->working_hours }}</td>
                             <td style="display: flex; gap: 5px;">
-                                <button type="button" wire:click.prevent="editStation({{ $s->id }})" style="padding: 4px 10px; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
-                                <button type="button" wire:click.prevent="deleteStation({{ $s->id }})" style="padding: 4px 10px; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="confirm('Are you sure you want to delete this station?') || event.stopImmediatePropagation()">Delete</button>
+                                <button type="button" wire:click.prevent="editStation({{ $s->id }})" style="padding: 4px 0.625rem; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
+                                <button type="button" wire:click.prevent="deleteStation({{ $s->id }})" style="padding: 4px 0.625rem; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="confirm('Are you sure you want to delete this station?') || event.stopImmediatePropagation()">Delete</button>
                             </td>
                         </tr>
                         @endforeach
@@ -54,10 +54,10 @@
 
             @if($isModalOpen)
             <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-                <div class="mod-card" style="width: 800px; max-height: 90vh; overflow-y: auto; padding: 24px;">
-                    <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">{{ $station_id ? 'Edit Station' : 'Add Station' }}</div>
+                <div class="mod-card" style="width: 50rem; max-height: 90vh; overflow-y: auto; padding: 1.5rem;">
+                    <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 0.9375rem;">{{ $station_id ? 'Edit Station' : 'Add Station' }}</div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9375rem; margin-bottom: 1.25rem;">
                         <div>
                             <label>Order No</label>
                             <input type="number" wire:model="order_no" class="mod-search-input" style="width: 100%;">
@@ -89,7 +89,7 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <div style="display: flex; justify-content: flex-end; gap: 0.625rem;">
                         <button type="button" wire:click.prevent="$set('isModalOpen', false)" class="mod-btn">Cancel</button>
                         <button type="button" wire:click.prevent="saveStation" class="mod-btn mod-btn-primary">Save Station</button>
                     </div>
@@ -98,21 +98,21 @@
             @endif
 
         @elseif($activeTab == 'targets')
-            <div style="max-width: 500px;">
+            <div style="max-width: 31.25rem;">
                 @if (session()->has('message'))
-                    <div style="padding: 10px; background: rgba(16,185,129,0.1); color: #10b981; border-left: 4px solid #10b981; margin-bottom: 15px;">
+                    <div style="padding: 0.625rem; background: rgba(16,185,129,0.1); color: #10b981; border-left: 4px solid #10b981; margin-bottom: 0.9375rem;">
                         {{ session('message') }}
                     </div>
                 @endif
-                <div style="margin-bottom: 15px;">
+                <div style="margin-bottom: 0.9375rem;">
                     <label style="display: block; margin-bottom: 5px;">Target Tembus NSRDI - JT</label>
                     <input type="number" wire:model="target_jt" class="mod-search-input" style="width: 100%;">
                 </div>
-                <div style="margin-bottom: 15px;">
+                <div style="margin-bottom: 0.9375rem;">
                     <label style="display: block; margin-bottom: 5px;">Target Tembus NSRDI - IU</label>
                     <input type="number" wire:model="target_iu" class="mod-search-input" style="width: 100%;">
                 </div>
-                <div style="margin-bottom: 15px;">
+                <div style="margin-bottom: 0.9375rem;">
                     <label style="display: block; margin-bottom: 5px;">Target Tembus NSRDI - ID</label>
                     <input type="number" wire:model="target_id" class="mod-search-input" style="width: 100%;">
                 </div>

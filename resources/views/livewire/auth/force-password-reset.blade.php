@@ -57,7 +57,7 @@
     width: 2.5rem; height: 2.5rem; border-radius: .625rem; flex-shrink: 0;
     background: linear-gradient(135deg,#ef4444,#dc2626);
     display: flex; align-items: center; justify-content: center;
-    overflow: hidden; box-shadow: 0 4px 16px rgba(239,68,68,.35);
+    overflow: hidden; box-shadow: 0 4px 1rem rgba(239,68,68,.35);
 }
 .cl-brand-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .cl-brand-name { font-size: .9375rem; font-weight: 800; color: #fff; }
@@ -69,7 +69,7 @@
     background: rgba(255,255,255,.1); backdrop-filter: blur(6px);
     border: 1px solid rgba(255,255,255,.16);
     color: rgba(255,255,255,.85); font-size: .625rem; font-weight: 700;
-    padding: .3125rem .75rem; border-radius: 999px; margin-bottom: 1.25rem;
+    padding: .3125rem .75rem; border-radius: 62.4375rem; margin-bottom: 1.25rem;
     letter-spacing: .06em; text-transform: uppercase; width: fit-content;
 }
 .cl-pill-dot { width: 6px; height: 6px; background: #fbbf24; border-radius: 50%; flex-shrink: 0; animation: clPulse 2s ease-in-out infinite; }
@@ -94,7 +94,7 @@
     width: 3rem; height: 3rem; border-radius: .75rem;
     background: linear-gradient(135deg,#ef4444,#dc2626);
     display: flex; align-items: center; justify-content: center;
-    overflow: hidden; margin-bottom: .5rem; box-shadow: 0 4px 18px rgba(239,68,68,.3);
+    overflow: hidden; margin-bottom: .5rem; box-shadow: 0 4px 1.125rem rgba(239,68,68,.3);
 }
 .cl-mob-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .cl-mob-name { font-size: .9375rem; font-weight: 800; color: var(--txt); text-align: center; }
@@ -106,7 +106,7 @@
     background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 1.25rem; padding: 2rem 1.75rem;
     backdrop-filter: blur(20px);
-    box-shadow: 0 20px 50px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+    box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
     animation: clUp .45s cubic-bezier(.16,1,.3,1) both;
 }
 @media(min-width:480px) { .cl-card { padding: 2.25rem 2rem; } }
@@ -118,7 +118,7 @@
     display: flex; align-items: center; justify-content: center;
     background: linear-gradient(135deg,#ef4444,#dc2626);
     border-radius: .75rem; color: #fff;
-    box-shadow: 0 6px 18px rgba(239,68,68,.3);
+    box-shadow: 0 6px 1.125rem rgba(239,68,68,.3);
 }
 .cl-hdr-t { font-size: 1.375rem; font-weight: 800; color: var(--txt); letter-spacing: -.02em; margin: 0; line-height: 1.2; }
 .cl-hdr-s { font-size: .8125rem; color: var(--muted); margin: .125rem 0 0; }
@@ -166,12 +166,12 @@
     background: linear-gradient(135deg,#dc2626,#b91c1c);
     color: #fff; font-family: inherit; font-size: .875rem; font-weight: 700;
     border: none; border-radius: .75rem; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(220,38,38,.35);
+    box-shadow: 0 4px 1rem rgba(220,38,38,.35);
     transition: opacity .2s, transform .15s, box-shadow .2s;
     letter-spacing: .01em; position: relative; overflow: hidden;
 }
 .cl-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 55%); }
-.cl-btn:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(220,38,38,.45); }
+.cl-btn:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 8px 1.5rem rgba(220,38,38,.45); }
 .cl-btn:active { transform: translateY(0) scale(.98); }
 @keyframes clSpin { to{transform:rotate(360deg)} }
 .cl-spin { animation: clSpin .7s linear infinite; }
@@ -193,7 +193,7 @@
     --txt: #450a0a; --muted: #991b1b;
     --input-bg: #fee2e2; --input-bd: #fca5a5;
 }
-.cl.lt .cl-card { box-shadow: 0 10px 40px rgba(220,38,38,.08), 0 1px 3px rgba(0,0,0,.04); }
+.cl.lt .cl-card { box-shadow: 0 0.625rem 2.5rem rgba(220,38,38,.08), 0 1px 3px rgba(0,0,0,.04); }
 .cl.lt .cl-hdr-t { color: #450a0a; }
 .cl.lt .cl-iw:hover { background: #fecaca; border-color: #f87171; }
 .cl.lt .cl-iw.f { background: #fee2e2 !important; border-color:#dc2626 !important; }

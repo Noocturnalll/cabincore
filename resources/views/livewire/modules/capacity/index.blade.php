@@ -29,18 +29,18 @@
 
     <div class="mod-card mod-card-accent-purple">
         <div class="mod-toolbar" style="display: flex; justify-content: space-between; align-items: center;">
-            <div class="mod-search-wrap" style="display: flex; gap: 10px; align-items: center;">
+            <div class="mod-search-wrap" style="display: flex; gap: 0.625rem; align-items: center;">
                 <input wire:model.live="activeDate" type="date" class="mod-search-input">
                 @if($hasReport)
-                    <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; border: 1px solid rgba(16,185,129,0.2);">Data Arsip (Tersimpan)</span>
+                    <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 0.625rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; border: 1px solid rgba(16,185,129,0.2);">Data Arsip (Tersimpan)</span>
                 @else
-                    <span style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; border: 1px solid rgba(245,158,11,0.2);">Data Live</span>
+                    <span style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; padding: 4px 0.625rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; border: 1px solid rgba(245,158,11,0.2);">Data Live</span>
                 @endif
             </div>
         </div>
 
         @if(isset($nsrdiTotals) && isset($targets))
-        <div style="display:flex; gap:10px; margin: 15px; margin-bottom: 0;">
+        <div style="display:flex; gap:0.625rem; margin: 0.9375rem; margin-bottom: 0;">
             @foreach(['JT', 'IU', 'ID'] as $aoc)
                 @php
                     $current = $nsrdiTotals[$aoc] ?? 0;
@@ -49,7 +49,7 @@
                     // or <= target if it's a defect limit. We use >= here based on the phrasing "tembus".
                     $isAchievement = $current >= $target;
                 @endphp
-                <div class="mod-card" style="padding: 10px 15px; border-left: 4px solid {{ $isAchievement ? '#10b981' : '#f59e0b' }}; background: {{ $isAchievement ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)' }}; flex: 1;">
+                <div class="mod-card" style="padding: 0.625rem 0.9375rem; border-left: 4px solid {{ $isAchievement ? '#10b981' : '#f59e0b' }}; background: {{ $isAchievement ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)' }}; flex: 1;">
                     <div style="font-weight: 700; font-size: 1.1rem; color: {{ $isAchievement ? '#10b981' : '#f59e0b' }};">
                         {{ $aoc }} Target NSRDI: {{ $current }} / {{ $target }}
                     </div>
@@ -65,7 +65,7 @@
         </div>
         @endif
 
-        <div class="mod-table-wrap" style="margin: 15px 0 0 0; padding: 0;">
+        <div class="mod-table-wrap" style="margin: 0.9375rem 0 0 0; padding: 0;">
             <table class="mod-table capacity-table" style="white-space: nowrap; text-align: center;">
                 <thead>
                     <tr>
@@ -139,7 +139,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="6" style="text-align: right; padding-right: 15px; font-weight: 800;">TOTAL</td>
+                        <td colspan="6" style="text-align: right; padding-right: 0.9375rem; font-weight: 800;">TOTAL</td>
                         <td style="font-weight: 800;">{{ $totals['day'] }}</td>
                         <td style="font-weight: 800;">{{ $totals['night'] }}</td>
                         @foreach(['JT','IW','ID','IU','SL','OD'] as $k)
@@ -154,7 +154,7 @@
                         <td style="font-weight: 800;">{{ $totals['nsrdi']['TOTAL'] }}</td>
                     </tr>
                     <tr>
-                        <td colspan="6" style="text-align: right; padding-right: 15px; font-weight: 800; border-top: none;">GRAND TOTAL</td>
+                        <td colspan="6" style="text-align: right; padding-right: 0.9375rem; font-weight: 800; border-top: none;">GRAND TOTAL</td>
                         <td colspan="2" style="font-weight: 800; color: var(--cbm-text);">{{ $totals['day'] + $totals['night'] }}</td>
                         <td colspan="6" style="font-weight: 800; color: var(--cbm-text);">{{ array_sum($totals['ron']) }}</td>
                         <td colspan="5" style="font-weight: 800; color: var(--cbm-text); font-size: 1.1rem; text-align: center;">{{ $totals['nsrdi']['TOTAL'] }}</td>

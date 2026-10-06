@@ -32,7 +32,7 @@
     <div class="cbm-page-header" style="margin-bottom: 2rem;">
         <div style="display: flex; align-items: center; gap: 1rem; justify-content: space-between; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(16,185,129,0.3);">
+                <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 1rem rgba(16,185,129,0.3);">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.75rem; height: 1.75rem;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                     </svg>
@@ -52,7 +52,7 @@
 
     <div class="cbm-card" style="padding: 0; overflow: hidden; border: 1px solid var(--cbm-card-border);">
         <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 37.5rem;">
                 <thead>
                     <tr style="background: var(--cbm-nav-hover); border-bottom: 1px solid var(--cbm-card-border); text-align: left;">
                         <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Judul Dokumen</th>
@@ -67,7 +67,7 @@
                     <tr style="border-bottom: 1px solid var(--cbm-card-border);">
                         <td style="padding: 1rem 1.5rem; font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">{{ $doc->title }}</td>
                         <td style="padding: 1rem 1.5rem;">
-                            <span style="font-size: 0.6875rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 99px; background: rgba(59,130,246,0.1); color: #3b82f6; text-transform: uppercase;">
+                            <span style="font-size: 0.6875rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6.1875rem; background: rgba(59,130,246,0.1); color: #3b82f6; text-transform: uppercase;">
                                 {{ $doc->category }}
                             </span>
                         </td>
@@ -98,7 +98,7 @@
     <!-- Modal Form -->
     @if($isModalOpen)
     <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; backdrop-filter: blur(4px);">
-        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 1.25rem 1.5625rem -5px rgba(0,0,0,0.1); overflow: hidden;">
             <div style="padding: 1.5rem; border-bottom: 1px solid var(--cbm-card-border); display: flex; justify-content: space-between; align-items: center; background: var(--cbm-nav-hover);">
                 <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--cbm-text); margin: 0;">{{ $documentId ? 'Edit Dokumen' : 'Upload Dokumen Baru' }}</h3>
                 <button wire:click="closeModal()" style="background: transparent; border: none; color: var(--cbm-text-muted); cursor: pointer;">

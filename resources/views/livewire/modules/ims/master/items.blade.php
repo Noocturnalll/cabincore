@@ -21,7 +21,7 @@
 
     <div class="mod-card">
         <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="max-width: 300px;">
+            <div class="mod-search-wrap" style="max-width: 18.75rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                 </svg>
@@ -81,7 +81,7 @@
     <!-- Modal Form -->
     @if($isOpen)
     <div style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
-        <div style="background: var(--cbm-card-bg); width: 100%; max-width: 600px; max-height: 90vh; border-radius: 1rem; box-shadow: var(--cbm-card-shadow); overflow-y: auto;">
+        <div style="background: var(--cbm-card-bg); width: 100%; max-width: 37.5rem; max-height: 90vh; border-radius: 1rem; box-shadow: var(--cbm-card-shadow); overflow-y: auto;">
             <div style="padding: 1.5rem; border-bottom: 1px solid var(--cbm-border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--cbm-card-bg); z-index: 10;">
                 <h3 style="font-size: 1.25rem; font-weight: 600;">{{ $isEdit ? 'Edit Barang' : 'Tambah Barang' }}</h3>
                 <button wire:click="$set('isOpen', false)" style="background: none; border: none; cursor: pointer; color: var(--cbm-text-muted);">
@@ -104,7 +104,7 @@
                     
                     <div style="grid-column: span 2;">
                         <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">Deskripsi</label>
-                        <textarea wire:model="form.description" class="mod-search-input" style="width: 100%; height: 60px;"></textarea>
+                        <textarea wire:model="form.description" class="mod-search-input" style="width: 100%; height: 3.75rem;"></textarea>
                     </div>
 
                     <div>

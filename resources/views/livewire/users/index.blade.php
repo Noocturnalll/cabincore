@@ -1,7 +1,7 @@
 <div>
     <div class="cbm-page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
         <div style="display: flex; align-items: center; gap: 1.25rem;">
-            <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(59,130,246,0.3);">
+            <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 1rem rgba(59,130,246,0.3);">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.75rem; height: 1.75rem;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                 </svg>
@@ -15,13 +15,13 @@
 
     <div class="cbm-card">
         <div class="cbm-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cbm-card-border); padding-bottom: 1.25rem; margin-bottom: 0;">
-            <div style="position: relative; width: 300px;">
+            <div style="position: relative; width: 18.75rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: var(--cbm-text-muted);">
                     <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                 </svg>
                 <input type="text" placeholder="Cari Pengguna (Nama/ID/Email)..." class="cbm-input" style="padding-left: 2.75rem; width: 100%; height: 2.75rem; border-radius: .875rem; background: var(--cbm-bg); border: 1px solid var(--cbm-card-border); color: var(--cbm-text);" wire:model.live.debounce.300ms="search">
             </div>
-            <button type="button" wire:click.prevent="create" class="cbm-btn cbm-btn-primary" style="background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); box-shadow: 0 4px 12px rgba(59,130,246,0.3); border: none; color: white; padding: 0 1.5rem; height: 2.75rem; border-radius: .875rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+            <button type="button" wire:click.prevent="create" class="cbm-btn cbm-btn-primary" style="background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); box-shadow: 0 4px 0.75rem rgba(59,130,246,0.3); border: none; color: white; padding: 0 1.5rem; height: 2.75rem; border-radius: .875rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1.25rem; height: 1.25rem;">
                     <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                 </svg>
@@ -63,17 +63,17 @@
                             <td style="font-weight: 600;">{{ $user->station ?? 'Semua' }}</td>
                             <td>
                                 @foreach($user->roles as $role)
-                                    <span style="background: rgba(168,85,247,0.1); color: #a855f7; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; border: 1px solid rgba(168,85,247,0.2);">{{ $role->name }}</span>
+                                    <span style="background: rgba(168,85,247,0.1); color: #a855f7; padding: 0.25rem 0.75rem; border-radius: 62.4375rem; font-size: 0.7rem; font-weight: 700; border: 1px solid rgba(168,85,247,0.2);">{{ $role->name }}</span>
                                 @endforeach
                             </td>
                             <td>
                                 @if($user->status == 'active')
-                                    <span style="background: rgba(34,197,94,0.1); color: #22c55e; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(34,197,94,0.2);">Active</span>
+                                    <span style="background: rgba(34,197,94,0.1); color: #22c55e; padding: 0.25rem 0.75rem; border-radius: 62.4375rem; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(34,197,94,0.2);">Active</span>
                                 @else
-                                    <span style="background: rgba(239,68,68,0.1); color: #ef4444; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(239,68,68,0.2);">Inactive</span>
+                                    <span style="background: rgba(239,68,68,0.1); color: #ef4444; padding: 0.25rem 0.75rem; border-radius: 62.4375rem; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(239,68,68,0.2);">Inactive</span>
                                 @endif
                             </td>
-                            <td style="text-align: right; min-width: 120px;">
+                            <td style="text-align: right; min-width: 7.5rem;">
                                 <button type="button" title="Reset Password (ke default)" onclick="confirm('Yakin mereset password user ini ke default?') || event.stopImmediatePropagation()" wire:click.prevent="resetPassword({{ $user->id }})" style="background: none; border: none; color: var(--cbm-blue); cursor: pointer; padding: 0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg></button>
                                 <button type="button" title="Edit" wire:click.prevent="edit({{ $user->id }})" style="background: none; border: none; color: var(--cbm-text-muted); cursor: pointer; padding: 0.25rem; margin-left: 0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1.25rem; height: 1.25rem;"><path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" /></svg></button>
                                 @if($user->id !== auth()->id())
@@ -103,7 +103,7 @@
     <!-- Modal Form -->
     @if($isOpen)
     <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50;">
-        <div style="background: var(--cbm-card-bg); width: 100%; max-width: 700px; border-radius: 1.25rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+        <div style="background: var(--cbm-card-bg); width: 100%; max-width: 43.75rem; border-radius: 1.25rem; box-shadow: 0 1.25rem 1.5625rem -5px rgba(0,0,0,0.1), 0 0.625rem 0.625rem -5px rgba(0,0,0,0.04); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
             <div style="padding: 1.5rem; border-bottom: 1px solid var(--cbm-card-border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
                 <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--cbm-text);">{{ $isEditMode ? 'Edit Pengguna' : 'Tambah Pengguna Baru' }}</h3>
                 <button wire:click="close" style="background: none; border: none; color: var(--cbm-text-muted); cursor: pointer;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.5rem; height: 1.5rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -192,7 +192,7 @@
             
             <div style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--cbm-card-border); background: var(--cbm-bg); display: flex; justify-content: flex-end; gap: .75rem; flex-shrink: 0;">
                 <button type="button" wire:click.prevent="close" style="padding: .75rem 1.5rem; border-radius: .75rem; background: transparent; border: 1px solid var(--cbm-card-border); color: var(--cbm-text); font-weight: 600; cursor: pointer;">Batal</button>
-                <button type="button" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" style="padding: .75rem 1.5rem; border-radius: .75rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); border: none; color: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">{{ $isEditMode ? 'Simpan Perubahan' : 'Simpan Pengguna' }}</button>
+                <button type="button" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" style="padding: .75rem 1.5rem; border-radius: .75rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-purple)); border: none; color: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 0.75rem rgba(59,130,246,0.3);">{{ $isEditMode ? 'Simpan Perubahan' : 'Simpan Pengguna' }}</button>
             </div>
         </div>
     </div>

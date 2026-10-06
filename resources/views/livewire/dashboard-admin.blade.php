@@ -43,7 +43,7 @@
 
 /* ── Tabs Navigation ── */
 .cbm-tabs-container {
-    position: sticky; top: 70px; z-index: 40;
+    position: sticky; top: 4.375rem; z-index: 40;
     padding: 0 1rem;
     margin: 1.5rem 0 2rem 0;
     background: rgba(255,255,255,0.85);
@@ -83,7 +83,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
     margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;
 }
 .cbm-section {
-    scroll-margin-top: 150px;
+    scroll-margin-top: 9.375rem;
 }
 .cbm-stat-card {
     position: relative;
@@ -99,7 +99,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 .cbm-sc-blue {
     background: linear-gradient(145deg, rgba(59,130,246,.18) 0%, rgba(99,102,241,.10) 100%);
     border-color: rgba(59,130,246,.25);
-    box-shadow: 0 4px 24px rgba(59,130,246,.18), 0 1px 4px rgba(0,0,0,.10);
+    box-shadow: 0 4px 1.5rem rgba(59,130,246,.18), 0 1px 4px rgba(0,0,0,.10);
 }
 .cbm-sc-blue::before {
     content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -108,7 +108,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 .cbm-sc-green {
     background: linear-gradient(145deg, rgba(34,197,94,.16) 0%, rgba(16,185,129,.08) 100%);
     border-color: rgba(34,197,94,.25);
-    box-shadow: 0 4px 24px rgba(34,197,94,.18), 0 1px 4px rgba(0,0,0,.10);
+    box-shadow: 0 4px 1.5rem rgba(34,197,94,.18), 0 1px 4px rgba(0,0,0,.10);
 }
 .cbm-sc-green::before {
     content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -117,7 +117,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 .cbm-sc-orange {
     background: linear-gradient(145deg, rgba(251,146,60,.16) 0%, rgba(245,158,11,.08) 100%);
     border-color: rgba(251,146,60,.25);
-    box-shadow: 0 4px 24px rgba(251,146,60,.18), 0 1px 4px rgba(0,0,0,.10);
+    box-shadow: 0 4px 1.5rem rgba(251,146,60,.18), 0 1px 4px rgba(0,0,0,.10);
 }
 .cbm-sc-orange::before {
     content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -126,7 +126,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 .cbm-sc-purple {
     background: linear-gradient(145deg, rgba(168,85,247,.16) 0%, rgba(236,72,153,.08) 100%);
     border-color: rgba(168,85,247,.25);
-    box-shadow: 0 4px 24px rgba(168,85,247,.18), 0 1px 4px rgba(0,0,0,.10);
+    box-shadow: 0 4px 1.5rem rgba(168,85,247,.18), 0 1px 4px rgba(0,0,0,.10);
 }
 .cbm-sc-purple::before {
     content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -134,10 +134,10 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 }
 
 /* Light mode overrides for stat cards */
-.cbm-light .cbm-sc-blue   { background: linear-gradient(145deg, rgba(59,130,246,.09) 0%, rgba(99,102,241,.05) 100%); box-shadow: 0 4px 20px rgba(59,130,246,.15), 0 1px 3px rgba(0,0,0,.05); }
-.cbm-light .cbm-sc-green  { background: linear-gradient(145deg, rgba(34,197,94,.09) 0%, rgba(16,185,129,.04) 100%); box-shadow: 0 4px 20px rgba(34,197,94,.15), 0 1px 3px rgba(0,0,0,.05); }
-.cbm-light .cbm-sc-orange { background: linear-gradient(145deg, rgba(251,146,60,.09) 0%, rgba(245,158,11,.04) 100%); box-shadow: 0 4px 20px rgba(251,146,60,.15), 0 1px 3px rgba(0,0,0,.05); }
-.cbm-light .cbm-sc-purple { background: linear-gradient(145deg, rgba(168,85,247,.09) 0%, rgba(236,72,153,.04) 100%); box-shadow: 0 4px 20px rgba(168,85,247,.15), 0 1px 3px rgba(0,0,0,.05); }
+.cbm-light .cbm-sc-blue   { background: linear-gradient(145deg, rgba(59,130,246,.09) 0%, rgba(99,102,241,.05) 100%); box-shadow: 0 4px 1.25rem rgba(59,130,246,.15), 0 1px 3px rgba(0,0,0,.05); }
+.cbm-light .cbm-sc-green  { background: linear-gradient(145deg, rgba(34,197,94,.09) 0%, rgba(16,185,129,.04) 100%); box-shadow: 0 4px 1.25rem rgba(34,197,94,.15), 0 1px 3px rgba(0,0,0,.05); }
+.cbm-light .cbm-sc-orange { background: linear-gradient(145deg, rgba(251,146,60,.09) 0%, rgba(245,158,11,.04) 100%); box-shadow: 0 4px 1.25rem rgba(251,146,60,.15), 0 1px 3px rgba(0,0,0,.05); }
+.cbm-light .cbm-sc-purple { background: linear-gradient(145deg, rgba(168,85,247,.09) 0%, rgba(236,72,153,.04) 100%); box-shadow: 0 4px 1.25rem rgba(168,85,247,.15), 0 1px 3px rgba(0,0,0,.05); }
 
 .cbm-stat-top {
     display: flex;
@@ -153,10 +153,10 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
     flex-shrink: 0;
 }
 .cbm-stat-icon svg { width: 1.375rem; height: 1.375rem; color: #fff; }
-.cbm-si-blue   { background: linear-gradient(135deg,#3b82f6,#6366f1); box-shadow: 0 6px 16px rgba(59,130,246,.4); }
-.cbm-si-green  { background: linear-gradient(135deg,#22c55e,#10b981); box-shadow: 0 6px 16px rgba(34,197,94,.4); }
-.cbm-si-orange { background: linear-gradient(135deg,#fb923c,#f59e0b); box-shadow: 0 6px 16px rgba(251,146,60,.4); }
-.cbm-si-purple { background: linear-gradient(135deg,#a855f7,#ec4899); box-shadow: 0 6px 16px rgba(168,85,247,.4); }
+.cbm-si-blue   { background: linear-gradient(135deg,#3b82f6,#6366f1); box-shadow: 0 6px 1rem rgba(59,130,246,.4); }
+.cbm-si-green  { background: linear-gradient(135deg,#22c55e,#10b981); box-shadow: 0 6px 1rem rgba(34,197,94,.4); }
+.cbm-si-orange { background: linear-gradient(135deg,#fb923c,#f59e0b); box-shadow: 0 6px 1rem rgba(251,146,60,.4); }
+.cbm-si-purple { background: linear-gradient(135deg,#a855f7,#ec4899); box-shadow: 0 6px 1rem rgba(168,85,247,.4); }
 
 .cbm-stat-value {
     font-size: 2.25rem;
@@ -171,7 +171,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
     font-size: .6875rem; font-weight: 700;
     background: rgba(255,255,255,.08);
     color: var(--cbm-text-muted);
-    padding: .2rem .5rem; border-radius: 999px;
+    padding: .2rem .5rem; border-radius: 62.4375rem;
     border: 1px solid rgba(255,255,255,.1);
 }
 .cbm-light .cbm-stat-chip {
@@ -201,8 +201,8 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
     box-shadow: var(--cbm-card-shadow);
     transition: transform .2s ease, box-shadow .2s ease;
 }
-.cbm-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.2); }
-.cbm-light .cbm-kpi-card:hover { box-shadow: 0 8px 24px rgba(37,99,235,.12); }
+.cbm-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 1.75rem rgba(0,0,0,.2); }
+.cbm-light .cbm-kpi-card:hover { box-shadow: 0 8px 1.5rem rgba(37,99,235,.12); }
 .cbm-kpi-icon {
     width: 2.625rem; height: 2.625rem;
     border-radius: .75rem;
@@ -234,8 +234,8 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
     box-shadow: var(--cbm-card-shadow);
     transition: box-shadow .2s ease;
 }
-.cbm-chart-card:hover { box-shadow: 0 12px 36px rgba(0,0,0,.25); }
-.cbm-light .cbm-chart-card:hover { box-shadow: 0 8px 28px rgba(37,99,235,.12); }
+.cbm-chart-card:hover { box-shadow: 0 0.75rem 2.25rem rgba(0,0,0,.25); }
+.cbm-light .cbm-chart-card:hover { box-shadow: 0 8px 1.75rem rgba(37,99,235,.12); }
 
 .cbm-card-header {
     display: flex;
@@ -245,7 +245,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 }
 .cbm-card-title { font-size: 1rem; font-weight: 800; color: var(--cbm-text); letter-spacing: -.01em; }
 .cbm-card-sub   { font-size: .8125rem; color: var(--cbm-text-muted); margin-top: .2rem; font-weight: 500; }
-.cbm-chart-container { flex: 1; min-height: 230px; position: relative; }
+.cbm-chart-container { flex: 1; min-height: 14.375rem; position: relative; }
 
 /* ── Donut ── */
 .cbm-donut-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -410,7 +410,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 {{-- â• â• â• â•  MAN POWER & MAN HOURS ROW â• â• â• â•  --}}
 <div class="cbm-kpi-row" style="margin-bottom: 1.5rem; grid-template-columns: repeat(2, 1fr);">
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(59,130,246,.05) 0%, rgba(99,102,241,.02) 100%);">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 6px 16px rgba(59,130,246,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 6px 1rem rgba(59,130,246,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" /></svg>
         </div>
         <div>
@@ -420,7 +420,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
         </div>
     </div>
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(168,85,247,.05) 0%, rgba(236,72,153,.02) 100%);">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899);box-shadow:0 6px 16px rgba(168,85,247,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899);box-shadow:0 6px 1rem rgba(168,85,247,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" /></svg>
         </div>
         <div>
@@ -432,7 +432,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
 </div>
 <div class="cbm-kpi-row">
     <div class="cbm-kpi-card">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);box-shadow:0 6px 16px rgba(6,182,212,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);box-shadow:0 6px 1rem rgba(6,182,212,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -442,7 +442,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
         </div>
     </div>
     <div class="cbm-kpi-card">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 6px 16px rgba(248,113,113,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 6px 1rem rgba(248,113,113,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -452,7 +452,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
         </div>
     </div>
     <div class="cbm-kpi-card">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 6px 16px rgba(99,102,241,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 6px 1rem rgba(99,102,241,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h2.25a3 3 0 013 3v2.25a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm9.75 0a3 3 0 013-3H18a3 3 0 013 3v2.25a3 3 0 01-3 3h-2.25a3 3 0 01-3-3V6zM3 15.75a3 3 0 013-3h2.25a3 3 0 013 3V18a3 3 0 01-3 3H6a3 3 0 01-3-3v-2.25zm9.75 0a3 3 0 013-3H18a3 3 0 013 3V18a3 3 0 01-3 3h-2.25a3 3 0 01-3-3v-2.25z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -462,7 +462,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
         </div>
     </div>
     <div class="cbm-kpi-card">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#f59e0b,#ef4444);box-shadow:0 6px 16px rgba(245,158,11,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#f59e0b,#ef4444);box-shadow:0 6px 1rem rgba(245,158,11,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd"/><path fill-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -558,7 +558,7 @@ html.dark .cbm-tabs-container, .cbm-dark .cbm-tabs-container, [data-theme="dark"
             </div>
         </div>
         <div class="cbm-donut-wrap" wire:ignore>
-            <div style="position:relative;width:172px;height:172px;margin:0 auto;">
+            <div style="position:relative;width:10.75rem;height:10.75rem;margin:0 auto;">
                 <canvas id="cbm-donut-chart"
                     data-closed="{{ $dClosedTotal }}"
                     data-open="{{ $dOpenTotal }}"

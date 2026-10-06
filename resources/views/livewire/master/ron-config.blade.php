@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <div class="mod-card mod-card-accent-purple" style="padding: 24px;">
+    <div class="mod-card mod-card-accent-purple" style="padding: 1.5rem;">
         <div class="mod-table-wrap">
             <table class="mod-table">
                 <thead>
@@ -61,7 +61,7 @@
                         <td>{{ $s->ron_sl }}</td>
                         <td>{{ $s->ron_od }}</td>
                         <td>
-                            <button type="button" wire:click.prevent="editRon({{ $s->id }})" style="padding: 4px 10px; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Edit RON</button>
+                            <button type="button" wire:click.prevent="editRon({{ $s->id }})" style="padding: 4px 0.625rem; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Edit RON</button>
                         </td>
                     </tr>
                     @endforeach
@@ -71,10 +71,10 @@
 
         @if($isModalOpen)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-            <div class="mod-card" style="width: 500px; max-height: 90vh; overflow-y: auto; padding: 24px;">
-                <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 15px;">Edit RON - {{ $station_code }} ({{ $kh_region }})</div>
+            <div class="mod-card" style="width: 31.25rem; max-height: 90vh; overflow-y: auto; padding: 1.5rem;">
+                <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 0.9375rem;">Edit RON - {{ $station_code }} ({{ $kh_region }})</div>
                 
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9375rem; margin-bottom: 1.25rem;">
                     <div><label>JT</label><input type="number" wire:model="ron_jt" class="mod-search-input" style="width: 100%;"></div>
                     <div><label>IW</label><input type="number" wire:model="ron_iw" class="mod-search-input" style="width: 100%;"></div>
                     <div><label>ID</label><input type="number" wire:model="ron_id" class="mod-search-input" style="width: 100%;"></div>
@@ -83,7 +83,7 @@
                     <div><label>OD</label><input type="number" wire:model="ron_od" class="mod-search-input" style="width: 100%;"></div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <div style="display: flex; justify-content: flex-end; gap: 0.625rem;">
                     <button type="button" wire:click.prevent="$set('isModalOpen', false)" class="mod-btn">Cancel</button>
                     <button type="button" wire:click.prevent="saveRon" class="mod-btn mod-btn-primary">Save RON</button>
                 </div>

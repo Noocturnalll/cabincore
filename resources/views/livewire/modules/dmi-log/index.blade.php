@@ -34,10 +34,10 @@
             <button type="button" wire:click="setTab('unplanned')" class="cbm-tab {{ $activeTab === 'unplanned' ? 'active' : '' }}">Unplanned</button>
         </div>
         <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="display: flex; gap: 10px; align-items: center;">
+            <div class="mod-search-wrap" style="display: flex; gap: 0.625rem; align-items: center;">
                 <div style="position: relative; display: flex; align-items: center;">
-                    <svg style="position: absolute; left: 10px; width: 18px; height: 18px; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari registrasi, status..." style="padding-left: 35px;">
+                    <svg style="position: absolute; left: 0.625rem; width: 1.125rem; height: 1.125rem; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari registrasi, status..." style="padding-left: 2.1875rem;">
                 </div>
                 <input wire:model.live="dateFilter" type="date" class="mod-search-input">
             </div>
@@ -89,12 +89,12 @@
                                 <div style="margin-top: 4px;">
                                     @if($log->is_submitted)
                                         <span style="font-size: 0.7rem; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:0.75rem;height:0.75rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                                             Sent to Daily Report
                                         </span>
                                     @else
                                         <span style="font-size: 0.7rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:0.75rem;height:0.75rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             Pending Reason
                                         </span>
                                     @endif
@@ -139,7 +139,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
     >
-        <div class="cbm-modal-panel" style="max-width:440px;" @click.stop>
+        <div class="cbm-modal-panel" style="max-width:27.5rem;" @click.stop>
             <div class="cbm-modal-header">
                 <div>
                     <div class="cbm-modal-title">Update Status DMI</div>

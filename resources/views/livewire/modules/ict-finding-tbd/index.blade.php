@@ -37,7 +37,7 @@
             <table class="mod-table">
                 <thead>
                     <tr>
-                        <th style="width: 50px;">NO</th>
+                        <th style="width: 3.125rem;">NO</th>
                         <th>DATE</th>
                         <th>NO FINDING</th>
                         <th>OPERATOR</th>
@@ -75,7 +75,7 @@
                         <tr>
                             <td colspan="9" class="mod-table-empty">
                                 <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; color: var(--cbm-text-muted);">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 2rem; height: 2rem;">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                     </svg>
                                     <span>Tidak ada temuan ICT</span>
@@ -91,7 +91,7 @@
     {{-- Edit Modal --}}
     @if($showEditModal)
         <div style="position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
-            <div style="background: var(--cbm-card-bg); padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div style="background: var(--cbm-card-bg); padding: 2rem; border-radius: 0.75rem; width: 100%; max-width: 31.25rem; box-shadow: 0 0.625rem 1.5625rem rgba(0,0,0,0.2);">
                 <h3 style="font-weight: 700; font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--cbm-text);">Update Finding</h3>
                 
                 <div style="margin-bottom: 1rem;">
@@ -104,7 +104,7 @@
 
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display: block; font-size: 0.8125rem; font-weight: 600; color: var(--cbm-text); margin-bottom: 0.5rem;">Remarks (Alasan / Tindak Lanjut)</label>
-                    <textarea wire:model="editRemarks" class="mod-search-input" style="width: 100%; padding: 0.75rem; min-height: 100px; resize: vertical;" placeholder="Contoh: open DMI dengan no doc NIDxxxx, status closed..."></textarea>
+                    <textarea wire:model="editRemarks" class="mod-search-input" style="width: 100%; padding: 0.75rem; min-height: 6.25rem; resize: vertical;" placeholder="Contoh: open DMI dengan no doc NIDxxxx, status closed..."></textarea>
                 </div>
 
                 <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
@@ -118,7 +118,7 @@
     {{-- Import Modal --}}
     @if($isImportModalOpen)
         <div style="position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
-            <div style="background: var(--cbm-card-bg); padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <div style="background: var(--cbm-card-bg); padding: 2rem; border-radius: 0.75rem; width: 100%; max-width: 31.25rem; box-shadow: 0 0.625rem 1.5625rem rgba(0,0,0,0.2);">
                 <h3 style="font-weight: 700; font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--cbm-text);">Import ICT Findings</h3>
                 <p style="font-size: 0.8125rem; color: var(--cbm-text-muted); margin-bottom: 1.5rem;">Format kolom: date, no_finding, operator, aircraft_registration, defect_description, remarks, status.</p>
                 

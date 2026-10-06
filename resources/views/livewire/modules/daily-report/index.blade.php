@@ -114,10 +114,10 @@
 
         {{-- Toolbar --}}
         <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="display: flex; gap: 10px; align-items: center;">
+            <div class="mod-search-wrap" style="display: flex; gap: 0.625rem; align-items: center;">
                 <div style="position: relative; display: flex; align-items: center;">
-                    <svg style="position: absolute; left: 10px; width: 18px; height: 18px; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari data..." style="padding-left: 35px;">
+                    <svg style="position: absolute; left: 0.625rem; width: 1.125rem; height: 1.125rem; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari data..." style="padding-left: 2.1875rem;">
                 </div>
                 <input wire:model.live="dateFilter" type="date" class="mod-search-input">
             </div>

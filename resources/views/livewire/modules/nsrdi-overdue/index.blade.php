@@ -7,7 +7,7 @@
             <div class="mod-subtitle">Daftar item NSRDI yang sudah melewati batas waktu.</div>
         </div>
         <div class="mod-actions">
-            <button wire:click="syncData" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="syncData" style="color: #3b82f6; border-color: #3b82f6; display: inline-flex; align-items: center; justify-content: center; min-width: 130px;">
+            <button wire:click="syncData" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="syncData" style="color: #3b82f6; border-color: #3b82f6; display: inline-flex; align-items: center; justify-content: center; min-width: 8.125rem;">
                 <span wire:loading.remove wire:target="syncData">
                     <span style="display:inline-flex;align-items:center;gap:.4rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:1.25rem;height:1.25rem;"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" /></svg>
@@ -21,7 +21,7 @@
                     </span>
                 </span>
             </button>
-            <button wire:click="exportData" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="exportData" style="display: inline-flex; align-items: center; justify-content: center; min-width: 140px;">
+            <button wire:click="exportData" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="exportData" style="display: inline-flex; align-items: center; justify-content: center; min-width: 8.75rem;">
                 <span wire:loading.remove wire:target="exportData">
                     <span style="display:inline-flex;align-items:center;gap:.4rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:1.25rem;height:1.25rem;"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
@@ -44,10 +44,10 @@
 
     <div class="mod-card mod-card-accent-purple">
         <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="display: flex; gap: 10px; align-items: center;">
+            <div class="mod-search-wrap" style="display: flex; gap: 0.625rem; align-items: center;">
                 <div style="position: relative; display: flex; align-items: center;">
-                    <svg style="position: absolute; left: 10px; width: 18px; height: 18px; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari registrasi, nsrdi..." style="padding-left: 35px;">
+                    <svg style="position: absolute; left: 0.625rem; width: 1.125rem; height: 1.125rem; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari registrasi, nsrdi..." style="padding-left: 2.1875rem;">
                 </div>
             </div>
             <span class="mod-record-count">{{ $logs->total() }} records</span>
@@ -128,7 +128,7 @@
     {{-- Modal Edit Status --}}
     @if($isEditModalOpen)
     <div class="cbm-modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:flex; align-items:center; justify-content:center;">
-        <div class="cbm-modal-content" style="background:var(--cbm-card-bg); width:100%; max-width:480px; border-radius:12px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);">
+        <div class="cbm-modal-content" style="background:var(--cbm-card-bg); width:100%; max-width:30rem; border-radius:0.75rem; overflow:hidden; box-shadow:0 0.625rem 0.9375rem -3px rgba(0,0,0,0.1);">
             <form wire:submit.prevent="updateOverdue">
                 <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--cbm-border); display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; font-weight:600; font-size:1.1rem; color:var(--cbm-text-main);">Update Status NSRDI Overdue</h3>
@@ -168,7 +168,7 @@
     {{-- Modal Import --}}
     @if($isImportModalOpen)
     <div class="cbm-modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:flex; align-items:center; justify-content:center;">
-        <div class="cbm-modal-content" style="background:var(--cbm-card-bg); width:100%; max-width:400px; border-radius:12px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);">
+        <div class="cbm-modal-content" style="background:var(--cbm-card-bg); width:100%; max-width:25rem; border-radius:0.75rem; overflow:hidden; box-shadow:0 0.625rem 0.9375rem -3px rgba(0,0,0,0.1);">
             <form wire:submit.prevent="importData">
                 <div style="padding:1.5rem; border-bottom:1px solid var(--cbm-border); display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; font-weight:600; font-size:1.1rem; color:var(--cbm-text-main);">Import NSRDI Overdue</h3>

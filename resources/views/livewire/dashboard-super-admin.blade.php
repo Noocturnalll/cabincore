@@ -45,7 +45,7 @@
 
 /* ── Tabs Navigation ── */
 .cbm-tabs-container {
-    position: sticky; top: 70px; z-index: 40;
+    position: sticky; top: 4.375rem; z-index: 40;
     margin: 0 0 2rem 0;
     padding: 0.5rem 0.75rem;
     background: var(--cbm-card-bg);
@@ -108,14 +108,14 @@
 }
 .cbm-stat-card:hover { transform: translateY(-3px); }
 
-.cbm-sc-blue   { background: linear-gradient(145deg, rgba(59,130,246,.18) 0%, rgba(99,102,241,.10) 100%); border-color: rgba(59,130,246,.25); box-shadow: 0 4px 24px rgba(59,130,246,.18); }
-.cbm-sc-green  { background: linear-gradient(145deg, rgba(34,197,94,.16) 0%, rgba(16,185,129,.08) 100%); border-color: rgba(34,197,94,.25); box-shadow: 0 4px 24px rgba(34,197,94,.18); }
-.cbm-sc-orange { background: linear-gradient(145deg, rgba(251,146,60,.16) 0%, rgba(245,158,11,.08) 100%); border-color: rgba(251,146,60,.25); box-shadow: 0 4px 24px rgba(251,146,60,.18); }
-.cbm-sc-purple { background: linear-gradient(145deg, rgba(168,85,247,.16) 0%, rgba(236,72,153,.08) 100%); border-color: rgba(168,85,247,.25); box-shadow: 0 4px 24px rgba(168,85,247,.18); }
-.cbm-sc-cyan   { background: linear-gradient(145deg, rgba(6,182,212,.16) 0%, rgba(14,165,233,.08) 100%); border-color: rgba(6,182,212,.25); box-shadow: 0 4px 24px rgba(6,182,212,.18); }
-.cbm-sc-rose   { background: linear-gradient(145deg, rgba(244,63,94,.16) 0%, rgba(220,38,127,.08) 100%); border-color: rgba(244,63,94,.25); box-shadow: 0 4px 24px rgba(244,63,94,.18); }
-.cbm-sc-teal   { background: linear-gradient(145deg, rgba(20,184,166,.16) 0%, rgba(16,185,129,.08) 100%); border-color: rgba(20,184,166,.25); box-shadow: 0 4px 24px rgba(20,184,166,.18); }
-.cbm-sc-indigo { background: linear-gradient(145deg, rgba(99,102,241,.16) 0%, rgba(139,92,246,.08) 100%); border-color: rgba(99,102,241,.25); box-shadow: 0 4px 24px rgba(99,102,241,.18); }
+.cbm-sc-blue   { background: linear-gradient(145deg, rgba(59,130,246,.18) 0%, rgba(99,102,241,.10) 100%); border-color: rgba(59,130,246,.25); box-shadow: 0 4px 1.5rem rgba(59,130,246,.18); }
+.cbm-sc-green  { background: linear-gradient(145deg, rgba(34,197,94,.16) 0%, rgba(16,185,129,.08) 100%); border-color: rgba(34,197,94,.25); box-shadow: 0 4px 1.5rem rgba(34,197,94,.18); }
+.cbm-sc-orange { background: linear-gradient(145deg, rgba(251,146,60,.16) 0%, rgba(245,158,11,.08) 100%); border-color: rgba(251,146,60,.25); box-shadow: 0 4px 1.5rem rgba(251,146,60,.18); }
+.cbm-sc-purple { background: linear-gradient(145deg, rgba(168,85,247,.16) 0%, rgba(236,72,153,.08) 100%); border-color: rgba(168,85,247,.25); box-shadow: 0 4px 1.5rem rgba(168,85,247,.18); }
+.cbm-sc-cyan   { background: linear-gradient(145deg, rgba(6,182,212,.16) 0%, rgba(14,165,233,.08) 100%); border-color: rgba(6,182,212,.25); box-shadow: 0 4px 1.5rem rgba(6,182,212,.18); }
+.cbm-sc-rose   { background: linear-gradient(145deg, rgba(244,63,94,.16) 0%, rgba(220,38,127,.08) 100%); border-color: rgba(244,63,94,.25); box-shadow: 0 4px 1.5rem rgba(244,63,94,.18); }
+.cbm-sc-teal   { background: linear-gradient(145deg, rgba(20,184,166,.16) 0%, rgba(16,185,129,.08) 100%); border-color: rgba(20,184,166,.25); box-shadow: 0 4px 1.5rem rgba(20,184,166,.18); }
+.cbm-sc-indigo { background: linear-gradient(145deg, rgba(99,102,241,.16) 0%, rgba(139,92,246,.08) 100%); border-color: rgba(99,102,241,.25); box-shadow: 0 4px 1.5rem rgba(99,102,241,.18); }
 
 .cbm-sc-blue::before   { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, #3b82f6, #6366f1); }
 .cbm-sc-green::before  { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, #22c55e, #10b981); }
@@ -126,14 +126,14 @@
 .cbm-sc-teal::before   { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, #14b8a6, #10b981); }
 .cbm-sc-indigo::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, #6366f1, #8b5cf6); }
 
-.cbm-light .cbm-sc-blue   { background: linear-gradient(145deg, rgba(59,130,246,.09) 0%, rgba(99,102,241,.05) 100%); box-shadow: 0 4px 20px rgba(59,130,246,.15); }
-.cbm-light .cbm-sc-green  { background: linear-gradient(145deg, rgba(34,197,94,.09) 0%, rgba(16,185,129,.04) 100%); box-shadow: 0 4px 20px rgba(34,197,94,.15); }
-.cbm-light .cbm-sc-orange { background: linear-gradient(145deg, rgba(251,146,60,.09) 0%, rgba(245,158,11,.04) 100%); box-shadow: 0 4px 20px rgba(251,146,60,.15); }
-.cbm-light .cbm-sc-purple { background: linear-gradient(145deg, rgba(168,85,247,.09) 0%, rgba(236,72,153,.04) 100%); box-shadow: 0 4px 20px rgba(168,85,247,.15); }
-.cbm-light .cbm-sc-cyan   { background: linear-gradient(145deg, rgba(6,182,212,.09) 0%, rgba(14,165,233,.04) 100%); box-shadow: 0 4px 20px rgba(6,182,212,.15); }
-.cbm-light .cbm-sc-rose   { background: linear-gradient(145deg, rgba(244,63,94,.09) 0%, rgba(220,38,127,.04) 100%); box-shadow: 0 4px 20px rgba(244,63,94,.15); }
-.cbm-light .cbm-sc-teal   { background: linear-gradient(145deg, rgba(20,184,166,.09) 0%, rgba(16,185,129,.04) 100%); box-shadow: 0 4px 20px rgba(20,184,166,.15); }
-.cbm-light .cbm-sc-indigo { background: linear-gradient(145deg, rgba(99,102,241,.09) 0%, rgba(139,92,246,.04) 100%); box-shadow: 0 4px 20px rgba(99,102,241,.15); }
+.cbm-light .cbm-sc-blue   { background: linear-gradient(145deg, rgba(59,130,246,.09) 0%, rgba(99,102,241,.05) 100%); box-shadow: 0 4px 1.25rem rgba(59,130,246,.15); }
+.cbm-light .cbm-sc-green  { background: linear-gradient(145deg, rgba(34,197,94,.09) 0%, rgba(16,185,129,.04) 100%); box-shadow: 0 4px 1.25rem rgba(34,197,94,.15); }
+.cbm-light .cbm-sc-orange { background: linear-gradient(145deg, rgba(251,146,60,.09) 0%, rgba(245,158,11,.04) 100%); box-shadow: 0 4px 1.25rem rgba(251,146,60,.15); }
+.cbm-light .cbm-sc-purple { background: linear-gradient(145deg, rgba(168,85,247,.09) 0%, rgba(236,72,153,.04) 100%); box-shadow: 0 4px 1.25rem rgba(168,85,247,.15); }
+.cbm-light .cbm-sc-cyan   { background: linear-gradient(145deg, rgba(6,182,212,.09) 0%, rgba(14,165,233,.04) 100%); box-shadow: 0 4px 1.25rem rgba(6,182,212,.15); }
+.cbm-light .cbm-sc-rose   { background: linear-gradient(145deg, rgba(244,63,94,.09) 0%, rgba(220,38,127,.04) 100%); box-shadow: 0 4px 1.25rem rgba(244,63,94,.15); }
+.cbm-light .cbm-sc-teal   { background: linear-gradient(145deg, rgba(20,184,166,.09) 0%, rgba(16,185,129,.04) 100%); box-shadow: 0 4px 1.25rem rgba(20,184,166,.15); }
+.cbm-light .cbm-sc-indigo { background: linear-gradient(145deg, rgba(99,102,241,.09) 0%, rgba(139,92,246,.04) 100%); box-shadow: 0 4px 1.25rem rgba(99,102,241,.15); }
 
 .cbm-stat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .75rem; }
 .cbm-stat-label { font-size: .75rem; font-weight: 700; color: var(--cbm-text-muted); letter-spacing: .01em; }
@@ -144,14 +144,14 @@
     flex-shrink: 0;
 }
 .cbm-stat-icon svg { width: 1.25rem; height: 1.25rem; color: #fff; }
-.cbm-si-blue   { background: linear-gradient(135deg,#3b82f6,#6366f1); box-shadow: 0 6px 16px rgba(59,130,246,.4); }
-.cbm-si-green  { background: linear-gradient(135deg,#22c55e,#10b981); box-shadow: 0 6px 16px rgba(34,197,94,.4); }
-.cbm-si-orange { background: linear-gradient(135deg,#fb923c,#f59e0b); box-shadow: 0 6px 16px rgba(251,146,60,.4); }
-.cbm-si-purple { background: linear-gradient(135deg,#a855f7,#ec4899); box-shadow: 0 6px 16px rgba(168,85,247,.4); }
-.cbm-si-cyan   { background: linear-gradient(135deg,#06b6d4,#0ea5e9); box-shadow: 0 6px 16px rgba(6,182,212,.4); }
-.cbm-si-rose   { background: linear-gradient(135deg,#f43f5e,#ec4899); box-shadow: 0 6px 16px rgba(244,63,94,.4); }
-.cbm-si-teal   { background: linear-gradient(135deg,#14b8a6,#10b981); box-shadow: 0 6px 16px rgba(20,184,166,.4); }
-.cbm-si-indigo { background: linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow: 0 6px 16px rgba(99,102,241,.4); }
+.cbm-si-blue   { background: linear-gradient(135deg,#3b82f6,#6366f1); box-shadow: 0 6px 1rem rgba(59,130,246,.4); }
+.cbm-si-green  { background: linear-gradient(135deg,#22c55e,#10b981); box-shadow: 0 6px 1rem rgba(34,197,94,.4); }
+.cbm-si-orange { background: linear-gradient(135deg,#fb923c,#f59e0b); box-shadow: 0 6px 1rem rgba(251,146,60,.4); }
+.cbm-si-purple { background: linear-gradient(135deg,#a855f7,#ec4899); box-shadow: 0 6px 1rem rgba(168,85,247,.4); }
+.cbm-si-cyan   { background: linear-gradient(135deg,#06b6d4,#0ea5e9); box-shadow: 0 6px 1rem rgba(6,182,212,.4); }
+.cbm-si-rose   { background: linear-gradient(135deg,#f43f5e,#ec4899); box-shadow: 0 6px 1rem rgba(244,63,94,.4); }
+.cbm-si-teal   { background: linear-gradient(135deg,#14b8a6,#10b981); box-shadow: 0 6px 1rem rgba(20,184,166,.4); }
+.cbm-si-indigo { background: linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow: 0 6px 1rem rgba(99,102,241,.4); }
 
 .cbm-stat-value { font-size: 2rem; font-weight: 800; color: var(--cbm-text); line-height: 1; margin-bottom: .5rem; letter-spacing: -.02em; }
 .cbm-stat-sub-row { display: flex; gap: .4rem; flex-wrap: wrap; }
@@ -159,7 +159,7 @@
     font-size: .65rem; font-weight: 700;
     background: rgba(255,255,255,.08);
     color: var(--cbm-text-muted);
-    padding: .175rem .45rem; border-radius: 999px;
+    padding: .175rem .45rem; border-radius: 62.4375rem;
     border: 1px solid rgba(255,255,255,.1);
 }
 .cbm-light .cbm-stat-chip { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.08); }
@@ -167,9 +167,9 @@
 /* ── Progress bar inside card ── */
 .cbm-progress-bar-wrap { margin-top: .625rem; }
 .cbm-progress-label { display: flex; justify-content: space-between; font-size: .7rem; font-weight: 700; color: var(--cbm-text-muted); margin-bottom: .3rem; }
-.cbm-progress-track { height: 5px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+.cbm-progress-track { height: 5px; border-radius: 62.4375rem; background: rgba(255,255,255,.1); overflow: hidden; }
 .cbm-light .cbm-progress-track { background: rgba(0,0,0,.08); }
-.cbm-progress-fill { height: 100%; border-radius: 999px; transition: width .6s ease; }
+.cbm-progress-fill { height: 100%; border-radius: 62.4375rem; transition: width .6s ease; }
 
 /* ── KPI Row ── */
 .cbm-kpi-row {
@@ -192,7 +192,7 @@
     box-shadow: var(--cbm-card-shadow);
     transition: transform .2s ease, box-shadow .2s ease;
 }
-.cbm-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.2); }
+.cbm-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 1.75rem rgba(0,0,0,.2); }
 .cbm-kpi-icon { width: 2.5rem; height: 2.5rem; border-radius: .75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .cbm-kpi-icon svg { width: 1.25rem; height: 1.25rem; color: #fff; }
 .cbm-kpi-label { font-size: .65rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: .06em; }
@@ -219,12 +219,12 @@
     box-shadow: var(--cbm-card-shadow);
     transition: box-shadow .2s ease;
 }
-.cbm-chart-card:hover { box-shadow: 0 12px 36px rgba(0,0,0,.25); }
+.cbm-chart-card:hover { box-shadow: 0 0.75rem 2.25rem rgba(0,0,0,.25); }
 
 .cbm-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.125rem; }
 .cbm-card-title { font-size: .9375rem; font-weight: 800; color: var(--cbm-text); letter-spacing: -.01em; }
 .cbm-card-sub   { font-size: .775rem; color: var(--cbm-text-muted); margin-top: .2rem; font-weight: 500; }
-.cbm-chart-container { flex: 1; min-height: 210px; position: relative; }
+.cbm-chart-container { flex: 1; min-height: 13.125rem; position: relative; }
 
 /* ── Donut ── */
 .cbm-donut-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -356,22 +356,22 @@
 </div>
 
 {{-- ════ MAN POWER & MAN HOURS ════ --}}
-<div id="sec-overview" class="cbm-section" style="scroll-margin-top: 130px;"></div>
+<div id="sec-overview" class="cbm-section" style="scroll-margin-top: 8.125rem;"></div>
 
 @if(!empty($stats['recurring_ns']) && count($stats['recurring_ns']) > 0)
 {{-- ════ SECTION: RECURRING NO SPARE (WARNING) ════ --}}
-<div id="sec-recurring-ns" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px; color: #ef4444; margin-top: 0; margin-bottom: 1rem;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+<div id="sec-recurring-ns" class="cbm-section-title cbm-section" style="scroll-margin-top: 8.125rem; color: #ef4444; margin-top: 0; margin-bottom: 1rem;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.125rem;height:1.125rem;"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
     Recurring "No Spare" Warning
 </div>
 <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
     <div style="font-size: 0.8rem; color: #ef4444; font-weight: 600;">Terdapat NSRDI yang dirilis kembali namun sebelumnya berstatus NO SPARE dalam 30 hari terakhir.</div>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
         @foreach($stats['recurring_ns'] as $ns)
-            <div style="background: var(--cbm-card-bg); border: 1px solid rgba(239,68,68,0.3); border-radius: 0.75rem; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 4px solid #ef4444;">
+            <div style="background: var(--cbm-card-bg); border: 1px solid rgba(239,68,68,0.3); border-radius: 0.75rem; padding: 1rem; box-shadow: 0 4px 0.75rem rgba(0,0,0,0.05); border-left: 4px solid #ef4444;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
                     <span style="font-weight: 800; font-size: 0.9rem; color: var(--cbm-text);">{{ $ns->nsrdi_number }}</span>
-                    <span style="font-size: 0.7rem; font-weight: 700; background: rgba(239,68,68,0.1); color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 99px;">{{ $ns->aircraft_registration ?? 'N/A' }}</span>
+                    <span style="font-size: 0.7rem; font-weight: 700; background: rgba(239,68,68,0.1); color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 6.1875rem;">{{ $ns->aircraft_registration ?? 'N/A' }}</span>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--cbm-text-muted); margin-bottom: 0.75rem; line-height: 1.4;"><x-text-popup :text="$ns->description" /></div>
                 <div style="font-size: 0.7rem; color: var(--cbm-text); background: rgba(0,0,0,0.1); padding: 0.5rem; border-radius: 0.5rem;">
@@ -386,7 +386,7 @@
 
 <div class="cbm-kpi-row" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 1rem;">
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(59,130,246,.06) 0%, rgba(99,102,241,.03) 100%);">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 6px 16px rgba(59,130,246,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);box-shadow:0 6px 1rem rgba(59,130,246,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" /></svg>
         </div>
         <div>
@@ -396,7 +396,7 @@
         </div>
     </div>
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(168,85,247,.06) 0%, rgba(236,72,153,.03) 100%);">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899);box-shadow:0 6px 16px rgba(168,85,247,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899);box-shadow:0 6px 1rem rgba(168,85,247,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" /></svg>
         </div>
         <div>
@@ -406,7 +406,7 @@
         </div>
     </div>
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(34,197,94,.06) 0%, rgba(16,185,129,.03) 100%);">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#22c55e,#10b981);box-shadow:0 6px 16px rgba(34,197,94,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#22c55e,#10b981);box-shadow:0 6px 1rem rgba(34,197,94,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd"/><path fill-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -416,7 +416,7 @@
         </div>
     </div>
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(251,146,60,.06) 0%, rgba(245,158,11,.03) 100%);">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#fb923c,#f59e0b);box-shadow:0 6px 16px rgba(251,146,60,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#fb923c,#f59e0b);box-shadow:0 6px 1rem rgba(251,146,60,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -428,8 +428,8 @@
 </div>
 
 {{-- ════ SECTION: DJA & UNPLANNED ════ --}}
-<div id="sec-dja" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 16.352V17.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clip-rule="evenodd"/></svg>
+<div id="sec-dja" class="cbm-section-title cbm-section" style="scroll-margin-top: 8.125rem;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.875rem;height:0.875rem;"><path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h1.148a1.5 1.5 0 011.465 1.175l.716 3.223a1.5 1.5 0 01-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 006.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 011.767-1.052l3.223.716A1.5 1.5 0 0118 16.352V17.5a1.5 1.5 0 01-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 012.43 8.326 13.019 13.019 0 012 5V3.5z" clip-rule="evenodd"/></svg>
     DJA & Unplanned
 </div>
 
@@ -490,7 +490,7 @@
 {{-- Unplanned row --}}
 <div class="cbm-kpi-row" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0.5rem;">
     <div class="cbm-kpi-card">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);box-shadow:0 6px 16px rgba(6,182,212,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);box-shadow:0 6px 1rem rgba(6,182,212,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -500,7 +500,7 @@
         </div>
     </div>
     <div class="cbm-kpi-card">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 6px 16px rgba(248,113,113,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 6px 1rem rgba(248,113,113,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -510,7 +510,7 @@
         </div>
     </div>
     <div class="cbm-kpi-card">
-        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 6px 16px rgba(99,102,241,.4);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 6px 1rem rgba(99,102,241,.4);">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h2.25a3 3 0 013 3v2.25a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm9.75 0a3 3 0 013-3H18a3 3 0 013 3v2.25a3 3 0 01-3 3h-2.25a3 3 0 01-3-3V6zM3 15.75a3 3 0 013-3h2.25a3 3 0 013 3V18a3 3 0 01-3 3H6a3 3 0 01-3-3v-2.25zm9.75 0a3 3 0 013-3H18a3 3 0 013 3V18a3 3 0 01-3 3h-2.25a3 3 0 01-3-3v-2.25z" clip-rule="evenodd"/></svg>
         </div>
         <div>
@@ -522,8 +522,8 @@
 </div>
 
 {{-- ════ SECTION: CML & ICT ════ --}}
-<div id="sec-cml-ict" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+<div id="sec-cml-ict" class="cbm-section-title cbm-section" style="scroll-margin-top: 8.125rem;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.875rem;height:0.875rem;"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
     CML & ICT Findings
 </div>
 
@@ -574,8 +574,8 @@
 </div>
 
 {{-- ════ SECTION: AIRCRAFT CLEANING ════ --}}
-<div id="sec-ac" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+<div id="sec-ac" class="cbm-section-title cbm-section" style="scroll-margin-top: 8.125rem;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.875rem;height:0.875rem;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
     Aircraft Cleaning
 </div>
 
@@ -602,7 +602,7 @@
     <div class="cbm-ac-card">
         <div class="cbm-ac-card-header">
             <div class="cbm-ac-type-badge" style="background:rgba(34,197,94,.15);color:#22c55e;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:11px;height:11px;"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.6875rem;height:0.6875rem;"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd"/></svg>
                 GC
             </div>
             <span style="font-size:.75rem;color:var(--cbm-text-muted);font-weight:600;">General Cleaning</span>
@@ -616,7 +616,7 @@
     <div class="cbm-ac-card">
         <div class="cbm-ac-card-header">
             <div class="cbm-ac-type-badge" style="background:rgba(6,182,212,.15);color:#06b6d4;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:11px;height:11px;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.6875rem;height:0.6875rem;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
                 DCI
             </div>
             <span style="font-size:.75rem;color:var(--cbm-text-muted);font-weight:600;">Deep Cleaning Interior</span>
@@ -630,7 +630,7 @@
     <div class="cbm-ac-card">
         <div class="cbm-ac-card-header">
             <div class="cbm-ac-type-badge" style="background:rgba(168,85,247,.15);color:#a855f7;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:11px;height:11px;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.6875rem;height:0.6875rem;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
                 DCE
             </div>
             <span style="font-size:.75rem;color:var(--cbm-text-muted);font-weight:600;">Deep Cleaning Exterior</span>
@@ -644,7 +644,7 @@
     <div class="cbm-ac-card">
         <div class="cbm-ac-card-header">
             <div class="cbm-ac-type-badge" style="background:rgba(251,146,60,.15);color:#fb923c;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:11px;height:11px;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.6875rem;height:0.6875rem;"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
                 TC
             </div>
             <span style="font-size:.75rem;color:var(--cbm-text-muted);font-weight:600;">Transit Cleaning</span>
@@ -658,7 +658,7 @@
 <!-- ==============================================
      INVENTORY & REPAIR
 =============================================== -->
-<div id="sec-ims" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
+<div id="sec-ims" class="cbm-section-title cbm-section" style="scroll-margin-top: 8.125rem;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.2rem;height:1.2rem;"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm3.75-1.5a.75.75 0 01.75.75v6a.75.75 0 01-1.5 0v-6a.75.75 0 01.75-.75z" clip-rule="evenodd" /></svg>
     Inventory Management & Repair
 </div>
@@ -725,8 +725,8 @@
 </div>
 
 {{-- ════ CHARTS ROW 1: Station Charts ════ --}}
-<div id="sec-charts" class="cbm-section-title cbm-section" style="scroll-margin-top: 130px;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;"><path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 01-.784.785l-1.192.24a1 1 0 000 1.962l1.192.24a1 1 0 01.785.785l.24 1.192a1 1 0 001.962 0l.24-1.192a1 1 0 01.785-.785l1.192-.24a1 1 0 000-1.962l-1.192-.24a1 1 0 01-.785-.785l-.24-1.192zM6.949 5.684a1 1 0 00-1.898 0l-.683 2.051a1 1 0 01-.633.633l-2.051.683a1 1 0 000 1.898l2.051.683a1 1 0 01.633.633l.683 2.051a1 1 0 001.898 0l.683-2.051a1 1 0 01.633-.633l2.051-.683a1 1 0 000-1.898l-2.051-.683a1 1 0 01-.633-.633L6.95 5.684z"/></svg>
+<div id="sec-charts" class="cbm-section-title cbm-section" style="scroll-margin-top: 8.125rem;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:0.875rem;height:0.875rem;"><path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 01-.784.785l-1.192.24a1 1 0 000 1.962l1.192.24a1 1 0 01.785.785l.24 1.192a1 1 0 001.962 0l.24-1.192a1 1 0 01.785-.785l1.192-.24a1 1 0 000-1.962l-1.192-.24a1 1 0 01-.785-.785l-.24-1.192zM6.949 5.684a1 1 0 00-1.898 0l-.683 2.051a1 1 0 01-.633.633l-2.051.683a1 1 0 000 1.898l2.051.683a1 1 0 01.633.633l.683 2.051a1 1 0 001.898 0l.683-2.051a1 1 0 01.633-.633l2.051-.683a1 1 0 000-1.898l-2.051-.683a1 1 0 01-.633-.633L6.95 5.684z"/></svg>
     Analitik & Grafik
 </div>
 
@@ -789,7 +789,7 @@
             </div>
         </div>
         <div class="cbm-donut-wrap" wire:ignore>
-            <div style="position:relative;width:150px;height:150px;margin:0 auto;">
+            <div style="position:relative;width:9.375rem;height:9.375rem;margin:0 auto;">
                 <canvas id="cbm-donut-chart"
                     data-closed="{{ $dClosedTotal }}"
                     data-open="{{ $dOpenTotal }}"
@@ -895,7 +895,7 @@
             </div>
         </div>
         <div class="cbm-donut-wrap" wire:ignore style="margin-top:.5rem;">
-            <div style="position:relative;width:150px;height:150px;margin:0 auto;">
+            <div style="position:relative;width:9.375rem;height:9.375rem;margin:0 auto;">
                 <canvas id="ac-type-donut"
                     data-gc="{{ $acData['gc_total'] ?? 0 }}"
                     data-dci="{{ $acData['dci_total'] ?? 0 }}"

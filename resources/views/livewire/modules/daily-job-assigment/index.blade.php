@@ -39,10 +39,10 @@
 
     {{-- Sync Card --}}
     <div style="display: flex; justify-content: center; padding: 2rem 1.5rem;">
-        <div class="mod-card" style="padding: 2.5rem; width: 100%; max-width: 560px; text-align: center;">
+        <div class="mod-card" style="padding: 2.5rem; width: 100%; max-width: 35rem; text-align: center;">
 
-            <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(59,130,246,.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                <svg style="width: 28px; height: 28px; color: var(--cbm-blue);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <div style="width: 3.5rem; height: 3.5rem; border-radius: 0.875rem; background: rgba(59,130,246,.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <svg style="width: 1.75rem; height: 1.75rem; color: var(--cbm-blue);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
             </div>
@@ -59,7 +59,7 @@
                 
                 <button wire:click="import" class="mod-btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.875rem;" wire:loading.attr="disabled" wire:target="file, import">
                     <span wire:loading.remove wire:target="import">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;display:inline;vertical-align:middle;margin-right:6px;">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                         </svg>
                         Import dari Excel
@@ -93,7 +93,7 @@
                     wire:loading.attr="disabled"
                 >
                     <span wire:loading.remove wire:target="syncNow">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;display:inline;vertical-align:middle;margin-right:6px;">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
                         Mulai Sinkronisasi
@@ -109,14 +109,14 @@
 
             @if (session()->has('success'))
                 <div style="margin-top: 1.25rem; padding: 0.875rem 1rem; background: #ECFDF5; color: #065F46; border-radius: 0.5rem; font-size: 0.8125rem; border: 1px solid #A7F3D0; text-align: left; display: flex; gap: 0.5rem; align-items: flex-start;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span><strong>Sukses!</strong> {{ session('success') }}</span>
                 </div>
             @endif
 
             @if (session()->has('error'))
                 <div style="margin-top: 1.25rem; padding: 0.875rem 1rem; background: #FEF2F2; color: #991B1B; border-radius: 0.5rem; font-size: 0.8125rem; border: 1px solid #FECACA; text-align: left; display: flex; gap: 0.5rem; align-items: flex-start;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;flex-shrink:0;margin-top:1px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
                     <span><strong>Gagal!</strong> {{ session('error') }}</span>
                 </div>
             @endif

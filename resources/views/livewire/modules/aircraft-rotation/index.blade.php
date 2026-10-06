@@ -50,8 +50,8 @@
     @endif
 
     <div class="mod-card mod-card-accent-purple" style="margin-bottom: 2rem;">
-        <div class="mod-toolbar" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-            <form action="{{ route('import.aircraft-rotation') }}" method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center;" onsubmit="this.querySelector('button').disabled=true; this.querySelector('span').innerText='Memproses...';">
+        <div class="mod-toolbar" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.9375rem;">
+            <form action="{{ route('import.aircraft-rotation') }}" method="POST" enctype="multipart/form-data" style="display: flex; gap: 0.625rem; align-items: center;" onsubmit="this.querySelector('button').disabled=true; this.querySelector('span').innerText='Memproses...';">
                 @csrf
                 <input type="file" name="importFile" class="mod-search-input cbm-file-input" accept=".xlsx,.xls" style="padding-top: 5px; width: auto;" required>
                 <button type="submit" class="mod-btn" style="background: var(--cbm-accent-purple); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600;">
@@ -64,7 +64,7 @@
 
     @if($rotations->count() > 0)
         <div style="display: flex; gap: 1rem; align-items: flex-start;">
-            <div class="mod-card" style="width: 250px; flex-shrink: 0; padding: 1rem;">
+            <div class="mod-card" style="width: 15.625rem; flex-shrink: 0; padding: 1rem;">
                 <h4 style="margin: 0 0 1rem 0; font-size: 0.9rem; color: var(--cbm-text-muted); text-transform: uppercase;">Riwayat Upload</h4>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     @foreach($rotations as $rotation)

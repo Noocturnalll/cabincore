@@ -1,7 +1,7 @@
 <div>
     <div class="cbm-page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
         <div style="display: flex; align-items: center; gap: 1.25rem;">
-            <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #a855f7, #d946ef); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 16px rgba(168,85,247,0.3);">
+            <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #a855f7, #d946ef); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 1rem rgba(168,85,247,0.3);">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1.75rem;height:1.75rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.428-1.428L13.5 18.75l1.178-.394a2.25 2.25 0 001.428-1.428l.394-1.183.394 1.183a2.25 2.25 0 001.428 1.428l1.178.394-1.178.394a2.25 2.25 0 00-1.428 1.428z" /></svg>
             </div>
             <div>
@@ -13,13 +13,13 @@
 
     <div class="cbm-card">
         <div class="cbm-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cbm-card-border); padding-bottom: 1.25rem; margin-bottom: 0;">
-            <div style="position: relative; width: 300px;">
+            <div style="position: relative; width: 18.75rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: var(--cbm-text-muted);">
                     <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                 </svg>
                 <input type="text" placeholder="Cari Exterior Cleaning (DCE)..." class="cbm-input" style="padding-left: 2.75rem; width: 100%; height: 2.75rem; border-radius: .875rem; background: var(--cbm-bg); border: 1px solid var(--cbm-card-border); color: var(--cbm-text);" wire:model.live.debounce.300ms="search">
             </div>
-            <button wire:click="create()" class="cbm-btn cbm-btn-primary" style="background: linear-gradient(135deg, #a855f7, #d946ef); box-shadow: 0 4px 12px rgba(168,85,247,0.3); border: none; color: white; padding: 0 1.5rem; height: 2.75rem; border-radius: .875rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+            <button wire:click="create()" class="cbm-btn cbm-btn-primary" style="background: linear-gradient(135deg, #a855f7, #d946ef); box-shadow: 0 4px 0.75rem rgba(168,85,247,0.3); border: none; color: white; padding: 0 1.5rem; height: 2.75rem; border-radius: .875rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1.25rem; height: 1.25rem;">
                     <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                 </svg>
@@ -47,9 +47,9 @@
                             <td>{{ $cln->shift }}</td>
                             <td>
                                 @if($cln->status === 'Aktif' || $cln->status === 'Open')
-                                    <span style="background: rgba(34,197,94,0.1); color: #22c55e; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(34,197,94,0.2);">{{ $cln->status }}</span>
+                                    <span style="background: rgba(34,197,94,0.1); color: #22c55e; padding: 0.25rem 0.75rem; border-radius: 62.4375rem; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(34,197,94,0.2);">{{ $cln->status }}</span>
                                 @else
-                                    <span style="background: rgba(14,165,233,0.1); color: #0ea5e9; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(14,165,233,0.2);">{{ $cln->status }}</span>
+                                    <span style="background: rgba(14,165,233,0.1); color: #0ea5e9; padding: 0.25rem 0.75rem; border-radius: 62.4375rem; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(14,165,233,0.2);">{{ $cln->status }}</span>
                                 @endif
                             </td>
                             <td style="text-align: right;">
@@ -83,7 +83,7 @@
     <!-- Modal Form -->
     @if($isModalOpen)
     <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; backdrop-filter: blur(4px);">
-        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden;">
+        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 1.25rem 1.5625rem -5px rgba(0,0,0,0.1), 0 0.625rem 0.625rem -5px rgba(0,0,0,0.04); overflow: hidden;">
             <div style="padding: 1.5rem; border-bottom: 1px solid var(--cbm-card-border); display: flex; justify-content: space-between; align-items: center; background: var(--cbm-nav-hover);">
                 <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--cbm-text); margin: 0;">{{ $cleaningId ? 'Edit' : 'Tambah' }} Exterior (DCE)</h3>
                 <button wire:click="closeModal()" style="background: transparent; border: none; color: var(--cbm-text-muted); cursor: pointer; transition: color 0.2s;">
@@ -155,7 +155,7 @@
                 
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                     <button type="button" wire:click="closeModal()" class="cbm-btn" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; background: transparent; border: 1px solid var(--cbm-input-border); color: var(--cbm-text); cursor: pointer;">Batal</button>
-                    <button type="submit" class="cbm-btn cbm-btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="submit" class="cbm-btn cbm-btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; cursor: pointer; box-shadow: 0 4px 0.75rem rgba(59,130,246,0.3); display: flex; align-items: center; gap: 0.5rem;">
                         <svg wire:loading wire:target="save" style="animation: spin 1s linear infinite; width: 1.25rem; height: 1.25rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         Simpan
                     </button>
@@ -168,7 +168,7 @@
     <!-- Modal Sync -->
     @if($isSyncModalOpen)
     <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; backdrop-filter: blur(4px);">
-        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden;">
+        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 1.25rem 1.5625rem -5px rgba(0,0,0,0.1), 0 0.625rem 0.625rem -5px rgba(0,0,0,0.04); overflow: hidden;">
             <div style="padding: 1.5rem; border-bottom: 1px solid var(--cbm-card-border); display: flex; justify-content: space-between; align-items: center; background: var(--cbm-nav-hover);">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <div style="width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; color: #3b82f6;">
@@ -195,7 +195,7 @@
                 
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                     <button type="button" wire:click="closeSyncModal()" class="cbm-btn" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; background: transparent; border: 1px solid var(--cbm-input-border); color: var(--cbm-text); cursor: pointer; transition: background 0.2s;">Batal</button>
-                    <button type="submit" class="cbm-btn cbm-btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="submit" class="cbm-btn cbm-btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; cursor: pointer; box-shadow: 0 4px 0.75rem rgba(59,130,246,0.3); display: flex; align-items: center; gap: 0.5rem;">
                         <svg wire:loading wire:target="syncData" style="animation: spin 1s linear infinite; width: 1.25rem; height: 1.25rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         Mulai Sync
                     </button>

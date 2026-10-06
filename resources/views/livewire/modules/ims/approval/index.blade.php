@@ -52,7 +52,7 @@
                             </td>
                             <td>
                                 <div><span style="font-weight: 600; text-transform: uppercase; font-size: 0.75rem;">{{ $trx->type }}</span> - {{ $trx->usage_type ?? 'N/A' }}</div>
-                                <div class="mod-aircraft-sub" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $trx->purpose_description }}</div>
+                                <div class="mod-aircraft-sub" style="max-width: 15.625rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $trx->purpose_description }}</div>
                             </td>
                             <td>
                                 <div>{{ $trx->items->count() }} jenis barang</div>

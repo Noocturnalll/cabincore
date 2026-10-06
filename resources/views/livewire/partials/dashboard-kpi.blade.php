@@ -13,7 +13,7 @@
     border-radius:1rem; padding:1rem 1.1rem; box-shadow:var(--cbm-card-shadow);
     transition:transform .2s ease, box-shadow .2s ease;
 }
-.kpi-sum-card:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.18); }
+.kpi-sum-card:hover { transform:translateY(-2px); box-shadow:0 0.625rem 1.75rem rgba(0,0,0,.18); }
 .kpi-sum-card::before { content:''; position:absolute; inset:0 auto 0 0; width:3px; background:var(--kpi-accent,#3b82f6); }
 .kpi-sum-label { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--cbm-text-muted); }
 .kpi-sum-value { font-size:1.6rem; font-weight:800; color:var(--cbm-text); line-height:1.2; margin-top:.3rem; }
@@ -29,19 +29,19 @@
 }
 .kpi-card-title { font-size:.9rem; font-weight:800; color:var(--cbm-text); }
 .kpi-card-sub { font-size:.72rem; color:var(--cbm-text-muted); margin-top:.15rem; margin-bottom:.75rem; }
-.kpi-chart-box { position:relative; height:260px; }
+.kpi-chart-box { position:relative; height:16.25rem; }
 .kpi-gauge-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; }
 .kpi-gauge { text-align:center; position:relative; }
-.kpi-gauge-canvas { position:relative; height:95px; }
+.kpi-gauge-canvas { position:relative; height:5.9375rem; }
 .kpi-gauge-value { position:absolute; left:0; right:0; bottom:2px; font-size:1.35rem; font-weight:800; color:var(--cbm-text); }
 .kpi-gauge-label { font-size:.75rem; font-weight:700; color:var(--cbm-text-muted); margin-top:.35rem; }
-.kpi-gauge-badge { display:inline-block; margin-top:.3rem; font-size:.62rem; font-weight:800; padding:.15rem .5rem; border-radius:999px; }
+.kpi-gauge-badge { display:inline-block; margin-top:.3rem; font-size:.62rem; font-weight:800; padding:.15rem .5rem; border-radius:62.4375rem; }
 .kpi-badge-ok { background:rgba(52,211,153,.15); color:#10b981; }
 .kpi-badge-warn { background:rgba(251,191,36,.15); color:#d97706; }
 .kpi-badge-bad { background:rgba(248,113,113,.15); color:#ef4444; }
 </style>
 
-<div id="sec-kpi" class="cbm-section-title cbm-section" style="scroll-margin-top:130px;">
+<div id="sec-kpi" class="cbm-section-title cbm-section" style="scroll-margin-top:8.125rem;">
     KPI &amp; Performance ({{ $kpi['period'] ?? '' }})
 </div>
 

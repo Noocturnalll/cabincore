@@ -125,7 +125,7 @@
         </div>
 
         {{-- Tab: Informasi Akun --}}
-        <div x-show="activeTab === 'info'" style="max-width: 500px; display: none;">
+        <div x-show="activeTab === 'info'" style="max-width: 31.25rem; display: none;">
             <div class="cbm-input-group">
                 <label class="cbm-label">Nama Lengkap</label>
                 <input type="text" class="cbm-input" value="{{ $user->name }}" disabled>
@@ -144,7 +144,7 @@
         </div>
 
         {{-- Tab: Keamanan (Ganti Password) --}}
-        <div x-show="activeTab === 'security'" style="max-width: 500px; display: none;">
+        <div x-show="activeTab === 'security'" style="max-width: 31.25rem; display: none;">
             @if (session()->has('success'))
                 <div style="background: rgba(74,222,128,0.15); color: #4ade80; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; font-weight: 600;">
                     {{ session('success') }}
@@ -200,7 +200,7 @@
 
         {{-- Tab: FAQ --}}
         <div x-show="activeTab === 'faq'" style="display: none;">
-        <div style="max-width: 700px;" x-data="{ selected: 1 }">
+        <div style="max-width: 43.75rem;" x-data="{ selected: 1 }">
             <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1.5rem;">Pertanyaan yang Sering Diajukan (FAQ)</h3>
             
             <div class="faq-item">

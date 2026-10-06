@@ -111,7 +111,7 @@
             <div class="mod-subtitle">Pantau pergerakan pesawat di Terminal dan daftar RON secara realtime.</div>
         </div>
         <button class="btn btn-sm btn-outline-secondary" wire:click="$refresh" style="display: flex; align-items: center; gap: 0.5rem; border-color: var(--cbm-border); color: var(--cbm-text);">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0;">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
             <span>Refresh Data</span>
@@ -129,9 +129,9 @@
         
         @if($mainTab === 'sync')
         {{-- Sync Card --}}
-        <div class="mod-card" style="padding: 1.5rem; max-width: 600px; margin: 0 auto; width: 100%; text-align: center;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                <svg style="width: 24px; height: 24px; color: var(--cbm-blue);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <div class="mod-card" style="padding: 1.5rem; max-width: 37.5rem; margin: 0 auto; width: 100%; text-align: center;">
+            <div style="width: 3rem; height: 3rem; border-radius: 0.75rem; background: rgba(59,130,246,.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg style="width: 1.5rem; height: 1.5rem; color: var(--cbm-blue);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
             </div>
@@ -159,7 +159,7 @@
                         Mulai Sinkronisasi
                     </span>
                     <span wire:loading wire:target="syncNow">
-                        <svg class="animate-spin" style="width:16px;height:16px;display:inline;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg class="animate-spin" style="width:1rem;height:1rem;display:inline;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         Menyinkronkan...
                     </span>
                 </button>

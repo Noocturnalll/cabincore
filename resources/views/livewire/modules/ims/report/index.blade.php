@@ -23,7 +23,7 @@
     <div wire:key="tab-mutasi" class="mod-card">
         <div class="mod-toolbar">
             <div style="display: flex; gap: 0.5rem; width: 100%; flex-wrap: wrap;">
-                <select wire:model.live="type" class="mod-search-input" style="padding-left: 0.5rem; min-width: 150px;">
+                <select wire:model.live="type" class="mod-search-input" style="padding-left: 0.5rem; min-width: 9.375rem;">
                     <option value="">Semua Tipe</option>
                     <option value="in">Barang Masuk (In)</option>
                     <option value="out">Barang Keluar (Out)</option>
@@ -92,7 +92,7 @@
     @if($activeTab == 'pivot_stock')
     <div wire:key="tab-pivot-stock" class="mod-card">
         <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="max-width: 300px;">
+            <div class="mod-search-wrap" style="max-width: 18.75rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                 </svg>
@@ -108,7 +108,7 @@
                 <thead>
                     <tr>
                         <th style="position: sticky; left: 0; background: var(--cbm-card-bg); z-index: 10;">Part Number</th>
-                        <th style="position: sticky; left: 150px; background: var(--cbm-card-bg); z-index: 10;">Nama Barang</th>
+                        <th style="position: sticky; left: 9.375rem; background: var(--cbm-card-bg); z-index: 10;">Nama Barang</th>
                         <th style="text-align: center;">Total Tersedia</th>
                         @foreach($locations as $loc)
                             <th style="text-align: center; border-left: 1px solid var(--cbm-border);">{{ $loc->name }}</th>
@@ -119,8 +119,8 @@
                     @forelse($pivotStockItems as $item)
                         <tr>
                             <td class="mod-aircraft-name" style="position: sticky; left: 0; background: var(--cbm-card-bg); z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05);">{{ $item->part_number }}</td>
-                            <td style="position: sticky; left: 150px; background: var(--cbm-card-bg); z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05);">
-                                <div class="mod-aircraft-name" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item->name }}</div>
+                            <td style="position: sticky; left: 9.375rem; background: var(--cbm-card-bg); z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05);">
+                                <div class="mod-aircraft-name" style="max-width: 12.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item->name }}</div>
                             </td>
                             <td style="text-align: center; font-weight: bold;">
                                 {{ $item->stocks->sum('qty_on_hand') }}
@@ -156,7 +156,7 @@
     @if($activeTab == 'pivot_trx')
     <div wire:key="tab-pivot-trx" class="mod-card">
         <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="max-width: 300px;">
+            <div class="mod-search-wrap" style="max-width: 18.75rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                 </svg>
@@ -172,7 +172,7 @@
                 <thead>
                     <tr>
                         <th rowspan="2" style="position: sticky; left: 0; background: var(--cbm-card-bg); z-index: 10; border-bottom: 2px solid var(--cbm-border);">Part Number</th>
-                        <th rowspan="2" style="position: sticky; left: 150px; background: var(--cbm-card-bg); z-index: 10; border-bottom: 2px solid var(--cbm-border);">Nama Barang</th>
+                        <th rowspan="2" style="position: sticky; left: 9.375rem; background: var(--cbm-card-bg); z-index: 10; border-bottom: 2px solid var(--cbm-border);">Nama Barang</th>
                         @foreach($months as $m)
                             <th colspan="2" style="text-align: center; border-left: 1px solid var(--cbm-border); color: var(--cbm-text-muted);">{{ \Carbon\Carbon::createFromFormat('Y-m', $m)->format('M Y') }}</th>
                         @endforeach
@@ -188,8 +188,8 @@
                     @forelse($pivotTrxItems as $item)
                         <tr>
                             <td class="mod-aircraft-name" style="position: sticky; left: 0; background: var(--cbm-card-bg); z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05);">{{ $item->part_number }}</td>
-                            <td style="position: sticky; left: 150px; background: var(--cbm-card-bg); z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05);">
-                                <div class="mod-aircraft-name" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item->name }}</div>
+                            <td style="position: sticky; left: 9.375rem; background: var(--cbm-card-bg); z-index: 5; box-shadow: 2px 0 5px rgba(0,0,0,0.05);">
+                                <div class="mod-aircraft-name" style="max-width: 12.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item->name }}</div>
                             </td>
                             @foreach($months as $m)
                                 @php

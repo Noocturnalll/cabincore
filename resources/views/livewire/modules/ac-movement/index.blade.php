@@ -48,6 +48,12 @@
         .table {
             color: var(--cbm-text);
             border-color: var(--cbm-border);
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            padding: 0.875rem 1rem;
+            text-align: left;
         }
         .table th {
             background: var(--cbm-bg);
@@ -56,11 +62,11 @@
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.5px;
-            border-bottom-width: 1px;
+            border-bottom: 1px solid var(--cbm-border);
         }
         .table td {
             background: var(--cbm-card);
-            border-color: var(--cbm-border);
+            border-bottom: 1px solid var(--cbm-border);
             vertical-align: middle;
         }
         .table-striped>tbody>tr:nth-of-type(odd)>* {

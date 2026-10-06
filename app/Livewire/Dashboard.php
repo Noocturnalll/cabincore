@@ -14,6 +14,56 @@ use Livewire\Attributes\On;
 
 class Dashboard extends Component
 {
+    public string $period = 'daily';
+
+    private function scope(): DashboardScope
+    {
+        return DashboardScope::for(auth()->user());
+    }
+
+    private function range(): array
+    {
+        $scope = $this->scope();
+        $period = in_array($this->period, $scope->periods, true) ? $this->period : 'daily';
+        
+        $active = now()->hour >= 18 ? now() : now()->subDay();
+
+        [$from, $to] = match ($period) {
+            'weekly'  => [$active->copy()->startOfWeek(), $active->copy()],
+            'monthly' => [$active->copy()->startOfMonth(), $active->copy()],
+            default   => [$active->copy(), $active->copy()],
+        };
+
+        return [$from->startOfDay()->toDateTimeString(), $to->endOfDay()->toDateTimeString()];
+    }
+
+    public function updatedPeriod()
+    {
+        $this->dispatch('dashboard-updated');
+    }
+
+    private function applyStationFilter($query, string $table, ?string $djaJoinTable = null)
+    {
+        $scope = $this->scope();
+        if ($scope->stations === null) {
+            return $query;
+        }
+
+        if ($djaJoinTable) {
+            $query->whereIn("{$djaJoinTable}.station", $scope->stations);
+        } else {
+            $column = match($table) {
+                'wo_logs', 'dmi_logs', 'nsrdi_logs' => 'act_station',
+                'cml_logs', 'aircraft_cleanings' => 'station',
+                default => null,
+            };
+            if ($column) {
+                $query->whereIn("{$table}.{$column}", $scope->stations);
+            }
+        }
+        
+        return $query;
+    }
     private function getDashboardStats(): array
     {
         $scope = $this->scope();

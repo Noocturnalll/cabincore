@@ -12,7 +12,7 @@ return new class extends Migration
             // NULL      = data buatan aplikasi (DJA punya dja_id, unplanned manual tanpa dja_id)
             // 'dja'     = hasil import sheet "DJA AOC NSRDIL R01"
             // 'unplanned' = hasil import sheet "UNPLANNED" (DOC TYPE = NSRDI)
-            $table->string('import_source', 20)->nullable()->after('is_submitted');
+            $table->string('import_source', 20)->nullable();
             $table->index(['import_source', 'plan_date']);
         });
     }

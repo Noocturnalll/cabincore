@@ -129,5 +129,132 @@
             ])
         </div>
 
+        {{-- TABLES SECTION --}}
+        <div class="mod-card">
+            <div class="card-header border-bottom border-secondary p-0">
+                <ul class="nav nav-tabs cbm-tabs px-3 pt-3" style="border-bottom: 0;">
+                    <li class="nav-item">
+                        <button class="nav-link {{ $activeTab === 'terminal1' ? 'active' : '' }}" wire:click="$set('activeTab', 'terminal1')">TERMINAL 1</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link {{ $activeTab === 'terminal2' ? 'active' : '' }}" wire:click="$set('activeTab', 'terminal2')">TERMINAL 2</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link {{ $activeTab === 'ron' ? 'active' : '' }}" wire:click="$set('activeTab', 'ron')">AC RON</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link {{ $activeTab === 'standby' ? 'active' : '' }}" wire:click="$set('activeTab', 'standby')">AC STBY</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    @if($activeTab === 'terminal1' || $activeTab === 'terminal2')
+                        <table class="table table-hover table-striped mb-0 text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Date</th>
+                                    <th>Reg</th>
+                                    <th>Flt In</th>
+                                    <th>STA</th>
+                                    <th>ETA</th>
+                                    <th>Plan P/S</th>
+                                    <th>Flt Out</th>
+                                    <th>STD</th>
+                                    <th>ATD</th>
+                                    <th>Engineer</th>
+                                    <th>Input AFML</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php $terminals = $activeTab === 'terminal1' ? $terminal1 : $terminal2; @endphp
+                                @forelse($terminals as $row)
+                                    <tr>
+                                        <td>{{ $row->no_seq }}</td>
+                                        <td>{{ $row->flight_date?->format('d M Y') }}</td>
+                                        <td class="fw-bold text-info">{{ $row->registration }}</td>
+                                        <td>{{ $row->flight_no_in }}</td>
+                                        <td>{{ $row->sta }}</td>
+                                        <td>{{ $row->eta }}</td>
+                                        <td>{{ $row->plan_ps }}</td>
+                                        <td>{{ $row->flight_no_out }}</td>
+                                        <td>{{ $row->std }}</td>
+                                        <td>{{ $row->atd }}</td>
+                                        <td>{{ $row->engineer_handle }}</td>
+                                        <td>{{ $row->input_afml }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="12" class="text-center text-muted py-4">Belum ada data terminal. Lakukan sinkronisasi.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    @elseif($activeTab === 'ron')
+                        <table class="table table-hover table-striped mb-0 text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Date</th>
+                                    <th>Reg</th>
+                                    <th>Ex Flt</th>
+                                    <th>STA/ATA</th>
+                                    <th>Stand</th>
+                                    <th>Flt No</th>
+                                    <th>Route</th>
+                                    <th>STD</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($acRon as $row)
+                                    <tr>
+                                        <td>{{ $row->no_seq }}</td>
+                                        <td>{{ $row->ron_date?->format('d M Y') }}</td>
+                                        <td class="fw-bold text-info">{{ $row->reg_flt }}</td>
+                                        <td>{{ $row->ex_flt }}</td>
+                                        <td>{{ $row->sta_ata }}</td>
+                                        <td>{{ $row->stand }}</td>
+                                        <td>{{ $row->flt_no }}</td>
+                                        <td>{{ $row->route }}</td>
+                                        <td>{{ $row->std }}</td>
+                                        <td>{{ $row->remarks }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="10" class="text-center text-muted py-4">Belum ada data AC RON. Lakukan sinkronisasi.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    @elseif($activeTab === 'standby')
+                        <table class="table table-hover table-striped mb-0 text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Airline</th>
+                                    <th>Reg</th>
+                                    <th>Stand</th>
+                                    <th>Plan RTS</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($acStandby as $row)
+                                    <tr>
+                                        <td>{{ $row->no_seq }}</td>
+                                        <td>{{ $row->airline_category }}</td>
+                                        <td class="fw-bold text-info">{{ $row->reg_flt }}</td>
+                                        <td>{{ $row->parking }}</td>
+                                        <td>{{ $row->plan_rts }}</td>
+                                        <td>{{ $row->remarks }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada data AC STBY. Lakukan sinkronisasi.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

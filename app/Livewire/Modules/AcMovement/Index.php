@@ -11,6 +11,8 @@ class Index extends Component
 {
     public $sheetUrl = '';
 
+    public string $activeTab = 'terminal1';
+
     public function mount(): void
     {
         $this->sheetUrl = SyncSetting::for(SyncSetting::AcMovement)->sheetUrl() ?? '';
@@ -49,6 +51,10 @@ class Index extends Component
     {
         return view('livewire.modules.ac-movement.index', [
             'syncSetting' => SyncSetting::for(SyncSetting::AcMovement),
+            'terminal1' => \App\Models\TerminalMovement::where('terminal_name', 'TERMINAL 1')->orderBy('no_seq')->get(),
+            'terminal2' => \App\Models\TerminalMovement::where('terminal_name', 'TERMINAL 2')->orderBy('no_seq')->get(),
+            'acRon' => \App\Models\AcRon::orderBy('no_seq')->get(),
+            'acStandby' => \App\Models\AcStandby::orderBy('no_seq')->get(),
         ])->layout('components.layouts.app');
     }
 }

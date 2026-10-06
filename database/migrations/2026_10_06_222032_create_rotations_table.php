@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('rotations', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->string('file_path');
+            $table->string('html_path');
             $table->timestamps();
         });
     }

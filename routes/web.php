@@ -67,6 +67,15 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/modules/aircraft-cleaning/exterior', Exterior::class)->name('modules.cleaning.exterior');
     Route::get('/modules/aircraft-cleaning/daily-report', DailyReport::class)->name('modules.cleaning.daily-report');
     Route::get('/modules/aircraft-cleaning/sync', \App\Livewire\Modules\AircraftCleaning\Sync::class)->name('modules.cleaning.sync');
+    Route::get('/rotations/{rotation}/view', function (\App\Models\Rotation $rotation) {
+        return response(\Illuminate\Support\Facades\Storage::get($rotation->html_path))
+            ->header('Content-Type', 'text/html; charset=UTF-8')
+            ->header('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'");
+    })->name('rotations.view');
+    Route::get('/rotations/{rotation}/download', function (\App\Models\Rotation $rotation) {
+        return \Illuminate\Support\Facades\Storage::download($rotation->file_path);
+    })->name('rotations.download');
+
     Route::get('/modules/aircraft-rotation', App\Livewire\Modules\AircraftRotation\Index::class)->name('modules.aircraft-rotation');
     Route::get('/modules/ac-movement', App\Livewire\Modules\AcMovement\Index::class)->name('modules.ac-movement');
     

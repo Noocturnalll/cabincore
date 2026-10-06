@@ -15,26 +15,46 @@ class Index extends Component
 
     public $importFile;
 
-    public function import()
+    public function import(\App\Services\ExcelHtmlRenderer $renderer)
     {
         $this->validate([
-            'importFile' => 'required|mimes:xlsx,xls,csv|max:50240',
+            'importFile' => 'required|file|mimes:xlsx,xls|max:50240',
         ]);
 
         try {
-            Excel::import(new AircraftRotationImport, $this->importFile);
+            $filename = $this->importFile->getClientOriginalName();
+            $path = $this->importFile->store('rotations');
+            
+            $html = $renderer->render(\Illuminate\Support\Facades\Storage::path($path));
+            
+            $htmlPath = 'rotations/' . pathinfo($path, PATHINFO_FILENAME) . '.html';
+            \Illuminate\Support\Facades\Storage::put($htmlPath, $html);
+            
+            \App\Models\Rotation::create([
+                'title' => pathinfo($filename, PATHINFO_FILENAME),
+                'file_path' => $path,
+                'html_path' => $htmlPath,
+            ]);
 
-            session()->flash('message', 'Data Aircraft Rotation berhasil diimport.');
+            session()->flash('message', 'File Rotasi berhasil diunggah dan dirender.');
             $this->reset('importFile');
         } catch (\Exception $e) {
             Log::error('Import Aircraft Rotation gagal: '.$e->getMessage());
-            session()->flash('error', 'Terjadi kesalahan saat mengimport data: '.$e->getMessage());
+            session()->flash('error', 'Terjadi kesalahan saat memproses data: '.$e->getMessage());
         }
+    }
+
+    public function deleteRotation($id)
+    {
+        $rotation = \App\Models\Rotation::findOrFail($id);
+        \Illuminate\Support\Facades\Storage::delete([$rotation->file_path, $rotation->html_path]);
+        $rotation->delete();
+        session()->flash('message', 'File Rotasi berhasil dihapus.');
     }
 
     public function render()
     {
-        $rotations = AircraftRotation::with('legs')->get();
+        $rotations = \App\Models\Rotation::latest()->get();
 
         return view('livewire.modules.aircraft-rotation.index', compact('rotations'))->layout('components.layouts.app');
     }

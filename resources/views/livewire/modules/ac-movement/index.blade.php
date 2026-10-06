@@ -67,6 +67,35 @@
             background-color: rgba(255, 255, 255, 0.02);
             color: var(--cbm-text);
         }
+        .cbm-tabs-container {
+            margin: 0 0 2rem 0;
+            padding: 0.5rem 0.75rem;
+            background: var(--cbm-card-bg);
+            border: 1px solid var(--cbm-card-border);
+            border-radius: 1.125rem;
+            display: flex; gap: 0.5rem;
+            overflow-x: auto;
+        }
+        .cbm-tab-btn {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.8125rem; font-weight: 700;
+            color: var(--cbm-text-muted);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.25s ease;
+            border: 1px solid transparent; 
+            background: transparent;
+        }
+        .cbm-tab-btn:hover { 
+            color: var(--cbm-text); 
+            background: rgba(148, 163, 184, 0.1); 
+        }
+        .cbm-tab-btn.active {
+            background: var(--cbm-nav-active, #3b82f6);
+            color: var(--cbm-nav-active-t, #ffffff);
+            border: 1px solid var(--cbm-card-border);
+        }
     </style>
 
     {{-- Header --}}

@@ -1,4 +1,34 @@
 <div>
+    <style>
+        .cbm-file-input::-webkit-file-upload-button {
+            background: var(--cbm-bg);
+            border: 1px solid var(--cbm-border);
+            color: var(--cbm-text);
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            margin-right: 0.75rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .cbm-file-input::-webkit-file-upload-button:hover {
+            background: var(--cbm-nav-hover);
+        }
+        .cbm-file-input::file-selector-button {
+            background: var(--cbm-bg);
+            border: 1px solid var(--cbm-border);
+            color: var(--cbm-text);
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            margin-right: 0.75rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .cbm-file-input::file-selector-button:hover {
+            background: var(--cbm-nav-hover);
+        }
+    </style>
     {{-- Header --}}
     <div class="mod-header">
         <div class="mod-title-block">
@@ -21,8 +51,8 @@
 
     <div class="mod-card mod-card-accent-purple" style="margin-bottom: 2rem;">
         <div class="mod-toolbar" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-            <form wire:submit.prevent="import" style="display: flex; gap: 10px; align-items: center; width: 100%;">
-                <input type="file" wire:model="importFile" class="mod-search-input" accept=".xlsx,.xls" style="padding-top: 5px; flex-grow: 1;" required>
+            <form wire:submit.prevent="import" style="display: flex; gap: 10px; align-items: center;">
+                <input type="file" wire:model="importFile" class="mod-search-input cbm-file-input" accept=".xlsx,.xls" style="padding-top: 5px; width: auto;" required>
                 <button type="submit" class="mod-btn" style="background: var(--cbm-accent-purple); color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600;" wire:loading.attr="disabled">
                     <span wire:loading.remove wire:target="import">Upload & Render Excel</span>
                     <span wire:loading wire:target="import">Memproses...</span>

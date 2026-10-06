@@ -506,7 +506,7 @@ class Dashboard extends Component
         $thirtyDaysAgo = $activeCarbon->copy()->subDays(30)->format('Y-m-d');
 
         $activeNsrdisToday = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
-            ->where(function ($q) use ($targetDate) {
+            ->where(function ($q) use ($targetDate, $from, $to) {
                 $q->whereBetween('plan_date', [$from, $to])
                     ->orWhereDate('report_date', $targetDate)
                     ->orWhere('status', 'Open');

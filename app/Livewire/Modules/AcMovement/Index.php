@@ -50,12 +50,17 @@ class Index extends Component
 
     public function render()
     {
+        $openNsrdis = \App\Models\NsrdiLog::where('status', 'Open')
+            ->get()
+            ->groupBy('aircraft_registration');
+
         return view('livewire.modules.ac-movement.index', [
             'syncSetting' => SyncSetting::for(SyncSetting::AcMovement),
             'terminal1' => \App\Models\TerminalMovement::where('terminal_name', 'TERMINAL 1')->orderBy('no_seq')->get(),
             'terminal2' => \App\Models\TerminalMovement::where('terminal_name', 'TERMINAL 2')->orderBy('no_seq')->get(),
             'acRon' => \App\Models\AcRon::orderBy('no_seq')->get(),
             'acStandby' => \App\Models\AcStandby::orderBy('no_seq')->get(),
+            'openNsrdis' => $openNsrdis,
         ])->layout('components.layouts.app');
     }
 }

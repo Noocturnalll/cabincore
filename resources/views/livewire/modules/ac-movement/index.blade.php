@@ -207,13 +207,16 @@
                                     <th>Flt Out</th>
                                     <th>STD</th>
                                     <th>ATD</th>
-                                    <th>Engineer</th>
-                                    <th>Input AFML</th>
+                                    <th>Defect</th>
+                                    <th>Description</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @php $terminals = $activeTab === 'terminal1' ? $terminal1 : $terminal2; @endphp
                                 @forelse($terminals as $row)
+                                    @php
+                                        $nsrdis = $openNsrdis->get($row->registration, collect());
+                                    @endphp
                                     <tr>
                                         <td>{{ $row->no_seq }}</td>
                                         <td>{{ $row->flight_date?->format('d M Y') }}</td>
@@ -225,8 +228,20 @@
                                         <td>{{ $row->flight_no_out }}</td>
                                         <td>{{ $row->std }}</td>
                                         <td>{{ $row->atd }}</td>
-                                        <td>{{ $row->engineer_handle }}</td>
-                                        <td>{{ $row->input_afml }}</td>
+                                        <td>
+                                            @forelse($nsrdis as $nsrdi)
+                                                <div class="mb-1">{{ $nsrdi->nsrdi_number ?: '-' }}</div>
+                                            @empty
+                                                -
+                                            @endforelse
+                                        </td>
+                                        <td>
+                                            @forelse($nsrdis as $nsrdi)
+                                                <div class="mb-1">{{ $nsrdi->description ?: '-' }}</div>
+                                            @empty
+                                                -
+                                            @endforelse
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="12" class="text-center text-muted py-4">Belum ada data terminal. Lakukan sinkronisasi.</td></tr>

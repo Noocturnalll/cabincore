@@ -11,6 +11,7 @@ class Index extends Component
 {
     public $sheetUrl = '';
 
+    public string $mainTab = 'sync';
     public string $activeTab = 'terminal1';
 
     public function mount(): void

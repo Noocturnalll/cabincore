@@ -83,9 +83,16 @@
         </button>
     </div>
 
+    {{-- Main Tabs Navigation --}}
+    <div class="cbm-tabs-container mb-4" style="border-color: transparent; background: transparent; box-shadow: none; padding: 0;">
+        <button wire:click="$set('mainTab', 'sync')" class="cbm-tab-btn {{ $mainTab === 'sync' ? 'active' : '' }}">Sinkronisasi</button>
+        <button wire:click="$set('mainTab', 'table')" class="cbm-tab-btn {{ $mainTab === 'table' ? 'active' : '' }}">Data Tabel</button>
+    </div>
+
     {{-- Layout Grid --}}
     <div style="display: flex; gap: 1.5rem; flex-direction: column;">
         
+        @if($mainTab === 'sync')
         {{-- Sync Card --}}
         <div class="mod-card" style="padding: 1.5rem; max-width: 600px; margin: 0 auto; width: 100%; text-align: center;">
             <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
@@ -128,7 +135,9 @@
                 'hint' => 'Link sheet tersimpan permanen dan auto-sync tiap 5 menit. Ganti link di atas jika sheet berubah.',
             ])
         </div>
+        @endif
 
+        @if($mainTab === 'table')
         {{-- TABLES SECTION --}}
         <div class="mod-card">
             <div class="card-header border-bottom border-secondary p-0">
@@ -255,6 +264,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
     </div>
 </div>

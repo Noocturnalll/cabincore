@@ -39,71 +39,62 @@ class ExcelHtmlRenderer
 <!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{margin:0;font-family:sans-serif;background:#0f1115;color:#e2e8f0;}
-.tabs{position:sticky;top:0;background:#1a1d24;display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid #334155;z-index:5;padding:8px}
-.tab{border:0;padding:8px 14px;background:#334155;color:#94a3b8;cursor:pointer;white-space:nowrap;border-radius:6px;font-size:13px;font-weight:600;}
-.tab:hover{background:#475569;color:#fff;}
+body{margin:0;font-family:sans-serif;background:#ffffff;color:#000000;}
+.tabs-wrap { position:sticky; top:0; background:#f1f5f9; border-bottom:1px solid #cbd5e1; z-index:5; display:flex; align-items:center; justify-content:space-between; padding:8px; }
+.tabs{ display:flex; gap:4px; overflow-x:auto; }
+.tab{border:0;padding:6px 12px;background:#e2e8f0;color:#475569;cursor:pointer;white-space:nowrap;border-radius:4px;font-size:13px;font-weight:600;}
+.tab:hover{background:#cbd5e1;color:#1e293b;}
 .tab.on{background:#3b82f6;color:#fff;}
-.pane{display:none;overflow:auto;padding:12px;background:#0f1115;color:#e2e8f0;}
+.pane{display:none; padding:12px; transform-origin: top left;}
 .pane.on{display:block}
 
-/* Override Excel Table Grid for Dark Mode */
-table { border-collapse: collapse !important; width: max-content !important; min-width: 100%; }
-td, th { border: 1px solid #1e293b !important; padding: 4px 8px; }
+.zoom-bar { display:flex; align-items:center; gap:8px; font-size:13px; color:#475569; margin-left:12px; font-weight:600; flex-shrink:0; }
+.zoom-bar input { cursor:pointer; }
+
+/* Table Reset */
+table { border-collapse: collapse !important; width: max-content !important; }
+td, th { padding: 0 4px !important; }
 
 {$css}
 </style></head><body>
-<div class="tabs">{$tabs}</div>
+<div class="tabs-wrap">
+    <div class="tabs">{$tabs}</div>
+    <div class="zoom-bar">
+        <span>Zoom</span>
+        <input type="range" id="zoomSlider" min="0.3" max="1.5" step="0.05" value="0.7">
+        <strong id="zoomLabel">70%</strong>
+    </div>
+</div>
 {$panes}
 <script>
-// Tab Switching Logic
+// Tab Switching
 const tabs=[...document.querySelectorAll('.tab')];
-function show(i){tabs.forEach(t=>t.classList.toggle('on',t.dataset.i==i));
- document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id=='p'+i));
- try{localStorage.setItem('rot_tab',i)}catch(e){}}
+const panes=[...document.querySelectorAll('.pane')];
+function show(i){
+    tabs.forEach(t=>t.classList.toggle('on',t.dataset.i==i));
+    panes.forEach(p=>p.classList.toggle('on',p.id=='p'+i));
+    try{localStorage.setItem('rot_tab',i)}catch(e){}
+}
 tabs.forEach(t=>t.onclick=()=>show(t.dataset.i));
 let last=tabs[tabs.length-1]?.dataset.i;
 try{last=localStorage.getItem('rot_tab')??last}catch(e){}
 if(tabs.length)show(last);
 
-// Dark Mode Color Normalizer (Mencegah warna sakit di mata)
-document.querySelectorAll('td, th, span').forEach(el => {
-    let style = window.getComputedStyle(el);
-    let bg = style.backgroundColor;
-    let color = style.color;
-    
-    let matchBg = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    let matchFg = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    
-    // Cek apakah background transparent
-    let isTransparent = bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent' || (matchBg && parseFloat(bg.split(',')[3]||1) === 0);
-    
-    if (matchBg && matchFg) {
-        let r = parseInt(matchBg[1]), g = parseInt(matchBg[2]), b = parseInt(matchBg[3]);
-        let fr = parseInt(matchFg[1]), fg = parseInt(matchFg[2]), fb = parseInt(matchFg[3]);
-        
-        let fgBrightness = (fr * 299 + fg * 587 + fb * 114) / 1000;
-        
-        // 1. Jika putih murni -> buat transparan, dan teks terang
-        if (!isTransparent && r > 240 && g > 240 && b > 240) {
-            el.style.backgroundColor = 'transparent';
-            el.style.color = '#e2e8f0';
-            return;
-        }
-        
-        // 2. Jika warna cerah/neon (Red, Yellow, Green, Blue) -> Gelapkan 50%
-        if (!isTransparent && (r > 100 || g > 100 || b > 100)) {
-            el.style.backgroundColor = `rgb(${Math.floor(r*0.5)}, ${Math.floor(g*0.5)}, ${Math.floor(b*0.5)})`;
-            el.style.color = '#ffffff'; // Teks wajib putih agar terbaca
-            return;
-        }
-        
-        // 3. Jika background sudah gelap/transparan, tapi teksnya hitam/gelap -> Terangkan teks
-        if (fgBrightness < 100) {
-            el.style.color = '#e2e8f0';
-        }
-    }
-});
+// Zoom Logic
+const zoomSlider = document.getElementById('zoomSlider');
+const zoomLabel = document.getElementById('zoomLabel');
+function updateZoom() {
+    const val = zoomSlider.value;
+    zoomLabel.innerText = Math.round(val * 100) + '%';
+    panes.forEach(p => p.style.zoom = val);
+    try{localStorage.setItem('rot_zoom', val)}catch(e){}
+}
+zoomSlider.oninput = updateZoom;
+try{
+    let savedZoom = localStorage.getItem('rot_zoom');
+    if(savedZoom) { zoomSlider.value = savedZoom; }
+}catch(e){}
+updateZoom();
 </script></body></html>
 HTML;
     }

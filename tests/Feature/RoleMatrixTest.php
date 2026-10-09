@@ -16,7 +16,7 @@ class RoleMatrixTest extends TestCase
 
     private const ROLES = [
         RoleHelper::SUPER_ADMIN, RoleHelper::MANAGER, RoleHelper::ADMIN_CGK,
-        RoleHelper::PIC_CBM, RoleHelper::PIC_PAINTING, RoleHelper::PIC_AIEC, RoleHelper::PIC_SUPPORTING, RoleHelper::PIC_FINISHING,
+        RoleHelper::PIC_CBM, RoleHelper::PIC_PAINTING, RoleHelper::PIC_AIEC, RoleHelper::PIC_SUPPORTING, RoleHelper::PIC_FINISHING, RoleHelper::COD,
     ];
 
     /** url => roles allowed to open it (everything else must be 403) */
@@ -29,15 +29,15 @@ class RoleMatrixTest extends TestCase
         $ad = RoleHelper::ADMIN_CGK;
 
         return [
-            '/modules/wo' => [$sa, $mg, $ad, RoleHelper::PIC_CBM],
-            '/modules/dja' => [$sa, $mg, $ad, RoleHelper::PIC_CBM],
-            '/modules/nsrdi' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::PIC_PAINTING],
-            '/modules/nsrdi-overdue' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::PIC_PAINTING],
-            '/modules/daily-report' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::PIC_PAINTING],
+            '/modules/wo' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD],
+            '/modules/dja' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD],
+            '/modules/nsrdi' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD, RoleHelper::PIC_PAINTING],
+            '/modules/nsrdi-overdue' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD, RoleHelper::PIC_PAINTING],
+            '/modules/daily-report' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD, RoleHelper::PIC_PAINTING],
             '/modules/aircraft-cleaning' => [$sa, $mg, $ad, RoleHelper::PIC_AIEC],
             '/modules/aircraft-cleaning/exterior' => [$sa, $mg, $ad, RoleHelper::PIC_AIEC],
-            '/modules/ict/pi' => [$sa, $mg, $ad, RoleHelper::PIC_CBM],
-            '/modules/capacity' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::PIC_AIEC],
+            '/modules/ict/pi' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD],
+            '/modules/capacity' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD, RoleHelper::PIC_AIEC],
             '/reports/kpi' => $all,
             '/reports/summary' => $all,
             '/reports/executive' => [$sa, $mg],

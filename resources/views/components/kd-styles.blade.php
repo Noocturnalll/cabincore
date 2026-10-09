@@ -2,7 +2,20 @@
 <style>
     .kd { transition: opacity .18s ease; }
     .kd.kd-busy { opacity: .72; }
-    .kd-bar { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: .625rem; align-items: center; justify-content: space-between; padding: .75rem 1rem; margin-bottom: 1rem; background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1rem; box-shadow: var(--cbm-card-shadow); }
+    .kd-bar { position: sticky; top: 4.25rem; z-index: 20; display: flex; flex-wrap: wrap; gap: .625rem; align-items: center; justify-content: space-between; padding: .75rem 1rem; margin-bottom: 1rem; background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1rem; box-shadow: var(--cbm-card-shadow); }
+    .kd-snav { flex: 1 0 100%; display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: none; padding-top: .5rem; margin-top: .25rem; border-top: 1px solid var(--cbm-divider); }
+    .kd-snav::-webkit-scrollbar { display: none; }
+    .kd-snav button { flex: 0 0 auto; border: 0; background: transparent; color: var(--cbm-text-muted); padding: .35rem .8rem; border-radius: .6rem; font-weight: 700; font-size: .78rem; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s; }
+    .kd-snav button:hover { background: var(--cbm-nav-hover); color: var(--cbm-text); }
+    .kd-snav button.on { background: var(--cbm-nav-active); color: var(--cbm-nav-active-t); }
+    [data-kd-sec] { scroll-margin-top: 9.5rem; }
+    .kd-chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: .75rem; margin-bottom: 1rem; }
+    .kd-chart-card { margin: 0; padding: .85rem 1rem 1rem; background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.1rem; box-shadow: var(--cbm-card-shadow); min-width: 0; }
+    .kd-chart-card figcaption { display: flex; flex-direction: column; gap: .1rem; margin-bottom: .6rem; color: var(--cbm-text); font-size: .9rem; }
+    .kd-chart-box { position: relative; min-width: 0; }
+    .kd-chart-box canvas { max-width: 100%; }
+    .kd-cell { line-height: 1.25; }
+    .kd-cell small { display: block; color: var(--cbm-text-muted); font-size: .7rem; }
     .kd-group { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
     .kd-seg { display: inline-flex; background: var(--cbm-input-bg); border: 1px solid var(--cbm-input-border); border-radius: .75rem; padding: .2rem; }
     .kd-seg button { border: 0; background: transparent; color: var(--cbm-text-muted); padding: .4rem .85rem; border-radius: .55rem; font-weight: 600; font-size: .85rem; cursor: pointer; transition: background .15s, color .15s; }

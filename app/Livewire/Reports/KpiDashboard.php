@@ -2,8 +2,12 @@
 
 namespace App\Livewire\Reports;
 
+use App\Helpers\RoleHelper;
 use App\Models\Division;
+use App\Services\Kpi\AttentionList;
 use App\Services\Kpi\ModuleTiles;
+use App\Services\Kpi\OperationalCharts;
+use App\Services\Kpi\OperationalPivot;
 use App\Services\Kpi\ReportPeriod;
 use App\Services\Kpi\StationKpiService;
 use App\Services\Master\MasterSettings;
@@ -28,7 +32,7 @@ class KpiDashboard extends Component
     public string $station = '';
 
     #[Url(as: 'tim')]
-    public string $team = 'ALL';
+    public string $teamPick = 'ALL';
 
     public string $sort = 'capacity';
 
@@ -45,12 +49,23 @@ class KpiDashboard extends Component
         return (bool) auth()->user()->can('registry.view_all');
     }
 
+    /** The five PICs and the COD desk follow their division across every station, but only their own team. */
+    private function leadsDivision(): bool
+    {
+        return auth()->user()->hasAnyRole([...RoleHelper::ALL_PIC, ...RoleHelper::COD_DESK]);
+    }
+
     /** @return array{0: ?array<int, string>, 1: string} stations the user may see (null = all) and the team in force */
     private function scope(): array
     {
         $user = auth()->user();
         if ($this->seesAll()) {
-            return [$this->station !== '' ? [strtoupper($this->station)] : null, $this->team];
+            return [$this->station !== '' ? [strtoupper($this->station)] : null, $this->teamPick];
+        }
+        if ($this->leadsDivision()) {
+            $team = app(MasterSettings::class)->teamForDivision($user->division_id) ?? 'ALL';
+
+            return [$this->station !== '' ? [strtoupper($this->station)] : null, $team];
         }
 
         $team = app(MasterSettings::class)->teamForDivision($user->division_id) ?? 'ALL';
@@ -92,14 +107,21 @@ class KpiDashboard extends Component
 
         $data = $service->build($period, $stations, $team);
         $tiles = app(ModuleTiles::class)->build(auth()->user(), $period, $stations);
+        $attention = app(AttentionList::class)->build(auth()->user(), $stations);
+        $pivot = app(OperationalPivot::class)->build(auth()->user(), $period, $stations);
 
         $sortable = ['station', 'mp_avg', 'capacity', 'used', 'utilisation', 'accuracy', 'lgt_cbm', 'compliance'];
         $key = in_array($this->sort, $sortable, true) ? $this->sort : 'capacity';
+        $charts = app(OperationalCharts::class)->build($pivot, $data['rows']);
         $rows = collect($data['rows'])->sortBy(fn ($r) => $r[$key] ?? ($this->dir === 'asc' ? PHP_INT_MAX : -1), SORT_NATURAL, $this->dir === 'desc')->values();
 
         return view('livewire.reports.kpi-dashboard', [
             'period' => $period,
             'tiles' => $tiles,
+            'attention' => $attention,
+            'pivot' => $pivot,
+            'charts' => $charts,
+            'canPickStation' => $this->seesAll() || $this->leadsDivision(),
             'tileGroups' => ModuleTiles::GROUPS,
             'rows' => $rows,
             'total' => $data['total'],
@@ -107,9 +129,9 @@ class KpiDashboard extends Component
             'coverage' => $data['coverage'],
             'team' => $team,
             'seesAll' => $this->seesAll(),
-            'teamOptions' => ['ALL' => 'Semua tim'] + array_intersect_key(app(MasterSettings::class)->teamLabels(), array_flip(['CBM', 'AIEC', 'PAINTING', 'IRREG'])),
+            'teamOptions' => ['ALL' => 'Semua tim'] + array_intersect_key(app(MasterSettings::class)->teamLabels(), array_flip(['CBM', 'AIEC', 'PAINTING', 'IRREG', 'FINISHING'])),
             'stationOptions' => collect(config('compliance.stations'))->keys()->merge(['UPG', 'DPS', 'PLM', 'PDG', 'SOC', 'SRG', 'LOP', 'PKU', 'YIA', 'KUL'])->unique()->sort()->values(),
-            'lockedStation' => ! $this->seesAll() ? (auth()->user()->station ?: null) : null,
+            'lockedStation' => (! $this->seesAll() && ! $this->leadsDivision()) ? (auth()->user()->station ?: null) : null,
         ])->layout('components.layouts.app', ['title' => 'Dashboard KPI']);
     }
 }

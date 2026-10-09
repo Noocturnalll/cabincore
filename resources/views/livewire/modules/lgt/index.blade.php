@@ -21,7 +21,7 @@
 
     <div class="kd-skel" aria-hidden="true"></div>
 
-    <x-master.page-header title="Long Ground Time" subtitle="Daftar pesawat dengan ground time panjang dan pekerjaan yang direncanakan untuk tim CBM dan AIEC. Hasilnya (closed / batal) masuk ke LGT Monitoring." accent="blue" eyebrow="Production" :create-label="$canManage ? 'Tambah LGT' : null" />
+    <x-master.page-header title="Long Ground Time" subtitle="Alur: Admin COD membuat draft pesawat LGT (station, STA, STD), lalu tim Finishing, CBM dan AIEC mengisi pekerjaannya. Hasilnya (closed / batal) masuk ke LGT Monitoring." accent="blue" eyebrow="Production" :create-label="$canManage ? 'Tambah LGT' : ($canPlan ? 'Buat Draft LGT' : null)" />
 
     <x-flash />
 
@@ -61,7 +61,7 @@
     <section class="kd-panel">
         <div class="kd-wrap">
             @if($rows->isEmpty())
-                <div class="kd-empty">Belum ada LGT pada tanggal ini.<br><span class="kd-sub">{{ $canManage ? 'Klik "Tambah LGT" untuk mendata pesawat dan pekerjaannya.' : 'Data diisi oleh yang menyusun rencana LGT.' }}</span></div>
+                <div class="kd-empty">Belum ada LGT pada tanggal ini.<br><span class="kd-sub">{{ $canManage || $canPlan ? 'Klik tombol di kanan atas untuk mendata pesawat LGT.' : 'Data diisi oleh yang menyusun rencana LGT.' }}</span></div>
             @else
                 <table class="kd-table lg-table">
                     <thead>
@@ -78,19 +78,21 @@
                                 <td class="lg-hide-sm">{{ $r->sta_time ?? '–' }} – {{ $r->std_time ?? '–' }}</td>
                                 <td>{{ $hm($gt) }}</td>
                                 <td class="lg-job">
-                                    @if($r->cbm_action){{ $r->cbm_action }} {!! $badge($r->cbm_status) !!}@if($r->cbm_mp)<div class="who">{{ $r->cbm_mp }}</div>@endif @else <span class="kd-sub">–</span> @endif
+                                    @if(! $r->cbm_action && ! $r->aiec_action)<span class="kd-chip" style="min-width:0;color:#60a5fa;background:rgba(96,165,250,.16);">DRAFT</span> <span class="kd-sub">menunggu diisi</span>@elseif($r->cbm_action){{ $r->cbm_action }} {!! $badge($r->cbm_status) !!}@if($r->cbm_mp)<div class="who">{{ $r->cbm_mp }}</div>@endif @else <span class="kd-sub">–</span> @endif
                                 </td>
                                 <td class="lg-job">
                                     @if($r->aiec_action){{ $r->aiec_action }} {!! $badge($r->aiec_status) !!}@if($r->aiec_mp)<div class="who">{{ $r->aiec_mp }}</div>@endif @else <span class="kd-sub">–</span> @endif
                                     @if($r->reason)<div class="who" style="color:#f59e0b;">{{ $r->reason }}</div>@endif
                                 </td>
                                 <td style="text-align:right;">
-                                    @if($canManage)
+                                    @if($canManage || $canPlan)
                                         <div style="display:flex;gap:.35rem;justify-content:flex-end;flex-wrap:wrap;">
+                                            @if($canManage)
                                             @if($r->cbm_action && $r->cbm_status !== 'CLOSED')<button type="button" wire:click="close_({{ $r->id }}, 'cbm')" class="mod-action-btn">CBM Closed</button>@endif
                                             @if($r->aiec_action && $r->aiec_status !== 'CLOSED')<button type="button" wire:click="close_({{ $r->id }}, 'aiec')" class="mod-action-btn">AIEC Closed</button>@endif
                                             <button type="button" wire:click="create({{ $r->id }})" class="mod-action-btn" title="Pekerjaan lain di pesawat yang sama">+ Pekerjaan</button>
-                                            <button type="button" wire:click="edit({{ $r->id }})" class="mod-action-btn">Edit</button>
+                                            @endif
+                                            <button type="button" wire:click="edit({{ $r->id }})" class="mod-action-btn">{{ $canManage && ! $r->cbm_action && ! $r->aiec_action ? 'Isi' : 'Edit' }}</button>
                                             <button type="button" wire:click="delete({{ $r->id }})" wire:confirm="Hapus baris ini?" class="mod-action-btn" style="color:#ef4444;border-color:rgba(239,68,68,.35);">Hapus</button>
                                         </div>
                                     @endif
@@ -103,7 +105,7 @@
         </div>
     </section>
 
-    <x-master.modal :show="$isOpen" :title="$recordId ? 'Edit LGT' : 'Tambah LGT'" submit="save" max-width="42rem">
+    <x-master.modal :show="$isOpen" :title="$draftMode ? ($recordId ? 'Edit Draft LGT' : 'Draft LGT') : ($recordId ? 'Edit LGT' : 'Tambah LGT')" submit="save" max-width="42rem">
         <datalist id="lg-aircraft">@foreach($aircraft as $reg)<option value="{{ $reg }}"></option>@endforeach</datalist>
         <div class="lg-grid">
             <div class="cbm-form-group"><label class="cbm-form-label" for="lg-date">Tanggal *</label><input id="lg-date" type="date" wire:model="form_date" class="cbm-form-input">@error('form_date')<span class="mod-field-error">{{ $message }}</span>@enderror</div>
@@ -113,6 +115,7 @@
             <div class="cbm-form-group"><label class="cbm-form-label" for="lg-out">Jam STD (berangkat)</label><input id="lg-out" type="time" wire:model="std_time" class="cbm-form-input">@error('std_time')<span class="mod-field-error">{{ $message }}</span>@enderror</div>
         </div>
 
+        @unless($draftMode)
         <div class="lg-team">
             <h4>Tim CBM</h4>
             <div class="cbm-form-group"><label class="cbm-form-label" for="lg-cbm">Pekerjaan</label><input id="lg-cbm" type="text" wire:model="cbm_action" class="cbm-form-input" maxlength="250">@error('cbm_action')<span class="mod-field-error">{{ $message }}</span>@enderror</div>
@@ -130,5 +133,6 @@
             </div>
         </div>
         <div class="cbm-form-group" style="margin:.75rem 0 0;"><label class="cbm-form-label" for="lg-reason">Alasan (wajib bila batal)</label><input id="lg-reason" type="text" wire:model="reason" class="cbm-form-input" maxlength="250" placeholder="contoh: AC ROTATION CHANGED">@error('reason')<span class="mod-field-error">{{ $message }}</span>@enderror</div>
+        @endunless
     </x-master.modal>
 </div>

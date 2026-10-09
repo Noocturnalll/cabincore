@@ -44,6 +44,7 @@
 }
 
 /* ── Tabs Navigation ── */
+.cbm-section { scroll-margin-top: 9rem; }
 .cbm-tabs-container {
     position: sticky; top: 4.375rem; z-index: 40;
     margin: 0 0 2rem 0;
@@ -1390,12 +1391,29 @@ function cbmInitCharts() {
     window.cbmCharts = charts;
 }
 
-function cbmInitTabs() {
+/**
+ * The section tabs follow the scroll: the active tab is the last section whose top has passed under the sticky bar.
+ * It is computed from the live DOM on every scroll, so it keeps working after the page re-renders or the hub switches tab.
+ */
+function cbmSpyTabs() {
     const tabs = document.querySelectorAll('.cbm-tabs-nav .cbm-tab-btn[data-target]');
     const sections = Array.from(document.querySelectorAll('.cbm-section'));
-
     if (tabs.length === 0 || sections.length === 0) return;
 
+    let current = sections[0].id;
+    sections.forEach((sec) => { if (sec.getBoundingClientRect().top <= 190) current = sec.id; });
+
+    const active = document.querySelector(`.cbm-tabs-nav .cbm-tab-btn[data-target="${current}"]`);
+    if (!active || active.classList.contains('active')) return;
+
+    tabs.forEach((t) => t.classList.remove('active'));
+    active.classList.add('active');
+    // keep the active tab in view inside the scrollable tab bar
+    const container = active.parentElement;
+    container.scrollTo({ left: active.offsetLeft - (container.clientWidth / 2) + (active.clientWidth / 2), behavior: 'smooth' });
+}
+
+function cbmInitTabs() {
     // One delegated click handler for the whole page lifetime (period buttons are not touched)
     if (!window.__cbmTabClickBound) {
         window.__cbmTabClickBound = true;
@@ -1408,34 +1426,18 @@ function cbmInitTabs() {
         });
     }
 
-    if (window.__cbmTabObserver) window.__cbmTabObserver.disconnect();
+    if (!window.__cbmTabScrollBound) {
+        window.__cbmTabScrollBound = true;
+        let queued = false;
+        window.addEventListener('scroll', () => {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(() => { queued = false; cbmSpyTabs(); });
+        }, { passive: true });
+    }
 
-    // Use Intersection Observer for reliable scrolling detection
-    const observerOptions = {
-        root: null, // viewport
-        rootMargin: '-150px 0px -40% 0px', // trigger when section is near top
-        threshold: 0
-    };
-
-    const observer = window.__cbmTabObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                tabs.forEach(t => t.classList.remove('active'));
-                const activeTab = document.querySelector(`.cbm-tabs-nav .cbm-tab-btn[data-target="${entry.target.id}"]`);
-                if (activeTab) {
-                    activeTab.classList.add('active');
-                    // Center the tab in the scrollable container smoothly
-                    const container = activeTab.parentElement;
-                    const scrollLeft = activeTab.offsetLeft - (container.clientWidth / 2) + (activeTab.clientWidth / 2);
-                    container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
-                }
-            }
-        });
-    }, observerOptions);
-
-    sections.forEach(sec => observer.observe(sec));
+    cbmSpyTabs();
 }
-
 if (!window.__cbmDashBound) {
     window.__cbmDashBound = true;
     document.addEventListener('livewire:navigated', function () {

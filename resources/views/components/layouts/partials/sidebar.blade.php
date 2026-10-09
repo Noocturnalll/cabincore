@@ -22,9 +22,6 @@
                 </svg>
                 Dashboard
             </a>
-            @can('kpi.view')
-            <a href="{{ route('kpi.dashboard') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('kpi.dashboard') ? 'cbm-active' : '' }}">Dashboard KPI</a>
-            @endcan
 
             @hasrole(\App\Helpers\RoleHelper::SUPER_ADMIN)
             <div class="cbm-nav-section-label">Data Master</div>
@@ -187,12 +184,12 @@
                         Persetujuan
                     </a>
                     @endcan
-                    @can('ims.repair.manage')
+                    @canany(['ims.repair.manage', 'ims.repair.request'])
                     <a href="{{ route('ims.repairs') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.repairs') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.515 10.674a1.875 1.875 0 012.385-2.222l4.896 1.632-1.393-4.18a1.875 1.875 0 012.222-2.385l4.811 1.604a3.75 3.75 0 011.666 6.326L13.626 15h.874a2.25 2.25 0 012.25 2.25v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 00-.75-.75h-1.5a.75.75 0 01-.75-.75v-1.5a.75.75 0 00-.75-.75h-1.5a.75.75 0 01-.75-.75v-1.5h-1.28l-3.476 3.476a3.75 3.75 0 01-6.326-1.666l-1.604-4.811z" clip-rule="evenodd" /></svg>
                         Repair Area
                     </a>
-                    @endcan
+                    @endcanany
                     @can('ims.report.view')
                     <a href="{{ route('ims.reports') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.reports') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 4.5A2.25 2.25 0 014.5 2.25h15A2.25 2.25 0 0121.75 4.5v15A2.25 2.25 0 0119.5 21.75H4.5A2.25 2.25 0 012.25 19.5v-15zm4.5 11.25a.75.75 0 01.75-.75h1.5a.75.75 0 01.75.75v3.75a.75.75 0 01-.75.75h-1.5a.75.75 0 01-.75-.75v-3.75zm5.25-3a.75.75 0 01.75-.75h1.5a.75.75 0 01.75.75v6.75a.75.75 0 01-.75.75h-1.5a.75.75 0 01-.75-.75v-6.75zm5.25-4.5a.75.75 0 01.75-.75h1.5a.75.75 0 01.75.75v11.25a.75.75 0 01-.75.75h-1.5a.75.75 0 01-.75-.75v-11.25z" clip-rule="evenodd" /></svg>

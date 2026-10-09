@@ -43,6 +43,16 @@ class ReportPeriod
         };
     }
 
+    /** The period right before this one (yesterday, last week, last month) for "vs periode lalu" comparisons. */
+    public function previous(): self
+    {
+        return match ($this->kind) {
+            'week' => self::week($this->from->copy()->subDay()),
+            'month' => self::month($this->from->copy()->subDay()),
+            default => self::day($this->from->copy()->subDay()),
+        };
+    }
+
     public function days(): int
     {
         return (int) $this->from->diffInDays($this->to) + 1;

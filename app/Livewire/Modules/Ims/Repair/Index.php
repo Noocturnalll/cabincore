@@ -23,7 +23,8 @@ class Index extends Component
 {
     use WithItemPicker, WithPagination;
 
-    public $activeTab = 'waiting'; // waiting | process | completed
+    /** intake = filed by COD, waiting for ACC | waiting = Rak Repair 1 | process = Rak Repair 2 | completed = Rak Repair 3 */
+    public $activeTab = 'intake';
 
     public $search = '';
 
@@ -86,7 +87,7 @@ class Index extends Component
 
     public function setTab(string $tab): void
     {
-        $this->activeTab = in_array($tab, ['waiting', 'process', 'completed'], true) ? $tab : 'waiting';
+        $this->activeTab = in_array($tab, ['intake', 'waiting', 'process', 'completed'], true) ? $tab : 'intake';
         $this->resetPage();
     }
 
@@ -103,7 +104,7 @@ class Index extends Component
     {
         $this->authorizeStockAction('ims.repair.manage');
         $this->resetForm();
-        $this->code = RepairWaiting::where('repair_code', $code)->firstOrFail()->repair_code;
+        $this->code = RepairWaiting::where('repair_code', $code)->whereNotNull('accepted_at')->firstOrFail()->repair_code;
         $this->modal = 'start';
     }
 
@@ -169,8 +170,17 @@ class Index extends Component
         ]);
 
         $this->closeModal();
+        $this->activeTab = 'intake';
+        $this->dispatch('notify', ['icon' => 'success', 'message' => "Form masuk repair dibuat: {$repair->repair_code}. Menunggu ACC tim repair."]);
+    }
+
+    public function accept(string $code, RepairService $repairs): void
+    {
+        $this->authorizeStockAction('ims.repair.manage');
+
+        $repairs->accept($code);
         $this->activeTab = 'waiting';
-        $this->dispatch('notify', ['icon' => 'success', 'message' => "Barang diterima di rak repair: {$repair->repair_code}"]);
+        $this->dispatch('notify', ['icon' => 'success', 'message' => "{$code} di-ACC dan masuk Rak Repair 1."]);
     }
 
     public function start(RepairService $repairs)
@@ -247,13 +257,15 @@ class Index extends Component
         $items = match ($this->activeTab) {
             'process' => $searchable(RepairInProgress::with(['item', 'vendor', 'technician']))->orderByRaw("CASE priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END")->orderBy('started_at')->paginate(15),
             'completed' => $searchable(RepairCompleted::with(['item', 'location']))->orderByRaw('returned_to_stock_at IS NOT NULL')->orderByDesc('completed_at')->paginate(15),
-            default => $searchable(RepairWaiting::with(['item']))->orderByRaw("CASE priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END")->orderBy('received_at')->paginate(15),
+            'waiting' => $searchable(RepairWaiting::with(['item'])->whereNotNull('accepted_at'))->orderByRaw("CASE priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END")->orderBy('received_at')->paginate(15),
+            default => $searchable(RepairWaiting::with(['item'])->whereNull('accepted_at'))->orderByRaw("CASE priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END")->orderBy('received_at')->paginate(15),
         };
 
         return view('livewire.modules.ims.repair.index', [
             'items' => $items,
             'counts' => [
-                'waiting' => RepairWaiting::count(),
+                'intake' => RepairWaiting::whereNull('accepted_at')->count(),
+                'waiting' => RepairWaiting::whereNotNull('accepted_at')->count(),
                 'process' => RepairInProgress::count(),
                 'completed' => RepairCompleted::whereNull('returned_to_stock_at')->where('result', 'serviceable')->count(),
             ],

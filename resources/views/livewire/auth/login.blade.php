@@ -337,7 +337,7 @@
                     <div class="cl-fld">
                         <div class="cl-lbl-row">
                             <label for="password" class="cl-lbl">Password</label>
-                            <a href="#" class="cl-forgot" tabindex="-1">Lupa password?</a>
+                            <span class="cl-forgot" style="cursor:default;text-align:right;" title="Administrator akan mengatur ulang password Anda ke default">Lupa? Hubungi administrator</span>
                         </div>
                         <div class="cl-iw" id="clPw">
                             <div class="cl-iw-ic">

@@ -1,9 +1,9 @@
 <div>
-    <x-master.page-header title="Rak Perbaikan (Repair)" subtitle="Lacak barang rusak dari menunggu, diproses, hingga selesai dan kembali ke stok." accent="red" eyebrow="IMS Tracker">
+    <x-master.page-header title="Rak Perbaikan (Repair)" subtitle="Barang rusak dari lapangan: form COD, ACC tim repair, Rak Repair 1 (antrian), Rak 2 (proses), Rak 3 (selesai), lalu kembali ke rak gudang." accent="red" eyebrow="IMS Tracker">
         @can('ims.repair.request')
             <button type="button" wire:click="openReceive" class="mod-btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/></svg>
-                Terima Barang Rusak
+                Form Barang Masuk Repair
             </button>
         @endcan
     </x-master.page-header>
@@ -12,7 +12,7 @@
 
     <div class="mod-card mod-card-accent-orange">
         <div class="cbm-tabs">
-            @foreach(['waiting' => 'Menunggu', 'process' => 'Diproses', 'completed' => 'Selesai'] as $key => $label)
+            @foreach(['intake' => 'Masuk (menunggu ACC)', 'waiting' => 'Rak Repair 1 · Antrian', 'process' => 'Rak Repair 2 · Proses', 'completed' => 'Rak Repair 3 · Selesai'] as $key => $label)
                 <button type="button" wire:click="setTab('{{ $key }}')" class="cbm-tab {{ $activeTab === $key ? 'active' : '' }}">
                     {{ $label }} <span class="cbm-tab-count">{{ $counts[$key] }}</span>
                 </button>
@@ -40,7 +40,7 @@
                         <th>BARANG</th>
                         <th style="text-align:center;">QTY</th>
                         <th>KERUSAKAN</th>
-                        @if($activeTab === 'waiting')<th>PRIORITAS</th><th>DITERIMA</th>@endif
+                        @if(in_array($activeTab, ['intake', 'waiting'], true))<th>PRIORITAS</th><th>{{ $activeTab === 'intake' ? 'DIAJUKAN' : 'DI-ACC' }}</th>@endif
                         @if($activeTab === 'process')<th>WO / VENDOR</th><th>TEKNISI</th><th>ESTIMASI</th>@endif
                         @if($activeTab === 'completed')<th>HASIL</th><th>SELESAI</th>@endif
                         <th style="text-align:right;">AKSI</th>
@@ -57,13 +57,19 @@
                             <td style="text-align:center;font-weight:800;">{{ $row->qty }}</td>
                             <td style="max-width:20rem;white-space:normal;"><x-text-popup :text="$row->fault_description ?: '-'" title="Kerusakan" /></td>
 
-                            @if($activeTab === 'waiting')
+                            @if(in_array($activeTab, ['intake', 'waiting'], true))
                                 <td>
                                     <span class="{{ $row->priority === 'high' ? 'mod-badge-open' : ($row->priority === 'low' ? 'mod-badge-inactive' : 'mod-badge-progress') }}">{{ $priorities[$row->priority] ?? ucfirst((string) $row->priority) }}</span>
                                 </td>
-                                <td style="white-space:nowrap;">{{ $row->received_at?->format('d M Y H:i') }}<div class="mod-aircraft-sub">{{ $row->received_at?->diffForHumans() }}</div></td>
+                                <td style="white-space:nowrap;">{{ ($activeTab === 'intake' ? $row->received_at : $row->accepted_at)?->format('d M Y H:i') }}<div class="mod-aircraft-sub">{{ ($activeTab === 'intake' ? $row->received_at : $row->accepted_at)?->diffForHumans() }}</div></td>
                                 <td style="text-align:right;">
-                                    @can('ims.repair.manage')<button type="button" wire:click="openStart('{{ $row->repair_code }}')" class="mod-action-btn">Mulai proses</button>@endcan
+                                    @can('ims.repair.manage')
+                                        @if($activeTab === 'intake')
+                                            <button type="button" wire:click="accept('{{ $row->repair_code }}')" wire:loading.attr="disabled" class="mod-action-btn" style="color:#10b981;border-color:rgba(16,185,129,.4);">ACC terima</button>
+                                        @else
+                                            <button type="button" wire:click="openStart('{{ $row->repair_code }}')" class="mod-action-btn">Mulai proses (ke Rak 2)</button>
+                                        @endif
+                                    @endcan
                                 </td>
                             @elseif($activeTab === 'process')
                                 <td>{{ $row->work_order_no ?: '-' }}<div class="mod-aircraft-sub">{{ $row->vendor->name ?? 'Internal' }}</div></td>
@@ -92,7 +98,7 @@
                     @empty
                         <tr><td colspan="9">
                             <div class="mod-empty">
-                                <div class="mod-empty-title">{{ $search ? 'Tidak ada data yang cocok' : 'Rak kosong' }}</div>
+                                <div class="mod-empty-title">{{ $search ? 'Tidak ada data yang cocok' : 'Kosong' }}</div>
                                 <div class="mod-empty-sub">{{ $search ? 'Ubah kata kunci pencarian.' : 'Tidak ada barang pada tahap ini.' }}</div>
                             </div>
                         </td></tr>
@@ -106,7 +112,7 @@
     </div>
 
     {{-- Terima --}}
-    <x-master.modal :show="$modal === 'receive'" title="Terima Barang Rusak" subtitle="Barang masuk ke rak Menunggu. Stok tidak berubah sampai barang kembali serviceable." submit="receive" close="closeModal" max-width="34rem" submit-label="Terima">
+    <x-master.modal :show="$modal === 'receive'" title="Form Barang Masuk Repair" subtitle="Barang dari lapangan dicatat COD, lalu menunggu ACC tim repair. Stok tidak berubah sampai barang kembali serviceable." submit="receive" close="closeModal" max-width="34rem" submit-label="Terima">
         <div class="cbm-form-group">
             <label class="cbm-form-label" for="rp-search">Cari barang</label>
             <input id="rp-search" type="search" wire:model.live.debounce.300ms="searchItem" class="cbm-form-input" placeholder="Nama atau part number..." autocomplete="off">

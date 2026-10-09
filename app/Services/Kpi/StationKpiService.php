@@ -19,10 +19,10 @@ use Illuminate\Support\Facades\DB;
  */
 class StationKpiService
 {
-    public const TEAMS = ['ALL' => 'Semua tim', 'CBM' => 'CBM', 'AIEC' => 'AIEC', 'PAINTING' => 'Painting', 'IRREG' => 'Irreg'];
+    public const TEAMS = ['ALL' => 'Semua tim', 'CBM' => 'CBM', 'AIEC' => 'AIEC', 'PAINTING' => 'Painting', 'IRREG' => 'Irreg', 'FINISHING' => 'Finishing'];
 
     /** Division name => roster team, for users who may only see their own team. */
-    public const DIVISION_TEAM = ['Cabin' => 'CBM', 'AIEC' => 'AIEC', 'AIC' => 'AIEC', 'Painting' => 'PAINTING', 'Team Irreg' => 'IRREG'];
+    public const DIVISION_TEAM = ['Cabin' => 'CBM', 'AIEC' => 'AIEC', 'AIC' => 'AIEC', 'Painting' => 'PAINTING', 'Team Irreg' => 'IRREG', 'Finishing' => 'FINISHING'];
 
     /**
      * @param  array<int, string>|null  $stations  null = all stations

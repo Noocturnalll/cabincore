@@ -24,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
             AuthenticateSession::class,
         ]);
 
+        // Behind nginx / a load balancer that terminates HTTPS: TRUSTED_PROXIES=* (or a comma-separated list of IPs)
+        if ($proxies = env('TRUSTED_PROXIES')) {
+            $middleware->trustProxies(at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
+        }
+
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);

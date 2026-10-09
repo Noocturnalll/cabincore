@@ -127,7 +127,7 @@ class KpiDashboardTest extends TestCase
         $this->assertSame('SUB', $rows[0]['station']);
     }
 
-    public function test_manager_sees_every_station_and_picks_a_team_but_a_pic_is_held_to_their_scope(): void
+    public function test_manager_picks_a_team_but_a_pic_sees_all_stations_for_their_own_team_only(): void
     {
         $this->seedWorld();
 
@@ -136,7 +136,7 @@ class KpiDashboardTest extends TestCase
         Livewire::actingAs($manager)->test(KpiDashboard::class)
             ->set('kind', 'day')->set('date', '2026-10-07')
             ->assertSee('CGK')->assertSee('SUB')
-            ->set('team', 'AIEC')->assertSee('CGK')->assertDontSee('LGT CBM');
+            ->set('teamPick', 'AIEC')->assertSee('CGK')->assertDontSee('LGT CBM');
 
         $pic = User::factory()->create([
             'is_default_password' => false, 'status' => 'active', 'station' => 'SUB',
@@ -145,8 +145,9 @@ class KpiDashboardTest extends TestCase
         $pic->assignRole(RoleHelper::PIC_CABIN);
         Livewire::actingAs($pic)->test(KpiDashboard::class)
             ->set('kind', 'day')->set('date', '2026-10-07')
-            ->set('station', 'CGK')->set('team', 'AIEC')   // trying to widen the scope does nothing
-            ->assertSee('SUB')->assertDontSeeHtml('wire:key="kd-CGK"')->assertSee('Station SUB');
+            ->set('station', 'CGK')->set('teamPick', 'AIEC')   // a PIC may pick a station, but the team stays their division's
+            ->assertSee('CGK')->assertDontSeeHtml('wire:key="kd-SUB"')->assertSee('LGT CBM')
+            ->set('station', '')->assertSeeHtml('wire:key="kd-CGK"')->assertSeeHtml('wire:key="kd-SUB"');
     }
 
     public function test_access_and_navigation_state(): void

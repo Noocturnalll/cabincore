@@ -46,7 +46,7 @@ class ModuleTiles
         $tiles = [];
 
         $add = function (string $group, string $key, callable $make, ?string $permission = null) use (&$tiles, $user) {
-            if ($permission && ! $user->can($permission)) {
+            if ($permission && ! collect(explode('|', $permission))->contains(fn ($p) => $user->can($p))) {
                 return;
             }
             try {
@@ -70,23 +70,30 @@ class ModuleTiles
 
         // ── Production: planned work of the DJA (deployed in the period) ──
         foreach (['wo' => ['WO', 'wo_logs', 'modules.wo'], 'dmi' => ['DMI', 'dmi_logs', 'modules.dmi'], 'nsrdi' => ['NSRDI', 'nsrdi_logs', 'modules.nsrdi']] as $key => [$label, $table, $route]) {
-            $add('production', $key, function () use ($table, $label, $route, $from, $to, $station, $pct, $tone) {
-                $q = DB::table("$table as l")->join('daily_job_assignments as d', 'd.id', '=', 'l.dja_id')
-                    ->whereDate('d.date', '>=', $from)->whereDate('d.date', '<=', $to);
-                $q = $station($q, 'COALESCE(l.act_station, l.plan_station)');
-                $total = (clone $q)->count();
-                $done = (clone $q)->whereRaw("LOWER(l.status) = 'closed'")->count();
-                $p = $pct($done, $total);
+            $add('production', $key, function () use ($table, $label, $route, $period, $station, $pct, $tone) {
+                $rate = function (ReportPeriod $p) use ($table, $station) {
+                    $q = DB::table("$table as l")->join('daily_job_assignments as d', 'd.id', '=', 'l.dja_id')
+                        ->whereDate('d.date', '>=', $p->from->toDateString())->whereDate('d.date', '<=', $p->to->toDateString());
+                    $q = $station($q, 'COALESCE(l.act_station, l.plan_station)');
 
-                return ['title' => "$label DJA", 'value' => "$done / $total", 'sub' => $p !== null ? "$p% closed" : 'belum ada deploy', 'tone' => $tone($p), 'route' => $route];
-            });
+                    return [(clone $q)->whereRaw("LOWER(l.status) = 'closed'")->count(), (clone $q)->count()];
+                };
+                [$done, $total] = $rate($period);
+                $p = $pct($done, $total);
+                $before = $pct(...$rate($period->previous()));
+
+                return [
+                    'title' => "$label DJA", 'value' => "$done / $total", 'sub' => $p !== null ? "$p% closed" : 'belum ada deploy', 'tone' => $tone($p), 'route' => $route,
+                    'delta' => ($p !== null && $before !== null) ? round($p - $before, 1) : null,
+                ];
+            }, $key === 'nsrdi' ? 'menu.production|menu.painting' : 'menu.production');
         }
         $add('production', 'cml', function () use ($from, $to, $station) {
             $q = $station(DB::table('cml_logs')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
             $open = (clone $q)->whereRaw("LOWER(status) <> 'closed'")->count();
 
             return ['title' => 'CML', 'value' => number_format((clone $q)->count()), 'sub' => $open ? "$open masih open" : 'semua closed', 'tone' => $open ? 'yellow' : 'green', 'route' => 'modules.cml'];
-        });
+        }, 'menu.production');
         $add('production', 'unplanned', function () use ($from, $to, $station) {
             $n = $total = 0;
             foreach ([['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'refresh_date']] as [$t, $c]) {
@@ -96,13 +103,13 @@ class ModuleTiles
             }
 
             return ['title' => 'Unplanned', 'value' => "$n / $total", 'sub' => 'WO + DMI + NSRDI di luar DJA', 'tone' => 'blue', 'route' => 'modules.dja'];
-        });
+        }, 'menu.production');
         $add('production', 'dja', function () use ($from, $to, $station) {
             $q = $station(DB::table('daily_job_assignments')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
             $review = DB::table('dja_sync_reviews')->whereNull('decision')->where('bucket', 'review')->count();
 
             return ['title' => 'DJA review', 'value' => number_format($review), 'sub' => number_format((clone $q)->count()).' tugas pada periode ini', 'tone' => $review ? 'yellow' : 'green', 'route' => 'modules.dja'];
-        });
+        }, 'menu.production');
         $add('production', 'leader', function () {
             $pending = LeaderReportImport::where('status', 'preview')->count();
             $last = LeaderReportImport::where('status', 'applied')->latest('applied_at')->first();
@@ -121,7 +128,7 @@ class ModuleTiles
                 'sub' => $byType->take(4)->map(fn ($n, $t) => "$t $n")->implode(' · ').($hours ? ' · '.number_format($hours, 0).' jam' : ''),
                 'tone' => 'blue', 'route' => 'modules.cleaning.hub',
             ];
-        });
+        }, 'menu.cleaning');
         $add('cleaning', 'lgt', function () use ($from, $to, $station, $pct, $tone) {
             $rows = $station(LgtRecord::query()->whereDate('work_date', '>=', $from)->whereDate('work_date', '<=', $to), 'station')->get(['cbm_status', 'aiec_status']);
             $cbm = $pct($rows->where('cbm_status', 'CLOSED')->count(), $rows->whereNotNull('cbm_status')->count());
@@ -136,30 +143,30 @@ class ModuleTiles
             $sum = app(ManHourService::class)->summary($period);
 
             return ['title' => 'Capacity (man hours)', 'value' => $sum['utilisation'] !== null ? $sum['utilisation'].'%' : '–', 'sub' => number_format($sum['total_used'], 0).' dari '.number_format($sum['capacity']['hours'], 0).' jam', 'tone' => $tone($sum['utilisation']), 'route' => 'modules.capacity'];
-        });
+        }, 'menu.capacity');
         $add('flight', 'ron', function () {
             $today = now()->toDateString();
             $ron = DB::table('ac_rons')->whereDate('ron_date', $today)->count();
             $latest = DB::table('ac_rons')->max('ron_date');
 
             return ['title' => 'A/C RON', 'value' => (string) ($ron ?: DB::table('ac_rons')->whereDate('ron_date', $latest)->count()), 'sub' => $ron ? 'malam ini' : ($latest ? 'data '.substr((string) $latest, 0, 10) : 'belum ada data'), 'tone' => 'blue', 'route' => 'modules.ac-movement'];
-        });
-        $add('flight', 'standby', fn () => ['title' => 'A/C Standby', 'value' => (string) DB::table('ac_standbies')->count(), 'sub' => 'pesawat standby', 'tone' => 'blue', 'route' => 'modules.ac-movement']);
+        }, 'menu.capacity');
+        $add('flight', 'standby', fn () => ['title' => 'A/C Standby', 'value' => (string) DB::table('ac_standbies')->count(), 'sub' => 'pesawat standby', 'tone' => 'blue', 'route' => 'modules.ac-movement'], 'menu.capacity');
         $add('flight', 'rotation', function () {
             $latest = DB::table('rotations')->latest('id')->first();
 
             return ['title' => 'Aircraft Rotation', 'value' => (string) DB::table('rotations')->count(), 'sub' => $latest ? 'terbaru: '.mb_substr((string) $latest->title, 0, 30) : 'belum ada rotasi', 'tone' => 'none', 'route' => 'modules.aircraft-rotation'];
-        });
+        }, 'menu.capacity');
         $add('flight', 'ict', function () {
             $open = DB::table('ict_findings')->whereRaw("LOWER(status) <> 'closed'")->count();
 
             return ['title' => 'ICT Findings', 'value' => (string) $open, 'sub' => 'masih open dari '.DB::table('ict_findings')->count(), 'tone' => $open ? 'yellow' : 'green', 'route' => 'modules.ict-pi'];
-        });
+        }, 'menu.ict');
         $add('flight', 'overdue', function () {
             $open = DB::table('nsrdi_overdues')->whereNull('closed_at')->count();
 
             return ['title' => 'NSRDI overdue', 'value' => (string) $open, 'sub' => 'belum closed', 'tone' => $open ? 'red' : 'green', 'route' => 'modules.nsrdi-overdue'];
-        });
+        }, 'menu.nsrdi');
 
         // ── People & compliance ──
         $add('people', 'compliance', function () use ($period, $stations, $tone) {
@@ -202,12 +209,13 @@ class ModuleTiles
             return ['title' => 'Data Asset', 'value' => number_format($available), 'sub' => 'unit tersedia dari '.number_format($assets->sum('qty_total')).($late ? " · $late lewat jatuh tempo" : ''), 'tone' => $late ? 'red' : 'green', 'route' => 'assets.index'];
         }, 'asset.view');
         $add('assets', 'ims', function () {
-            $pending = DB::table('ims_approvals')->where('status', 'pending')->count();
+            $pending = DB::table('ims_transactions')->where('status', 'pending_approval')->count();
+            $repair = DB::table('ims_repair_waiting')->whereNull('deleted_at')->count() + DB::table('ims_repair_in_progress')->whereNull('deleted_at')->count();
             $low = DB::table('ims_items as i')->leftJoin('ims_stocks as s', 's.item_id', '=', 'i.id')->where('i.is_active', 1)->where('i.min_stock', '>', 0)
                 ->groupBy('i.id', 'i.min_stock')->havingRaw('COALESCE(SUM(s.qty_on_hand),0) < i.min_stock')->select('i.id')->get()->count();
 
-            return ['title' => 'Inventory (IMS)', 'value' => (string) $pending, 'sub' => "menunggu approval · $low barang di bawah stok minimum", 'tone' => ($pending || $low) ? 'yellow' : 'green', 'route' => 'ims.catalog'];
-        });
+            return ['title' => 'Inventory (IMS)', 'value' => (string) $pending, 'sub' => "menunggu approval · $repair di repair · $low di bawah stok minimum", 'tone' => ($pending || $low) ? 'yellow' : 'green', 'route' => 'ims.catalog'];
+        }, 'menu.inventory');
         $add('assets', 'documents', fn () => ['title' => 'Pusat Dokumen', 'value' => number_format(Document::count()), 'sub' => 'CMPM, SOP, template, regulasi', 'tone' => 'none', 'route' => 'documents.index']);
         $add('assets', 'aircraft', fn () => ['title' => 'Master pesawat', 'value' => number_format(Aircraft::count()), 'sub' => number_format(Aircraft::whereNotNull('wg')->count()).' sudah punya WG', 'tone' => 'none', 'route' => 'master.aircraft']);
 

@@ -14,7 +14,67 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ asset('vendor/chartjs/chart.umd.js') }}"></script>
+    <script>
+        /* Alpine factory for the kd-chart component: builds one Chart.js chart from a plain config (see App\Services\Kpi\OperationalCharts). */
+        window.kdChart = function (cfg) {
+            return {
+                chart: null,
+                init() {
+                    if (!window.Chart || !this.$refs.canvas) return;
+                    const css = getComputedStyle(document.documentElement);
+                    const muted = (css.getPropertyValue('--cbm-text-muted') || '#94a3b8').trim() || '#94a3b8';
+                    const grid = 'rgba(148,163,184,.18)';
+                    const pct = cfg.percent !== false;
+                    const horizontal = !!cfg.horizontal;
+                    const doughnut = cfg.type === 'doughnut';
+                    const line = cfg.type === 'line';
+
+                    const datasets = doughnut
+                        ? [{ data: cfg.datasets[0].data, extra: cfg.datasets[0].extra, backgroundColor: cfg.datasets[0].colors, borderWidth: 0, hoverOffset: 6 }]
+                        : cfg.datasets.map((d) => ({
+                            label: d.label, data: d.data, extra: d.extra || [],
+                            backgroundColor: line ? d.color : (d.colors || d.color), borderColor: d.color,
+                            borderWidth: line ? 2 : 0, borderRadius: line ? 0 : 6, maxBarThickness: 36,
+                            tension: .35, pointRadius: line ? 3 : 0, pointHoverRadius: 5, spanGaps: true, fill: false,
+                        }));
+
+                    const valueAxis = {
+                        stacked: !!cfg.stacked, beginAtZero: true, max: cfg.max ?? undefined,
+                        grid: { color: grid }, border: { display: false },
+                        ticks: { color: muted, callback: (v) => pct ? v + '%' : v },
+                    };
+                    const categoryAxis = { stacked: !!cfg.stacked, grid: { display: false }, border: { display: false }, ticks: { color: muted, maxRotation: horizontal ? 0 : 40, autoSkip: cfg.labels.length > 12, font: { size: 11 } } };
+
+                    this.chart = new Chart(this.$refs.canvas, {
+                        type: cfg.type,
+                        data: { labels: cfg.labels, datasets },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, indexAxis: horizontal ? 'y' : 'x',
+                            cutout: doughnut ? '62%' : undefined,
+                            interaction: { mode: doughnut ? 'nearest' : 'index', intersect: false },
+                            plugins: {
+                                legend: { display: cfg.legend !== false, position: 'bottom', labels: { color: muted, boxWidth: 10, usePointStyle: true, padding: 14 } },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const raw = doughnut ? ctx.parsed : (horizontal ? ctx.parsed.x : ctx.parsed.y);
+                                            if (raw === null || raw === undefined) return null;
+                                            const extra = ctx.dataset.extra && ctx.dataset.extra[ctx.dataIndex];
+                                            const name = doughnut ? ctx.label : ctx.dataset.label;
+                                            return name + ': ' + raw + (pct ? '%' : '') + (extra ? '  (' + extra + ')' : '');
+                                        },
+                                    },
+                                },
+                            },
+                            scales: doughnut ? {} : (horizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis }),
+                        },
+                    });
+                },
+                destroy() { if (this.chart) this.chart.destroy(); },
+            };
+        };
+    </script>
 
     <!-- Vite Assets -->
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -1175,7 +1235,7 @@
 
     </style>
     <!-- SweetAlert2 for popups -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
 </head>
 <body>
 <div id="cbm-app" class="cbm-app">

@@ -2,25 +2,32 @@
 
 namespace App\Livewire\Modules\Ims\Peminjaman;
 
-use Livewire\Component;
 use App\Models\Ims\Item;
 use App\Models\Ims\Location;
 use App\Models\Ims\Transaction;
 use App\Models\Ims\TransactionItem;
 use App\Services\Ims\DocumentNumberService;
+use App\Services\Ims\ImsNotifier;
 use App\Services\Ims\StockService;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class Index extends Component
 {
     public $picklist = [];
+
     public $purpose_description = '';
+
     public $usage_type = 'consume'; // consume | loan
+
     public $expected_return_date = '';
+
     public $reference_no = '';
+
     public $aircraft_registration = '';
+
     public $department_id = '';
-    
+
     public $activeTab = 'picklist'; // picklist | history
 
     public function mount()
@@ -31,7 +38,7 @@ class Index extends Component
     public function loadPicklist()
     {
         $this->picklist = session()->get('ims_picklist', []);
-        
+
         // Enhance picklist with latest stock info
         foreach ($this->picklist as $id => $item) {
             $model = Item::with('unit')->withSum('stocks as total_on_hand', 'qty_on_hand')->withSum('stocks as total_reserved', 'qty_reserved')->find($id);
@@ -50,9 +57,11 @@ class Index extends Component
     public function updateQty($itemId, $qty)
     {
         if (isset($this->picklist[$itemId])) {
-            $qty = max(1, (int)$qty);
+            $qty = max(1, (int) $qty);
             $available = $this->picklist[$itemId]['available'];
-            if ($qty > $available) $qty = $available; // Prevent requesting more than available
+            if ($qty > $available) {
+                $qty = $available;
+            } // Prevent requesting more than available
             $this->picklist[$itemId]['qty'] = $qty;
             session()->put('ims_picklist', $this->picklist);
         }
@@ -78,13 +87,14 @@ class Index extends Component
 
         if (empty($this->picklist)) {
             session()->flash('error', 'Picklist is empty.');
+
             return;
         }
 
         try {
             DB::transaction(function () use ($docService, $stockService) {
                 $code = $docService->generate('out');
-                
+
                 $transaction = Transaction::create([
                     'code' => $code,
                     'type' => 'out',
@@ -101,8 +111,10 @@ class Index extends Component
                 ]);
 
                 foreach ($this->picklist as $item) {
-                    if (!$item['location_id']) throw new \Exception("Lokasi sumber untuk {$item['name']} tidak ditemukan.");
-                    
+                    if (! $item['location_id']) {
+                        throw new \Exception("Lokasi sumber untuk {$item['name']} tidak ditemukan.");
+                    }
+
                     // Reserve the stock!
                     $stockService->reserve($item['id'], $item['location_id'], $item['qty']);
 
@@ -115,17 +127,20 @@ class Index extends Component
                 }
             });
 
+            $code = Transaction::where('requested_by', auth()->id())->latest('id')->value('code');
+            app(ImsNotifier::class)->toPermission('ims.approval.act', 'Permintaan barang baru', ($code ?? 'Permintaan').' dari '.auth()->user()->name.' menunggu persetujuan.', 'warning');
+
             // Clear picklist
             session()->forget('ims_picklist');
             $this->picklist = [];
             $this->dispatch('picklist-updated', 0);
-            
+
             // Notification or session flash
             session()->flash('success', 'Permintaan berhasil diajukan dan sedang menunggu persetujuan.');
             $this->activeTab = 'history';
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal mengajukan permintaan: ' . $e->getMessage());
+            session()->flash('error', 'Gagal mengajukan permintaan: '.$e->getMessage());
         }
     }
 
@@ -149,7 +164,7 @@ class Index extends Component
 
             session()->flash('success', 'Permintaan berhasil dibatalkan dan kunci stok dilepas.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal membatalkan permintaan: ' . $e->getMessage());
+            session()->flash('error', 'Gagal membatalkan permintaan: '.$e->getMessage());
         }
     }
 
@@ -165,7 +180,7 @@ class Index extends Component
         }
 
         return view('livewire.modules.ims.peminjaman.index', [
-            'history' => $history
+            'history' => $history,
         ])->layout('components.layouts.app', ['title' => 'Pengeluaran Barang - IMS']);
     }
 }

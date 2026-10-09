@@ -94,6 +94,17 @@ class Phase3Test extends TestCase
         $this->assertSame('PK-ABC', $waiting->aircraft_registration);
         $this->assertSame(5, (int) $this->item->stocks()->first()->qty_on_hand, 'Intake does not touch serviceable stock.');
 
+        $this->assertNull($waiting->accepted_at, 'Filed by COD, not yet accepted.');
+        try {
+            $page->call('openStart', $waiting->repair_code);
+            $this->fail('A part that is not accepted yet cannot be started.');
+        } catch (ModelNotFoundException) {
+            $this->addToAssertionCount(1);
+        }
+        $page = Livewire::actingAs($this->storekeeper)->test(RepairPage::class);
+        $page->call('accept', $waiting->repair_code);
+        $this->assertNotNull($waiting->fresh()->accepted_at);
+
         $page->call('openStart', $waiting->repair_code)->set('work_order_no', 'WO-77')->call('start')->assertHasNoErrors();
         $this->assertSame(0, RepairWaiting::count());
         $this->assertSame(1, RepairWaiting::onlyTrashed()->count(), 'History is kept.');
@@ -128,8 +139,8 @@ class Phase3Test extends TestCase
         $codes = RepairWaiting::pluck('repair_code')->all();
         $this->assertCount(2, array_unique($codes));
 
-        $page->call('openStart', $codes[0])->call('start');
-        $this->assertSame(['-> waiting', '-> waiting', 'waiting -> in_progress'], RepairLog::orderBy('id')->get()->map(fn ($l) => trim(($l->from_stage === '-' ? '' : $l->from_stage.' ').'-> '.$l->to_stage))->all());
+        $page->call('accept', $codes[0])->call('openStart', $codes[0])->call('start');
+        $this->assertSame(['-> intake', '-> intake', 'intake -> waiting', 'waiting -> in_progress'], RepairLog::orderBy('id')->get()->map(fn ($l) => trim(($l->from_stage === '-' ? '' : $l->from_stage.' ').'-> '.$l->to_stage))->all());
     }
 
     public function test_an_unserviceable_result_cannot_go_back_to_stock(): void
@@ -138,7 +149,7 @@ class Phase3Test extends TestCase
         $page = Livewire::actingAs($this->storekeeper)->test(RepairPage::class)
             ->call('openReceive')->set('itemId', $this->item->id)->set('qty', 1)->set('location_id', $this->shelf->id)->set('fault_description', 'Burnt out')->call('receive');
         $code = RepairWaiting::firstOrFail()->repair_code;
-        $page->call('openStart', $code)->call('start')
+        $page->call('accept', $code)->call('openStart', $code)->call('start')
             ->call('openComplete', $code)->set('result', 'scrap')->set('findings', 'Beyond repair')->set('repaired_by_name', 'Budi')->call('complete')->assertHasNoErrors();
 
         $this->expectException(ModelNotFoundException::class);
@@ -229,11 +240,12 @@ class Phase3Test extends TestCase
 
         $this->assertSame(2, Livewire::actingAs($this->storekeeper)->test(ApprovalPage::class)->viewData('counts')['overdue']);
 
+        $before = [$this->requester->notifications()->count(), $this->storekeeper->notifications()->count()];
         $this->artisan('ims:notify-overdue-loans')->assertSuccessful();
 
         // requester gets today + 3-days-late reminders (not 1 day late, not the future one); storekeeper too
-        $this->assertSame(2, $this->requester->notifications()->count());
-        $this->assertSame(2, $this->storekeeper->notifications()->count());
+        $this->assertSame($before[0] + 2, $this->requester->notifications()->count());
+        $this->assertSame($before[1] + 2, $this->storekeeper->notifications()->count());
         $this->assertStringContainsString('jatuh tempo hari ini', $this->requester->notifications()->get()->pluck('data.message')->implode(' '));
     }
 
@@ -254,6 +266,7 @@ class Phase3Test extends TestCase
         $this->actingAs($this->storekeeper);
         $repairs->receive(['item_id' => $this->item->id, 'qty' => 1, 'location_id' => $this->shelf->id, 'fault_description' => 'one']);
         $second = $repairs->receive(['item_id' => $this->item->id, 'qty' => 1, 'location_id' => $this->shelf->id, 'fault_description' => 'two']);
+        $repairs->accept($second->repair_code);
         $repairs->start($second->repair_code);
 
         foreach (array_merge([RoleHelper::SUPER_ADMIN], RoleHelper::ALL_PIC) as $role) {

@@ -87,3 +87,18 @@ Semua ──► Dashboard KPI (pivot per station dan tim, dibatasi menurut role)
 
 Super Admin: semua (Gate::before). Executive, Audit: Super Admin + Manager. Master data inti (airports, aircraft, categories): Super Admin.
 Tes: `tests/Feature/RoleMatrixTest.php` (route × role), `tests/Feature/MasterCrudTest.php` (CRUD master, cleaning, ICT).
+
+**COD (Cabin On Duty)** — role tersendiri (bisa dirangkap dengan PIC, mis. PIC Supporting + COD). Penerima awal permintaan planner / work group / complaint lalu meneruskan ke eksekutor lapangan. Akses: menu Cabin Maintenance (DJA, WO, DMI, CML, LGT draft awal), NSRDI, ICT, AC Movement/Capacity, Inventory (lihat stok, minta barang, terima barang rusak dari lapangan sebelum ke Repair Area), Analitik.
+
+## Alur COD, repair IMS, dan LGT
+
+**Repair IMS** (`ims_repair_waiting` → `ims_repair_in_progress` → `ims_repair_completed`):
+COD / Admin COD mengisi *Form Barang Masuk Repair* (`ims.repair.request`) → tim repair (PIC Supporting, `ims.repair.manage`) **ACC** (`accepted_at`, `accepted_by`) → **Rak Repair 1** antrian → **Rak Repair 2** proses → **Rak Repair 3** selesai → dikembalikan ke **rak gudang** (`ims_locations`) bila serviceable. Rak repair berbeda dari rak gudang. Setiap perpindahan dicatat di `ims_repair_logs` dan mengirim notifikasi (`ImsNotifier`).
+
+**Permintaan barang untuk pesawat:** katalog → permintaan (`ims_transactions`, `aircraft_registration`, stok di-*reserve*) → notifikasi ke approver (`ims.approval.act`) → disetujui: stok berkurang, pemohon diberi notifikasi; ditolak: reservasi dilepas, alasan dikirim ke pemohon.
+
+**LGT:** Admin COD / COD membuat **draft** (`lgt.plan`: pesawat, station, STA, STD; durasi ground time dihitung) → PIC Finishing diberi notifikasi → Finishing / CBM / AIEC (`lgt.manage`) mengisi pekerjaan dan status. Baris tanpa pekerjaan = draft. Kolom `drafted_by`, `filled_by`, `filled_at`.
+
+**Dashboard per role** (`App\Support\DashboardScope`, `ModuleTiles`, `AttentionList`): semua role kerja punya periode harian / mingguan / bulanan dan blok KPI. PIC dan COD melihat semua station tetapi hanya tim divisinya; tile dan modul mengikuti menu role. Panel **Perlu perhatian** menghitung pekerjaan yang harus dikejar sesuai hak akses, dan tile produksi menampilkan selisih terhadap periode sebelumnya.
+
+**Pivot operasional** (`App\Services\Kpi\OperationalPivot`, tab Ringkasan KPI): open / closed / rate per station untuk WO, DMI, NSRDI (sesuai DJA), Unplanned, CML, dan Aircraft Cleaning per tipe (Transit, General, DCI, DCE, DBI, GCI, GCE), plus rincian per hari untuk periode minggu / bulan. Periode hari / minggu / bulan mengikuti pemilih di bar atas; hanya blok yang menjadi hak menu role yang dihitung.

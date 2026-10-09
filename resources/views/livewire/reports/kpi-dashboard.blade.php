@@ -31,22 +31,64 @@
             </div>
         </div>
         <div class="kd-group">
-            @if($seesAll)
+            @if($canPickStation)
                 <select wire:model.live="station" aria-label="Station">
                     <option value="">Semua station</option>
                     @foreach($stationOptions as $s)<option value="{{ $s }}">{{ $s }}</option>@endforeach
                 </select>
-                <select wire:model.live="team" aria-label="Tim">
+            @endif
+            @if($seesAll)
+                <select wire:model.live="teamPick" aria-label="Tim">
                     @foreach($teamOptions as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
                 </select>
+            @elseif($canPickStation)
+                <span class="kd-sub">{{ $teamLabel }}</span>
             @else
                 <span class="kd-sub">{{ $lockedStation ? 'Station '.$lockedStation : 'Semua station' }} · {{ $teamLabel }}</span>
             @endif
             <input type="date" wire:model.live="date" aria-label="Tanggal acuan">
         </div>
+        @php
+            $sections = array_filter([
+                'sec-attention' => 'Perlu perhatian',
+                'sec-tiles' => 'Ringkasan modul',
+                'sec-charts' => collect($charts)->flatten(1)->isNotEmpty() ? 'Grafik' : null,
+                'sec-ops' => count($pivot['rows']) && collect($pivot['blocks'])->except('cleaning')->isNotEmpty() ? 'Open · Closed per station' : null,
+                'sec-cleaning' => isset($pivot['blocks']['cleaning']) && count($pivot['rows']) ? 'Cleaning per tipe' : null,
+                'sec-days' => ($period->days() > 1 && count($pivot['days'])) ? 'Per hari' : null,
+                'sec-kpi' => 'KPI man hours',
+            ]);
+        @endphp
+        <nav class="kd-snav" aria-label="Bagian halaman"
+             x-data="{ active: '', spy() { let cur = ''; document.querySelectorAll('[data-kd-sec]').forEach(el => { if (el.getBoundingClientRect().top <= 230) cur = el.id }); this.active = cur || this.active } }"
+             x-init="spy()" x-on:scroll.window.passive="spy()">
+            @foreach($sections as $id => $label)
+                <button type="button" :class="{ on: active === '{{ $id }}' }" x-on:click="document.getElementById('{{ $id }}')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); active = '{{ $id }}'">{{ $label }}</button>
+            @endforeach
+        </nav>
     </div>
 
+    {{-- What needs chasing today --}}
+    @if(count($attention))
+        <section class="kd-panel" id="sec-attention" data-kd-sec aria-label="Perlu perhatian" style="margin-bottom:1rem;">
+            <h2><span>Perlu perhatian</span><span class="kd-sub">{{ count($attention) }} hal · klik untuk membuka</span></h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(17rem,1fr));gap:.5rem;padding:.75rem 1rem 1rem;">
+                @foreach($attention as $a)
+                    @if(\Illuminate\Support\Facades\Route::has($a['route']))
+                        <a href="{{ route($a['route']) }}" wire:navigate wire:key="att-{{ $loop->index }}" style="display:flex;align-items:center;gap:.75rem;padding:.6rem .8rem;border:1px solid var(--cbm-divider);border-radius:.75rem;text-decoration:none;color:inherit;">
+                            <span class="kd-chip" style="min-width:2.4rem;justify-content:center;color:{{ $a['tone'] === 'red' ? $tones['red'] : $tones['yellow'] }};background:{{ $a['tone'] === 'red' ? $bgs['red'] : $bgs['yellow'] }};">{{ number_format($a['count']) }}</span>
+                            <span style="font-size:.82rem;line-height:1.25;">{{ $a['label'] }}</span>
+                        </a>
+                    @endif
+                @endforeach
+            </div>
+        </section>
+    @else
+        <div class="kd-sub" id="sec-attention" data-kd-sec style="margin:.25rem 0 1rem;">Tidak ada yang perlu dikejar saat ini. ✓</div>
+    @endif
+
     {{-- One tile per module in the menu --}}
+    <div id="sec-tiles" data-kd-sec></div>
     @foreach($tileGroups as $gKey => $gLabel)
         @if(! empty($tiles[$gKey]))
             <div class="kd-sec">{{ $gLabel }}</div>
@@ -58,6 +100,9 @@
                             <div class="t">{{ $tile['title'] }}</div>
                             <div class="v">{{ $tile['value'] }}</div>
                             <div class="s">{{ $tile['sub'] }}</div>
+                            @if(($tile['delta'] ?? null) !== null)
+                                <div class="s" style="font-weight:700;color:{{ $tile['delta'] >= 0 ? $tones['green'] : $tones['red'] }};">{{ $tile['delta'] >= 0 ? '▲' : '▼' }} {{ abs($tile['delta']) }} poin vs periode lalu</div>
+                            @endif
                         </a>
                     @endif
                 @endforeach
@@ -65,7 +110,87 @@
         @endif
     @endforeach
 
-    <div class="kd-sec">KPI per station</div>
+    {{-- Charts: percentages first --}}
+    @if(collect($charts)->flatten(1)->isNotEmpty())
+        <div class="kd-sec" id="sec-charts" data-kd-sec>Grafik · {{ $period->label() }}</div>
+        @foreach(['production' => 'Produksi', 'cleaning' => 'Aircraft Cleaning (AIEC)', 'kpi' => 'KPI man hours'] as $group => $groupLabel)
+            @if(! empty($charts[$group]))
+                <div class="kd-sub" style="margin:.35rem 0 .45rem;font-weight:700;">{{ $groupLabel }}</div>
+                <div class="kd-chart-grid">
+                    @foreach($charts[$group] as $chartConfig)
+                        <x-kd-chart :config="$chartConfig" />
+                    @endforeach
+                </div>
+            @endif
+        @endforeach
+    @endif
+
+    @php
+        $cellOf = function (?array $c) use ($chip) {
+            if (! $c || ! $c['total']) { return '<span class="kd-sub">–</span>'; }
+            return '<div class="kd-cell">'.$c['closed'].' / '.$c['total'].' '.$chip($c['rate']).'<small>'.$c['open'].' open</small></div>';
+        };
+        $opsBlocks = collect($pivot['blocks'])->except('cleaning');
+    @endphp
+
+    {{-- Open / closed / rate per station: WO, DMI, NSRDI, unplanned, CML --}}
+    @if($opsBlocks->isNotEmpty() && count($pivot['rows']))
+        <section class="kd-panel" id="sec-ops" data-kd-sec aria-label="Open dan closed per station">
+            <h2><span>Open · Closed · Rate per station</span><span class="kd-sub">WO, DMI, NSRDI sesuai DJA · {{ $period->label() }}</span></h2>
+            <div class="kd-wrap">
+                <table class="kd-table">
+                    <thead><tr><th>Station</th>@foreach($opsBlocks as $label)<th>{{ $label }}</th>@endforeach</tr></thead>
+                    <tbody>
+                        @foreach($pivot['rows'] as $sta => $cells)
+                            @if(collect($opsBlocks)->keys()->contains(fn ($b) => ($cells[$b]['total'] ?? 0) > 0))
+                                <tr wire:key="op-{{ $sta }}"><td><strong>{{ $sta }}</strong></td>@foreach($opsBlocks as $b => $label)<td>{!! $cellOf($cells[$b] ?? null) !!}</td>@endforeach</tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                    <tfoot><tr><td>Total</td>@foreach($opsBlocks as $b => $label)<td>{!! $cellOf($pivot['total'][$b] ?? null) !!}</td>@endforeach</tr></tfoot>
+                </table>
+            </div>
+        </section>
+    @endif
+
+    {{-- Aircraft Cleaning per type --}}
+    @if(isset($pivot['blocks']['cleaning']) && count($pivot['rows']))
+        <section class="kd-panel" id="sec-cleaning" data-kd-sec aria-label="Aircraft cleaning per station">
+            <h2><span>Aircraft Cleaning per station</span><span class="kd-sub">closed / total per tipe · {{ $period->label() }}</span></h2>
+            <div class="kd-wrap">
+                <table class="kd-table">
+                    <thead><tr><th>Station</th>@foreach($pivot['cleaning_types'] as $type)<th>{{ $type }}</th>@endforeach<th>Total</th></tr></thead>
+                    <tbody>
+                        @foreach($pivot['rows'] as $sta => $cells)
+                            @if(($cells['cleaning']['total'] ?? 0) > 0)
+                                <tr wire:key="cl-{{ $sta }}"><td><strong>{{ $sta }}</strong></td>@foreach($pivot['cleaning_types'] as $type)<td>{!! $cellOf($cells['cleaning:'.$type] ?? null) !!}</td>@endforeach<td>{!! $cellOf($cells['cleaning'] ?? null) !!}</td></tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                    <tfoot><tr><td>Total</td>@foreach($pivot['cleaning_types'] as $type)<td>{!! $cellOf($pivot['total']['cleaning:'.$type] ?? null) !!}</td>@endforeach<td>{!! $cellOf($pivot['total']['cleaning'] ?? null) !!}</td></tr></tfoot>
+                </table>
+            </div>
+        </section>
+    @endif
+
+    {{-- Day by day inside the week / month --}}
+    @if($period->days() > 1 && count($pivot['days']))
+        <section class="kd-panel" id="sec-days" data-kd-sec aria-label="Per hari">
+            <h2><span>Per hari</span><span class="kd-sub">closed rate dari semua station yang dipilih</span></h2>
+            <div class="kd-wrap">
+                <table class="kd-table">
+                    <thead><tr><th>Tanggal</th>@foreach($pivot['blocks'] as $label)<th>{{ $label }}</th>@endforeach</tr></thead>
+                    <tbody>
+                        @foreach($pivot['days'] as $day => $cells)
+                            <tr wire:key="dy-{{ $day }}"><td><strong>{{ \Carbon\Carbon::parse($day)->translatedFormat('D, d M') }}</strong></td>@foreach($pivot['blocks'] as $b => $label)<td>{!! $cellOf($cells[$b] ?? null) !!}</td>@endforeach</tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    @endif
+
+    <div class="kd-sec" id="sec-kpi" data-kd-sec>KPI man hours per station</div>
 
     {{-- Summary cards --}}
     <div class="kd-cards">
@@ -169,7 +294,7 @@
                 <table class="kd-table">
                     <thead><tr><th>Tim</th><th>MP/hari</th><th>Kapasitas (jam)</th></tr></thead>
                     <tbody>
-                        @foreach(['CBM', 'AIEC', 'PAINTING', 'IRREG'] as $t)
+                        @foreach(['CBM', 'AIEC', 'PAINTING', 'IRREG', 'FINISHING'] as $t)
                             @if(isset($teamsData[$t]))
                                 <tr wire:key="kt-{{ $t }}"><td><strong>{{ $teamOptions[$t] }}</strong></td><td>{{ $num($teamsData[$t]['mp_avg'], 1) }}</td><td>{{ $num($teamsData[$t]['hours'], 0) }}</td></tr>
                             @endif

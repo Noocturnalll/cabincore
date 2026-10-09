@@ -103,7 +103,8 @@ class ModuleTilesTest extends TestCase
         foreach (['attendance', 'employees', 'assets', 'lgt', 'compliance', 'sources', 'leader'] as $gated) {
             $this->assertArrayNotHasKey($gated, $bare, "{$gated} needs its permission");
         }
-        $this->assertArrayHasKey('wo', $bare, 'the core production tiles are for everyone');
+        $this->assertArrayNotHasKey('wo', $bare, 'production tiles need the production menu');
+        $this->assertArrayHasKey('wo', $this->flat((new ModuleTiles)->build($this->user(RoleHelper::PIC_CABIN), $period)));
     }
 
     public function test_asset_tile_counts_available_units_and_overdue_loans(): void

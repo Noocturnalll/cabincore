@@ -69,7 +69,7 @@ class MasterSettings
     {
         $rows = $this->entries('team');
 
-        return $rows ? array_map(fn ($r) => $r['label'], $rows) : ['CBM' => 'CBM', 'AIEC' => 'AIEC', 'PAINTING' => 'Painting', 'IRREG' => 'Irreg', 'PI' => 'PI', 'COD' => 'COD'];
+        return $rows ? array_map(fn ($r) => $r['label'], $rows) : ['CBM' => 'CBM', 'AIEC' => 'AIEC', 'PAINTING' => 'Painting', 'IRREG' => 'Irreg', 'FINISHING' => 'Finishing', 'PI' => 'PI', 'COD' => 'COD'];
     }
 
     /** The roster team a division belongs to, e.g. "Cabin" => CBM; null when the division is not a roster team. */

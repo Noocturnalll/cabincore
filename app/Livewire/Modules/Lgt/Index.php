@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Modules\Lgt;
 
+use App\Helpers\RoleHelper;
 use App\Models\Aircraft;
 use App\Models\LgtRecord;
 use App\Models\RosterEntry;
 use App\Services\Audit\AocResolver;
+use App\Services\Ims\ImsNotifier;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Url;
@@ -15,7 +17,9 @@ use Livewire\Component;
  * Long Ground Time plan and result. Somebody lists the aircraft that will sit on the ground for a long time and the
  * jobs for the CBM and the AIEC (cleaning) team; the teams then close or cancel each job. The monitor
  * (Analitik > LGT Monitoring) summarises what is entered here.
- * lgt.view reads (own station unless registry.view_all), lgt.manage plans and updates.
+ * lgt.view reads (own station unless registry.view_all).
+ * lgt.plan  drafts the line: which aircraft, where, STA / STD (Admin COD, COD). Plan-only users see a short form.
+ * lgt.manage fills in the jobs and the status (Finishing, CBM, AIEC); a line without jobs is a draft waiting for them.
  */
 class Index extends Component
 {
@@ -58,6 +62,9 @@ class Index extends Component
 
     public ?string $reason = null;
 
+    /** true = the short draft form (aircraft, station, STA / STD) for somebody who may plan but not fill in */
+    public bool $draftMode = false;
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('lgt.view'), 403);
@@ -93,8 +100,10 @@ class Index extends Component
 
     public function create(?int $copyFrom = null): void
     {
-        abort_unless(auth()->user()->can('lgt.manage'), 403);
+        $u = auth()->user();
+        abort_unless($u->can('lgt.manage') || $u->can('lgt.plan'), 403);
         $this->resetForm();
+        $this->draftMode = ! $u->can('lgt.manage');
         $this->form_date = $this->date;
         $this->form_station = $this->ownStation() ?? $this->station;
 
@@ -111,10 +120,12 @@ class Index extends Component
 
     public function edit(int $id): void
     {
-        abort_unless(auth()->user()->can('lgt.manage'), 403);
+        $u = auth()->user();
+        abort_unless($u->can('lgt.manage') || $u->can('lgt.plan'), 403);
         $r = $this->scoped()->findOrFail($id);
 
         $this->resetForm();
+        $this->draftMode = ! $u->can('lgt.manage');
         $this->recordId = $r->id;
         $this->form_date = $r->work_date->toDateString();
         $this->form_station = $r->station;
@@ -133,12 +144,20 @@ class Index extends Component
 
     public function save(): void
     {
-        abort_unless(auth()->user()->can('lgt.manage'), 403);
+        $u = auth()->user();
+        $draft = ! $u->can('lgt.manage');   // plan-only: the jobs and statuses are not theirs to write
+        abort_unless($u->can('lgt.manage') || $u->can('lgt.plan'), 403);
         $this->aircraft_registration = strtoupper(trim($this->aircraft_registration));
         $this->form_station = strtoupper(trim($this->form_station));
 
         $own = $this->ownStation();
-        $this->validate([
+        $this->validate($draft ? [
+            'form_date' => ['required', 'date'],
+            'form_station' => ['required', 'string', 'max:10', $own ? Rule::in([$own]) : 'string'],
+            'aircraft_registration' => ['required', 'string', 'max:20'],
+            'sta_time' => ['nullable', 'date_format:H:i'],
+            'std_time' => ['nullable', 'date_format:H:i'],
+        ] : [
             'form_date' => ['required', 'date'],
             'form_station' => ['required', 'string', 'max:10', $own ? Rule::in([$own]) : 'string'],
             'aircraft_registration' => ['required', 'string', 'max:20'],
@@ -166,7 +185,21 @@ class Index extends Component
             'reason' => $this->reason ?: null,
         ];
 
-        $this->recordId ? $this->scoped()->findOrFail($this->recordId)->update($data) : LgtRecord::create($data);
+        if ($draft) {   // only the plan fields; the jobs stay as the fillers left them
+            $data = array_intersect_key($data, array_flip(['work_date', 'station', 'aircraft_registration', 'aoc', 'sta_time', 'std_time']));
+        }
+
+        if ($this->recordId) {
+            $record = $this->scoped()->findOrFail($this->recordId);
+            $record->update($data + (! $draft && ($data['cbm_action'] || $data['aiec_action']) && ! $record->filled_at ? ['filled_by' => $u->id, 'filled_at' => now()] : []));
+        } else {
+            $isDraft = $draft || (empty($data['cbm_action']) && empty($data['aiec_action']));
+            $record = LgtRecord::create($data + ['drafted_by' => $u->id] + (! $isDraft ? ['filled_by' => $u->id, 'filled_at' => now()] : []));
+            if ($isDraft) {
+                $minutes = self::groundMinutes($record->sta_time, $record->std_time);
+                app(ImsNotifier::class)->toRole(RoleHelper::PIC_FINISHING, 'LGT baru perlu diisi', "{$record->aircraft_registration} di {$record->station} tgl {$record->work_date->format('d M')}".($minutes !== null ? ' · ground time '.intdiv($minutes, 60).'j '.($minutes % 60).'m' : '').'. Isi pekerjaan CBM / AIEC.', 'warning');
+            }
+        }
 
         $this->date = $this->form_date;
         $this->close();
@@ -186,7 +219,7 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        abort_unless(auth()->user()->can('lgt.manage'), 403);
+        abort_unless(auth()->user()->can('lgt.manage') || auth()->user()->can('lgt.plan'), 403);
         $this->scoped()->findOrFail($id)->delete();
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Baris LGT dihapus.']);
     }
@@ -199,6 +232,7 @@ class Index extends Component
 
     private function resetForm(): void
     {
+        $this->draftMode = false;
         $this->reset(['recordId', 'form_date', 'form_station', 'aircraft_registration', 'sta_time', 'std_time', 'cbm_action', 'cbm_mp', 'aiec_action', 'aiec_mp', 'reason']);
         $this->cbm_status = 'OPEN';
         $this->aiec_status = 'OPEN';
@@ -245,6 +279,7 @@ class Index extends Component
             'seesAll' => $this->seesAll(),
             'ownStation' => $this->ownStation(),
             'canManage' => auth()->user()->can('lgt.manage'),
+            'canPlan' => auth()->user()->can('lgt.plan'),
             'statuses' => self::STATUSES,
         ])->layout('components.layouts.app', ['title' => 'Long Ground Time']);
     }

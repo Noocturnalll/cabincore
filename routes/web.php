@@ -4,7 +4,7 @@ use App\Helpers\RoleHelper;
 use App\Http\Controllers\ImportController;
 use App\Livewire\Aircraft\History;
 use App\Livewire\Auth\ForcePasswordReset;
-use App\Livewire\Dashboard;
+use App\Livewire\DashboardHub;
 use App\Livewire\Documents\Center;
 use App\Livewire\Documents\Master;
 use App\Livewire\Import\DataCenter;
@@ -46,7 +46,7 @@ use Illuminate\Support\Facades\Storage;
 
 Route::redirect('/', '/login');
 
-Route::get('/dashboard', Dashboard::class)->middleware(['auth', 'force.password.reset'])->name('dashboard');
+Route::get('/dashboard', DashboardHub::class)->middleware(['auth', 'force.password.reset'])->name('dashboard');
 
 Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/profile', Index::class)->name('profile.index');

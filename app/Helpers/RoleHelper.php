@@ -25,6 +25,15 @@ class RoleHelper
 
     public const PIC_FINISHING = 'PIC Finishing';
 
+    /** Cabin On Duty: first receiver of planner / work group / complaint requests and of faulty parts, then hands over to the field. */
+    public const COD = 'COD';
+
+    /** Admin of the COD desk: drafts the LGT plan and keeps the COD records. */
+    public const ADMIN_COD = 'Admin COD';
+
+    /** Roles that work the COD desk */
+    public const COD_DESK = [self::COD, self::ADMIN_COD];
+
     /** Old names, kept so existing code and data keep working: Cabin is CBM, AIC is AIEC, Irreg is part of CBM. */
     public const PIC_CABIN = self::PIC_CBM;
 

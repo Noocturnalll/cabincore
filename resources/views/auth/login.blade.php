@@ -64,9 +64,7 @@
                     <input id="remember_me" type="checkbox" name="remember">
                     <span>Ingat saya</span>
                 </label>
-                @if (Route::has('password.request'))
-                    <a class="g-forgot" href="{{ route('password.request') }}">Lupa password?</a>
-                @endif
+                <span class="g-forgot" style="cursor:default;" title="Administrator akan mengatur ulang password Anda ke default">Lupa password? Hubungi administrator.</span>
             </div>
 
             {{-- Submit --}}

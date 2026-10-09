@@ -25,6 +25,6 @@ class RepairWaiting extends Model
 
     protected function casts(): array
     {
-        return ['received_at' => 'datetime'];
+        return ['received_at' => 'datetime', 'accepted_at' => 'datetime'];
     }
 }

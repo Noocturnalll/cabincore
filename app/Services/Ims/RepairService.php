@@ -27,7 +27,7 @@ class RepairService
 
     public const SOURCES = ['aircraft' => 'Lepasan pesawat', 'stock' => 'Dari stok / gudang', 'loan_return' => 'Pengembalian pinjaman'];
 
-    public function __construct(private DocumentNumberService $numbers) {}
+    public function __construct(private DocumentNumberService $numbers, private ImsNotifier $notifier) {}
 
     /** @param array<string, mixed> $data item_id, qty, fault_description, priority, source, aircraft_registration, location_id, notes */
     public function receive(array $data): RepairWaiting
@@ -52,7 +52,22 @@ class RepairService
                 'created_by' => auth()->id(),
             ]);
 
-            $this->log($code, null, 'waiting', $data['fault_description']);
+            $this->log($code, null, 'intake', $data['fault_description']);
+            $this->notifier->toPermission('ims.repair.manage', 'Barang rusak masuk', "{$code} menunggu ACC tim repair.", 'warning');
+
+            return $waiting;
+        });
+    }
+
+    /** The repair team accepts the part: it now sits on Rak Repair 1 (queue). */
+    public function accept(string $repairCode): RepairWaiting
+    {
+        return DB::transaction(function () use ($repairCode) {
+            $waiting = RepairWaiting::where('repair_code', $repairCode)->whereNull('accepted_at')->lockForUpdate()->firstOrFail();
+            $waiting->update(['accepted_at' => now(), 'accepted_by' => auth()->id()]);
+
+            $this->log($repairCode, 'intake', 'waiting', 'ACC penerimaan');
+            $this->notifier->toUser($waiting->received_by, 'Barang rusak di-ACC', "{$repairCode} diterima tim repair (Rak Repair 1).", 'success');
 
             return $waiting;
         });
@@ -63,6 +78,9 @@ class RepairService
     {
         return DB::transaction(function () use ($repairCode, $data) {
             $waiting = RepairWaiting::where('repair_code', $repairCode)->lockForUpdate()->firstOrFail();
+            if (! $waiting->accepted_at) {
+                throw new \DomainException('Barang belum di-ACC oleh tim repair.');
+            }
 
             $progress = RepairInProgress::create([
                 'repair_code' => $waiting->repair_code,
@@ -115,6 +133,8 @@ class RepairService
 
             $progress->delete();
             $this->log($repairCode, 'in_progress', 'completed', 'Hasil: '.$data['result']);
+            $filedBy = RepairLog::where('repair_code', $repairCode)->orderBy('id')->value('actor_id');
+            $this->notifier->toUser($filedBy, 'Repair selesai', "{$repairCode} selesai di Rak Repair 3 (hasil: {$data['result']}).", $data['result'] === 'serviceable' ? 'success' : 'warning');
 
             return $completed;
         });

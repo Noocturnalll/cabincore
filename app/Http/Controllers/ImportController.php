@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\AircraftRotationImport;
 use App\Imports\DailyReportImport;
+use App\Models\Rotation;
 use App\Notifications\SystemNotification;
+use App\Services\ExcelHtmlRenderer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -43,7 +44,9 @@ class ImportController extends Controller
             // lalu Excel::import memuatnya lagi (memori 2x lipat).
 
             // FIX: Prevent SQLite "General error 14 unable to open database file" on Windows
-            DB::unprepared('PRAGMA temp_store = MEMORY;');
+            if (DB::connection()->getDriverName() === 'sqlite') {
+                DB::unprepared('PRAGMA temp_store = MEMORY;');
+            }
 
             DB::transaction(function () use ($file) {
                 Excel::import(new DailyReportImport, $file);
@@ -83,19 +86,19 @@ class ImportController extends Controller
         try {
             // Proses file Excel ke HTML memakan waktu lama untuk file besar (misal 12 sheet)
             set_time_limit(300);
-            
+
             Log::info('Importing Aircraft Rotation file: '.$file->getClientOriginalName());
 
             $filename = $file->getClientOriginalName();
             $path = $file->store('rotations');
-            
-            $renderer = app(\App\Services\ExcelHtmlRenderer::class);
-            $html = $renderer->render(\Illuminate\Support\Facades\Storage::path($path));
-            
-            $htmlPath = 'rotations/' . pathinfo($path, PATHINFO_FILENAME) . '.html';
-            \Illuminate\Support\Facades\Storage::put($htmlPath, $html);
-            
-            \App\Models\Rotation::create([
+
+            $renderer = app(ExcelHtmlRenderer::class);
+            $html = $renderer->render(Storage::path($path));
+
+            $htmlPath = 'rotations/'.pathinfo($path, PATHINFO_FILENAME).'.html';
+            Storage::put($htmlPath, $html);
+
+            Rotation::create([
                 'title' => pathinfo($filename, PATHINFO_FILENAME),
                 'file_path' => $path,
                 'html_path' => $htmlPath,
@@ -143,7 +146,9 @@ class ImportController extends Controller
             Log::info("Import raw: {$name} (".strlen($content).' bytes)');
 
             // FIX: Prevent SQLite "General error 14 unable to open database file" on Windows
-            DB::unprepared('PRAGMA temp_store = MEMORY;');
+            if (DB::connection()->getDriverName() === 'sqlite') {
+                DB::unprepared('PRAGMA temp_store = MEMORY;');
+            }
 
             DB::transaction(function () use ($path) {
                 Excel::import(new DailyReportImport, $path, 'local');

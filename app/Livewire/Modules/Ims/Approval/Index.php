@@ -5,6 +5,7 @@ namespace App\Livewire\Modules\Ims\Approval;
 use App\Models\Ims\Transaction;
 use App\Models\Ims\TransactionItem;
 use App\Services\Ims\DocumentNumberService;
+use App\Services\Ims\ImsNotifier;
 use App\Services\Ims\StockService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -82,6 +83,8 @@ class Index extends Component
                 }
             });
 
+            $approved = Transaction::find($transactionId);
+            app(ImsNotifier::class)->toUser($approved?->requested_by, 'Permintaan barang disetujui', "{$approved?->code} disetujui, stok sudah dikurangi. Silakan ambil barang.", 'success');
             session()->flash('success', 'Transaksi berhasil disetujui.');
         } catch (\Exception $e) {
             session()->flash('error', 'Gagal menyetujui transaksi: '.$e->getMessage());
@@ -124,6 +127,8 @@ class Index extends Component
                 }
             });
 
+            $rejected = Transaction::find($this->selectedTransactionId);
+            app(ImsNotifier::class)->toUser($rejected?->requested_by, 'Permintaan barang ditolak', "{$rejected?->code} ditolak: {$this->rejectReason}", 'error');
             $this->selectedTransactionId = null;
             session()->flash('success', 'Transaksi ditolak.');
         } catch (\Exception $e) {

@@ -26,7 +26,7 @@ class Manpower extends Component
     {
         $user = auth()->user();
         $stationOnly = ! $user->can('registry.view_all') && $user->station ? strtoupper($user->station) : null;
-        $teams = ['CBM', 'AIEC', 'PAINTING', 'IRREG'];
+        $teams = ['CBM', 'AIEC', 'PAINTING', 'IRREG', 'FINISHING'];
 
         $entries = RosterEntry::query()
             ->whereDate('work_date', $this->date ?: now()->toDateString())

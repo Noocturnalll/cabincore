@@ -18,7 +18,7 @@ class Index extends Component
     use WithPagination;
 
     /** Password given to new accounts and after a reset; the user must change it at first login. */
-    public const DEFAULT_PASSWORD = 'batam123';
+    public const DEFAULT_PASSWORD = 'Password123';
 
     public $search = '';
 

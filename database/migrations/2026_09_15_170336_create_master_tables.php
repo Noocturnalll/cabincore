@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('kode', 10)->unique(); // e.g. CGK, DPS, SUB
             $table->string('nama');
             $table->string('kota');
-            $table->boolean('status')->default(true); // true = Active, false = Inactive
+            $table->string('status', 20)->default('Aktif'); // Aktif / Tidak Aktif
             $table->timestamps();
         });
 
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('registration', 20)->unique(); // e.g. PK-LGP
             $table->string('tipe'); // e.g. B737-800
             $table->string('maskapai');
-            $table->boolean('status')->default(true);
+            $table->string('status', 20)->default('Aktif');
             $table->timestamps();
         });
 

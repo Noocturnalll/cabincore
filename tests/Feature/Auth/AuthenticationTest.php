@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Livewire\Auth\ForcePasswordReset;
 use App\Livewire\Auth\Login;
+use App\Livewire\Users\Index;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -108,5 +109,38 @@ class AuthenticationTest extends TestCase
         $user->refresh();
         $this->assertFalse((bool) $user->is_default_password);
         $this->assertTrue(Hash::check('new-secure-password', $user->password));
+    }
+
+    public function test_user_cannot_reuse_default_password_on_forced_reset(): void
+    {
+        $user = User::factory()->create([
+            'status' => 'active',
+            'is_default_password' => true,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ForcePasswordReset::class)
+            ->set('password', Index::DEFAULT_PASSWORD)
+            ->set('password_confirmation', Index::DEFAULT_PASSWORD)
+            ->call('updatePassword')
+            ->assertHasErrors(['password']);
+
+        $user->refresh();
+        $this->assertTrue((bool) $user->is_default_password);
+    }
+
+    public function test_user_can_logout_from_forced_reset_page(): void
+    {
+        $user = User::factory()->create([
+            'status' => 'active',
+            'is_default_password' => true,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ForcePasswordReset::class)
+            ->call('logout')
+            ->assertRedirect(route('login'));
+
+        $this->assertGuest();
     }
 }

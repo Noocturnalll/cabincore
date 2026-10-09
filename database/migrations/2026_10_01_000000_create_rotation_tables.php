@@ -35,7 +35,7 @@ return new class extends Migration
             $t->id();
             $t->foreignId('aircraft_rotation_id')->constrained()->cascadeOnDelete();
             $t->unsignedTinyInteger('seq');
-            $t->string('flight_raw', 20);            // 1864P / CHT/2513S
+            $t->string('flight_raw', 255);           // 1864P / CHT/2513S / NOTAM remarks
             $t->string('flight_no', 10);             // 1864
             $t->string('flight_suffix', 2)->nullable();
             $t->boolean('is_charter')->default(false);

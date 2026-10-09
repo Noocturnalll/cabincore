@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Livewire\Users\Index;
 use App\Models\Division;
 use App\Models\Position;
 use App\Models\User;
@@ -20,10 +21,11 @@ class DatabaseSeeder extends Seeder
         $roles = [
             'Super Admin',
             'Manager',
-            'PIC Cabin',
-            'PIC AIC',
+            'PIC CBM',
+            'PIC AIEC',
             'PIC Painting',
             'PIC Supporting',
+            'PIC Finishing',
             'Admin CGK',
         ];
 
@@ -41,18 +43,21 @@ class DatabaseSeeder extends Seeder
         $getDivId = fn ($name) => Division::firstOrCreate(['name' => $name])->id;
         $getPosId = fn ($name) => Position::firstOrCreate(['name' => $name])->id;
 
+        $defaultPassword = (string) env('SEED_DEFAULT_PASSWORD', Index::DEFAULT_PASSWORD);
+        $defaultPasswordHash = Hash::make($defaultPassword);
+
         // ── Super Admin ──────────────────────────────────
         $superAdmin = User::firstOrCreate(
             ['nik' => '000000'],
             [
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@bat.local',
-                'password' => Hash::make('password123'),
+                'password' => $defaultPasswordHash,
                 'position_id' => $getPosId('System Administrator'),
                 'division_id' => $getDivId('IT'),
                 'station' => 'CGK',
                 'status' => 'active',
-                'is_default_password' => false,
+                'is_default_password' => true,
             ]
         );
         $superAdmin->syncRoles('Super Admin');
@@ -63,12 +68,12 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Budi Santoso',
                 'email' => 'manager@bat.local',
-                'password' => Hash::make('password123'),
+                'password' => $defaultPasswordHash,
                 'position_id' => $getPosId('Manager Cabin Maintenance'),
                 'division_id' => $getDivId('Cabin'),
                 'station' => 'CGK',
                 'status' => 'active',
-                'is_default_password' => false,
+                'is_default_password' => true,
             ]
         );
         $manager->syncRoles('Manager');
@@ -79,15 +84,15 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Dewi Rahayu',
                 'email' => 'pic.cabin@bat.local',
-                'password' => Hash::make('password123'),
+                'password' => $defaultPasswordHash,
                 'position_id' => $getPosId('PIC Cabin Maintenance'),
                 'division_id' => $getDivId('Cabin'),
                 'station' => 'CGK',
                 'status' => 'active',
-                'is_default_password' => false,
+                'is_default_password' => true,
             ]
         );
-        $picCabin->syncRoles('PIC Cabin');
+        $picCabin->syncRoles('PIC CBM');
 
         // ── PIC AIC ───────────────────────────────────────
         $picAic = User::firstOrCreate(
@@ -95,15 +100,15 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Rizki Pratama',
                 'email' => 'pic.aic@bat.local',
-                'password' => Hash::make('password123'),
+                'password' => $defaultPasswordHash,
                 'position_id' => $getPosId('PIC Aircraft Interior Cleaning'),
                 'division_id' => $getDivId('AIC'),
                 'station' => 'CGK',
                 'status' => 'active',
-                'is_default_password' => false,
+                'is_default_password' => true,
             ]
         );
-        $picAic->syncRoles('PIC AIC');
+        $picAic->syncRoles('PIC AIEC');
 
         // ── PIC Painting ──────────────────────────────────
         $picPainting = User::firstOrCreate(
@@ -111,12 +116,12 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Ahmad Fauzi',
                 'email' => 'pic.painting@bat.local',
-                'password' => Hash::make('password123'),
+                'password' => $defaultPasswordHash,
                 'position_id' => $getPosId('PIC Painting'),
                 'division_id' => $getDivId('Painting'),
                 'station' => 'CGK',
                 'status' => 'active',
-                'is_default_password' => false,
+                'is_default_password' => true,
             ]
         );
         $picPainting->syncRoles('PIC Painting');
@@ -127,12 +132,12 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Sari Indah',
                 'email' => 'pic.supporting@bat.local',
-                'password' => Hash::make('password123'),
+                'password' => $defaultPasswordHash,
                 'position_id' => $getPosId('PIC Supporting'),
                 'division_id' => $getDivId('Supporting'),
                 'station' => 'CGK',
                 'status' => 'active',
-                'is_default_password' => false,
+                'is_default_password' => true,
             ]
         );
         $picSupporting->syncRoles('PIC Supporting');
@@ -152,12 +157,12 @@ class DatabaseSeeder extends Seeder
                 [
                     'name' => $adminData['name'],
                     'email' => strtolower(str_replace(' ', '.', $adminData['name'])).'@bat.local',
-                    'password' => Hash::make('password123'),
+                    'password' => $defaultPasswordHash,
                     'position_id' => $getPosId($adminData['jabatan']),
                     'division_id' => $getDivId($adminData['divisi']),
                     'station' => 'CGK',
                     'status' => 'active',
-                    'is_default_password' => false,
+                    'is_default_password' => true,
                 ]
             );
             $admin->syncRoles('Admin CGK');

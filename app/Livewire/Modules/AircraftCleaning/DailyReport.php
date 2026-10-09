@@ -4,6 +4,7 @@ namespace App\Livewire\Modules\AircraftCleaning;
 
 use App\Exports\AircraftCleaningExport;
 use App\Imports\AircraftCleaningImport;
+use App\Livewire\Traits\WithLogTable;
 use App\Models\AircraftCleaning;
 use App\Notifications\SystemNotification;
 use Livewire\Component;
@@ -13,7 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class DailyReport extends Component
 {
-    use WithFileUploads, WithPagination;
+    use WithFileUploads, WithLogTable, WithPagination;
 
     public $activeTab = 'Transit'; // Tabs: Transit, General, DCI, DCE
 
@@ -24,11 +25,6 @@ class DailyReport extends Component
     public $search = '';
 
     public $dateFilter = '';
-
-    public function setTab($tab)
-    {
-        $this->activeTab = $tab;
-    }
 
     public function importData()
     {
@@ -58,8 +54,6 @@ class DailyReport extends Component
     {
         $query = AircraftCleaning::query();
 
-        $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
-
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
@@ -72,11 +66,9 @@ class DailyReport extends Component
 
         if ($this->dateFilter) {
             $query->whereDate('date', $this->dateFilter);
-        } else {
-            // Default to today if needed, for now we will show all or active date
         }
 
-        $query->orderBy('date', 'desc');
+        $query->orderByDesc('date')->orderByDesc('id');
 
         if ($this->activeTab) {
             $query->where('type', $this->activeTab);
@@ -88,7 +80,7 @@ class DailyReport extends Component
         }
 
         return view('livewire.modules.aircraft-cleaning.daily-report', [
-            'logs' => $query->get(),
+            'logs' => $query->paginate($this->perPage),
         ])->layout('components.layouts.app', ['title' => 'Daily Report - Aircraft Cleaning']);
     }
 }

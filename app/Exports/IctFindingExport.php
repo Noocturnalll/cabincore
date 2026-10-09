@@ -13,8 +13,11 @@ class IctFindingExport implements FromCollection, WithHeadings
 
     protected $dateFilter;
 
-    public function __construct($search = '', $dateFilter = '')
+    protected $status;
+
+    public function __construct($search = '', $dateFilter = '', $status = '')
     {
+        $this->status = $status;
         $this->search = $search;
         $this->dateFilter = $dateFilter;
     }
@@ -27,12 +30,18 @@ class IctFindingExport implements FromCollection, WithHeadings
             $query->where(function ($q) {
                 $q->where('no_finding', 'like', '%'.$this->search.'%')
                     ->orWhere('aircraft_registration', 'like', '%'.$this->search.'%')
-                    ->orWhere('defect_description', 'like', '%'.$this->search.'%');
+                    ->orWhere('defect_description', 'like', '%'.$this->search.'%')
+                    ->orWhere('operator', 'like', '%'.$this->search.'%')
+                    ->orWhere('remarks', 'like', '%'.$this->search.'%');
             });
         }
 
         if ($this->dateFilter) {
             $query->whereDate('date', $this->dateFilter);
+        }
+
+        if (in_array($this->status, ['Open', 'Closed'], true)) {
+            $query->where('status', $this->status);
         }
 
         return $query->orderBy('date', 'desc')->select(

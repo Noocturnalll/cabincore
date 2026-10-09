@@ -371,7 +371,7 @@
                     <span>Smarter &amp; Faster</span>
                 </h1>
                 <p class="g-hero-desc">
-                    Platform terpadu untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara <strong style="color: var(--text);">real-time</strong> di seluruh stasiun.
+                    Platform terpadu untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara <strong style="color: var(--text);">real-time</strong> di seluruh station.
                 </p>
 
                 {{-- Stats --}}

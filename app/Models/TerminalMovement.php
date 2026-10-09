@@ -10,4 +10,11 @@ class TerminalMovement extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'flight_date' => 'date',
+        ];
+    }
 }

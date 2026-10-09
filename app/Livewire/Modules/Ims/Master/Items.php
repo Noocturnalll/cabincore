@@ -2,20 +2,25 @@
 
 namespace App\Livewire\Modules\Ims\Master;
 
+use App\Models\Ims\Category;
+use App\Models\Ims\Item;
+use App\Models\Ims\Location;
+use App\Models\Ims\TransactionItem;
+use App\Models\Ims\Unit;
+use Illuminate\Database\QueryException;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Ims\Item;
-use App\Models\Ims\Category;
-use App\Models\Ims\Unit;
-use App\Models\Ims\Location;
 
 class Items extends Component
 {
     use WithPagination;
 
     public $search = '';
+
     public $isOpen = false;
+
     public $isEdit = false;
+
     public $editId = null;
 
     public $form = [
@@ -30,7 +35,10 @@ class Items extends Component
         'is_active' => true,
     ];
 
-    public function updatingSearch() { $this->resetPage(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function create()
     {
@@ -45,11 +53,11 @@ class Items extends Component
         $record = Item::findOrFail($id);
         $this->editId = $id;
         $this->isEdit = true;
-        
+
         foreach (array_keys($this->form) as $key) {
             $this->form[$key] = $record->{$key};
         }
-        
+
         $this->isOpen = true;
     }
 
@@ -64,7 +72,7 @@ class Items extends Component
             'form.default_location_id' => 'nullable|exists:ims_locations,id',
             'form.min_stock' => 'nullable|numeric|min:0',
             'form.tracking_type' => 'required|in:quantity,serial',
-            'form.is_active' => 'boolean'
+            'form.is_active' => 'boolean',
         ]);
 
         if ($this->isEdit) {
@@ -82,8 +90,20 @@ class Items extends Component
     public function delete($id)
     {
         $record = Item::findOrFail($id);
-        $record->delete();
-        session()->flash('success', 'Data barang berhasil dihapus.');
+
+        if ($record->stocks()->exists() || TransactionItem::where('item_id', $record->id)->exists()) {
+            session()->flash('error', 'Barang sudah memiliki stok atau riwayat transaksi. Nonaktifkan saja.');
+
+            return;
+        }
+
+        try {
+            $record->delete();
+            session()->flash('success', 'Data barang berhasil dihapus.');
+        } catch (QueryException $e) {
+            // sudah punya stok / riwayat transaksi
+            session()->flash('error', 'Barang tidak dapat dihapus karena sudah memiliki stok atau riwayat. Nonaktifkan saja.');
+        }
     }
 
     public function resetForm()
@@ -105,11 +125,11 @@ class Items extends Component
     public function render()
     {
         $query = Item::with(['category', 'unit', 'location']);
-        
+
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('part_number', 'like', '%' . $this->search . '%');
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('part_number', 'like', '%'.$this->search.'%');
             });
         }
 

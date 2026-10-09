@@ -1,0 +1,10 @@
+# /etc/cron.d/cbm-scheduler
+#
+# Memicu scheduler Laravel tiap menit. Jadwal tiap tugas ada di routes/console.php.
+# Ubah /var/www/cbm (lokasi aplikasi) dan www-data (user PHP-FPM) bila berbeda.
+# Pastikan `php` ada di PATH cron; kalau tidak, pakai path lengkap, mis. /usr/bin/php.
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+* * * * * www-data cd /var/www/cbm && php artisan schedule:run >> /dev/null 2>&1

@@ -4,9 +4,17 @@ namespace App\Livewire\Master;
 
 use App\Models\Division;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Divisions extends Component
 {
+    use WithPagination;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public $search = '';
 
     public $division_id;
@@ -77,7 +85,7 @@ class Divisions extends Component
         $division = Division::findOrFail($id);
 
         if ($division->users()->count() > 0) {
-            $this->js("alert('Gagal menghapus: Divisi ini masih digunakan oleh {$division->users()->count()} pengguna aktif.');");
+            $this->dispatch('notify', ['icon' => 'error', 'message' => "Gagal menghapus: Divisi ini masih digunakan oleh {$division->users()->count()} pengguna.", 'timer' => 6000]);
 
             return;
         }
@@ -97,13 +105,15 @@ class Divisions extends Component
         $this->division_id = null;
         $this->name = '';
         $this->status = 'Aktif';
+        $this->resetValidation();
     }
 
     public function render()
     {
         $divisions = Division::where('name', 'like', '%'.$this->search.'%')
+            ->withCount('users')
             ->orderBy('name', 'asc')
-            ->get();
+            ->paginate(15);
 
         return view('livewire.master.divisions', [
             'divisions' => $divisions,

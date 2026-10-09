@@ -1,320 +1,191 @@
 <div>
-    <style>
-        .cbm-file-input::-webkit-file-upload-button {
-            background: var(--cbm-bg);
-            border: 1px solid var(--cbm-border);
-            color: var(--cbm-text);
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            margin-right: 0.75rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        .cbm-file-input::-webkit-file-upload-button:hover {
-            background: var(--cbm-nav-hover);
-        }
-        .cbm-file-input::file-selector-button {
-            background: var(--cbm-bg);
-            border: 1px solid var(--cbm-border);
-            color: var(--cbm-text);
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            margin-right: 0.75rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        .cbm-file-input::file-selector-button:hover {
-            background: var(--cbm-nav-hover);
-        }
-        .nav-tabs .nav-link {
-            color: var(--cbm-text-muted);
-            border: none;
-            border-bottom: 2px solid transparent;
-            padding: 0.75rem 1.25rem;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-        .nav-tabs .nav-link.active {
-            color: var(--cbm-blue);
-            background: transparent;
-            border-color: var(--cbm-blue);
-        }
-        .nav-tabs .nav-link:hover:not(.active) {
-            color: var(--cbm-text);
-            border-color: var(--cbm-border);
-        }
-        .table {
-            color: var(--cbm-text);
-            border-color: var(--cbm-border);
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .table th, .table td {
-            padding: 0.875rem 1rem;
-            text-align: left;
-        }
-        .table th {
-            background: var(--cbm-bg);
-            color: var(--cbm-text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--cbm-border);
-        }
-        .table td {
-            background: var(--cbm-card);
-            border-bottom: 1px solid var(--cbm-border);
-            vertical-align: middle;
-        }
-        .table-striped>tbody>tr:nth-of-type(odd)>* {
-            background-color: rgba(255, 255, 255, 0.02);
-            color: var(--cbm-text);
-        }
-        .cbm-tabs-container {
-            margin: 0 0 2rem 0;
-            padding: 0.5rem 0.75rem;
-            background: var(--cbm-card-bg);
-            border: 1px solid var(--cbm-card-border);
-            border-radius: 1.125rem;
-            display: flex; gap: 0.5rem;
-            overflow-x: auto;
-        }
-        .cbm-tab-btn {
-            padding: 0.6rem 1.25rem;
-            font-size: 0.8125rem; font-weight: 700;
-            color: var(--cbm-text-muted);
-            border-radius: 0.75rem;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.25s ease;
-            border: 1px solid transparent; 
-            background: transparent;
-        }
-        .cbm-tab-btn:hover { 
-            color: var(--cbm-text); 
-            background: rgba(148, 163, 184, 0.1); 
-        }
-        .cbm-tab-btn.active {
-            background: var(--cbm-nav-active, #3b82f6);
-            color: var(--cbm-nav-active-t, #ffffff);
-            border: 1px solid var(--cbm-card-border);
-        }
-    </style>
-
     {{-- Header --}}
-    <div class="mod-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="mod-header">
         <div class="mod-title-block">
-            <div class="mod-title">AC Movement & RON</div>
-            <div class="mod-subtitle">Pantau pergerakan pesawat di Terminal dan daftar RON secara realtime.</div>
+            <div class="mod-title-accent mod-title-accent-blue">Operasional</div>
+            <div class="mod-title">AC Movement &amp; RON</div>
+            <div class="mod-subtitle">Pantau pergerakan pesawat di Terminal dan daftar RON. Data diperbarui otomatis dari Google Sheets.</div>
         </div>
-        <button class="btn btn-sm btn-outline-secondary" wire:click="$refresh" style="display: flex; align-items: center; gap: 0.5rem; border-color: var(--cbm-border); color: var(--cbm-text);">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            <span>Refresh Data</span>
-        </button>
+        <div class="mod-actions">
+            <button type="button" class="mod-btn-outline" wire:click="$refresh" wire:loading.attr="disabled" wire:target="$refresh">
+                <span style="display:inline-flex;align-items:center;gap:.4rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;" wire:loading.class="animate-spin" wire:target="$refresh"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                    Refresh
+                </span>
+            </button>
+        </div>
     </div>
 
-    {{-- Main Tabs Navigation --}}
-    <div class="cbm-tabs-container mb-4" style="border-color: transparent; background: transparent; box-shadow: none; padding: 0;">
-        <button wire:click="$set('mainTab', 'sync')" class="cbm-tab-btn {{ $mainTab === 'sync' ? 'active' : '' }}">Sinkronisasi</button>
-        <button wire:click="$set('mainTab', 'table')" class="cbm-tab-btn {{ $mainTab === 'table' ? 'active' : '' }}">Data Tabel</button>
-    </div>
-
-    {{-- Layout Grid --}}
-    <div style="display: flex; gap: 1.5rem; flex-direction: column;">
-        
-        @if($mainTab === 'sync')
-        {{-- Sync Card --}}
-        <div class="mod-card" style="padding: 1.5rem; max-width: 37.5rem; margin: 0 auto; width: 100%; text-align: center;">
-            <div style="width: 3rem; height: 3rem; border-radius: 0.75rem; background: rgba(59,130,246,.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                <svg style="width: 1.5rem; height: 1.5rem; color: var(--cbm-blue);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                </svg>
+    @if($syncSetting->spreadsheet_id)
+        @if($freshness['failed'])
+            <div class="cbm-flash cbm-flash-error" role="alert" style="margin-bottom:1rem;">
+                <strong>Sync terakhir gagal</strong> ({{ $freshness['minutes'] !== null ? $freshness['minutes'].' menit lalu' : 'belum pernah berhasil' }}): {{ $syncSetting->last_message }}
+                Data di bawah adalah data terakhir yang berhasil ditarik.
             </div>
-            
-            <h3 style="font-size: 1rem; font-weight: 600; color: var(--cbm-text); margin-bottom: 0.25rem;">Google Sheets Sync</h3>
-            <p style="font-size: 0.8125rem; color: var(--cbm-text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
-                Tarik data pergerakan pesawat dari Sheet Terminal 1, Terminal 2, AC RON, dan AC STBY secara instan.
+        @elseif($freshness['stale'])
+            <div class="mod-hint mod-hint-warn" role="alert">
+                Data belum diperbarui {{ $freshness['minutes'] !== null ? $freshness['minutes'].' menit' : 'sama sekali' }}. Sync otomatis berjalan tiap 5 menit;
+                pastikan scheduler server aktif (<code>php artisan schedule:run</code> tiap menit) atau sinkronkan manual di tab Sinkronisasi.
+            </div>
+        @endif
+    @endif
+
+    {{-- Main tabs --}}
+    <div class="cbm-seg" role="tablist" aria-label="Tampilan">
+        <button type="button" role="tab" wire:click="setMainTab('table')" class="cbm-seg-btn {{ $mainTab === 'table' ? 'active' : '' }}" aria-selected="{{ $mainTab === 'table' ? 'true' : 'false' }}">Data Tabel</button>
+        <button type="button" role="tab" wire:click="setMainTab('sync')" class="cbm-seg-btn {{ $mainTab === 'sync' ? 'active' : '' }}" aria-selected="{{ $mainTab === 'sync' ? 'true' : 'false' }}">Sinkronisasi</button>
+    </div>
+
+    @if($mainTab === 'sync')
+        {{-- Sync card --}}
+        <div class="mod-card mod-card-accent-blue" style="max-width:40rem;margin:0 auto;padding:1.5rem;text-align:center;">
+            <div style="width:3rem;height:3rem;border-radius:.75rem;background:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                <svg style="width:1.5rem;height:1.5rem;color:var(--cbm-blue);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+            </div>
+            <h3 style="font-size:1rem;font-weight:700;color:var(--cbm-text);margin-bottom:.25rem;">Google Sheets Sync</h3>
+            <p style="font-size:.8125rem;color:var(--cbm-text-muted);margin-bottom:1.25rem;line-height:1.5;">
+                Tarik data pergerakan pesawat dari sheet Terminal 1, Terminal 2, AC RON, dan AC STBY.
             </p>
 
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <input
-                    type="text"
-                    wire:model.defer="sheetUrl"
-                    placeholder="https://docs.google.com/spreadsheets/d/..."
-                    class="mod-search-input"
-                    style="width: 100%; padding: 0.625rem 0.875rem; text-align: left; font-size: 0.8125rem;"
-                >
-                <button
-                    wire:click="syncNow"
-                    class="mod-btn-primary"
-                    style="width: 100%; justify-content: center; padding: 0.625rem; font-size: 0.875rem;"
-                    wire:loading.attr="disabled"
-                >
-                    <span wire:loading.remove wire:target="syncNow">
-                        Mulai Sinkronisasi
-                    </span>
-                    <span wire:loading wire:target="syncNow">
-                        <svg class="animate-spin" style="width:1rem;height:1rem;display:inline;margin-right:6px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Menyinkronkan...
-                    </span>
+            <form wire:submit="syncNow" style="display:flex;flex-direction:column;gap:.5rem;">
+                <input type="text" wire:model="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." class="mod-search-input mod-input-plain" style="width:100%;text-align:left;" aria-label="Link Google Sheet">
+                @error('sheetUrl') <span style="color:#f87171;font-size:.75rem;font-weight:600;text-align:left;">{{ $message }}</span> @enderror
+                <button type="submit" class="mod-btn-primary" style="width:100%;justify-content:center;" wire:loading.attr="disabled" wire:target="syncNow">
+                    <span wire:loading.remove wire:target="syncNow">Mulai Sinkronisasi</span>
+                    <span wire:loading wire:target="syncNow"><span class="cbm-spinner"></span> Menyinkronkan...</span>
                 </button>
-            </div>
+            </form>
 
             @include('livewire.modules.partials.sync-status', [
                 'syncSetting' => $syncSetting,
                 'hint' => 'Link sheet tersimpan permanen dan auto-sync tiap 5 menit. Ganti link di atas jika sheet berubah.',
             ])
         </div>
-        @endif
-
-        @if($mainTab === 'table')
-        {{-- TABLES SECTION --}}
-        <div class="mod-card">
-            <div class="card-header border-bottom border-secondary p-0">
-                <ul class="nav nav-tabs cbm-tabs px-3 pt-3" style="border-bottom: 0;">
-                    <li class="nav-item">
-                        <button class="nav-link {{ $activeTab === 'terminal1' ? 'active' : '' }}" wire:click="$set('activeTab', 'terminal1')">TERMINAL 1</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link {{ $activeTab === 'terminal2' ? 'active' : '' }}" wire:click="$set('activeTab', 'terminal2')">TERMINAL 2</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link {{ $activeTab === 'ron' ? 'active' : '' }}" wire:click="$set('activeTab', 'ron')">AC RON</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link {{ $activeTab === 'standby' ? 'active' : '' }}" wire:click="$set('activeTab', 'standby')">AC STBY</button>
-                    </li>
-                </ul>
+    @else
+        <div class="mod-card mod-card-accent-blue" wire:poll.60s>
+            <div class="cbm-tabs">
+                @foreach(['terminal1' => 'Terminal 1', 'terminal2' => 'Terminal 2', 'ron' => 'AC RON', 'standby' => 'AC STBY'] as $key => $label)
+                    <button type="button" wire:click="setActiveTab('{{ $key }}')" class="cbm-tab {{ $activeTab === $key ? 'active' : '' }}">
+                        {{ $label }} <span class="cbm-tab-count">{{ $counts[$key] }}</span>
+                    </button>
+                @endforeach
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    @if($activeTab === 'terminal1' || $activeTab === 'terminal2')
-                        <table class="table table-hover table-striped mb-0 text-nowrap">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Date</th>
-                                    <th>Reg</th>
-                                    <th>Flt In</th>
-                                    <th>STA</th>
-                                    <th>ETA</th>
-                                    <th>Plan P/S</th>
-                                    <th>Flt Out</th>
-                                    <th>STD</th>
-                                    <th>ATD</th>
-                                    <th>Defect</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php $terminals = $activeTab === 'terminal1' ? $terminal1 : $terminal2; @endphp
-                                @forelse($terminals as $row)
-                                    @php
-                                        $nsrdis = $openNsrdis->get($row->registration, collect());
-                                    @endphp
-                                    <tr>
-                                        <td>{{ $row->no_seq }}</td>
-                                        <td>{{ $row->flight_date?->format('d M Y') }}</td>
-                                        <td class="fw-bold text-info">{{ $row->registration }}</td>
-                                        <td>{{ $row->flight_no_in }}</td>
-                                        <td>{{ $row->sta }}</td>
-                                        <td>{{ $row->eta }}</td>
-                                        <td>{{ $row->plan_ps }}</td>
-                                        <td>{{ $row->flight_no_out }}</td>
-                                        <td>{{ $row->std }}</td>
-                                        <td>{{ $row->atd }}</td>
-                                        <td>
-                                            @forelse($nsrdis as $nsrdi)
-                                                <div class="mb-1">{{ $nsrdi->nsrdi_number ?: '-' }}</div>
-                                            @empty
-                                                -
-                                            @endforelse
-                                        </td>
-                                        <td>
-                                            @forelse($nsrdis as $nsrdi)
-                                                <div class="mb-1">{{ $nsrdi->description ?: '-' }}</div>
-                                            @empty
-                                                -
-                                            @endforelse
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr><td colspan="12" class="text-center text-muted py-4">Belum ada data terminal. Lakukan sinkronisasi.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    @elseif($activeTab === 'ron')
-                        <table class="table table-hover table-striped mb-0 text-nowrap">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Date</th>
-                                    <th>Reg</th>
-                                    <th>Ex Flt</th>
-                                    <th>STA/ATA</th>
-                                    <th>Stand</th>
-                                    <th>Flt No</th>
-                                    <th>Route</th>
-                                    <th>STD</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($acRon as $row)
-                                    <tr>
-                                        <td>{{ $row->no_seq }}</td>
-                                        <td>{{ $row->ron_date?->format('d M Y') }}</td>
-                                        <td class="fw-bold text-info">{{ $row->reg_flt }}</td>
-                                        <td>{{ $row->ex_flt }}</td>
-                                        <td>{{ $row->sta_ata }}</td>
-                                        <td>{{ $row->stand }}</td>
-                                        <td>{{ $row->flt_no }}</td>
-                                        <td>{{ $row->route }}</td>
-                                        <td>{{ $row->std }}</td>
-                                        <td>{{ $row->remarks }}</td>
-                                    </tr>
-                                @empty
-                                    <tr><td colspan="10" class="text-center text-muted py-4">Belum ada data AC RON. Lakukan sinkronisasi.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    @elseif($activeTab === 'standby')
-                        <table class="table table-hover table-striped mb-0 text-nowrap">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Airline</th>
-                                    <th>Reg</th>
-                                    <th>Stand</th>
-                                    <th>Plan RTS</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($acStandby as $row)
-                                    <tr>
-                                        <td>{{ $row->no_seq }}</td>
-                                        <td>{{ $row->airline_category }}</td>
-                                        <td class="fw-bold text-info">{{ $row->reg_flt }}</td>
-                                        <td>{{ $row->parking }}</td>
-                                        <td>{{ $row->plan_rts }}</td>
-                                        <td>{{ $row->remarks }}</td>
-                                    </tr>
-                                @empty
-                                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada data AC STBY. Lakukan sinkronisasi.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+
+            @php
+                $shown = match ($activeTab) {
+                    'terminal2' => $terminal2,
+                    'ron' => $acRon,
+                    'standby' => $acStandby,
+                    default => $terminal1,
+                };
+            @endphp
+
+            <div class="mod-toolbar">
+                <div class="mod-filters">
+                    <div class="mod-field mod-field-search">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                        <input wire:model.live.debounce.300ms="search" class="mod-search-input" type="search" placeholder="Cari registrasi, flight, stand..." aria-label="Cari">
+                        <button type="button" wire:click="clearSearch" class="mod-clear-btn" aria-label="Hapus pencarian" x-data x-show="$wire.search" x-cloak>&times;</button>
+                    </div>
+                    <span wire:loading wire:target="search, setActiveTab" class="cbm-spinner" aria-label="Memuat"></span>
+                </div>
+                <div class="mod-meta">
+                    <span class="mod-record-count">{{ $shown->count() }}{{ $search !== '' ? ' dari '.$counts[$activeTab] : '' }} data</span>
+                    @if($syncSetting->last_synced_at)
+                        <span class="mod-record-count" title="Sinkronisasi terakhir">Sync {{ $syncSetting->last_synced_at->diffForHumans() }}</span>
                     @endif
                 </div>
             </div>
-        </div>
-        @endif
 
-    </div>
+            <div class="mod-table-wrap">
+                @if($activeTab === 'terminal1' || $activeTab === 'terminal2')
+                    <table class="mod-table" style="white-space:nowrap;">
+                        <thead>
+                            <tr>
+                                <th>NO</th><th>DATE</th><th>REG</th><th>FLT IN</th><th>STA</th><th>ETA</th>
+                                <th>PLAN P/S</th><th>FLT OUT</th><th>STD</th><th>ATD</th><th>NSRDI OPEN</th><th>DESCRIPTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($shown as $row)
+                                @php $nsrdis = $openNsrdis->get($row->registration, collect()); @endphp
+                                <tr wire:key="mv-{{ $activeTab }}-{{ $row->id }}">
+                                    <td>{{ $row->no_seq }}</td>
+                                    <td>{{ $row->flight_date?->format('d M Y') }}</td>
+                                    <td><div class="mod-aircraft-name">{{ $row->registration }}</div></td>
+                                    <td>{{ $row->flight_no_in }}</td>
+                                    <td>{{ $row->sta }}</td>
+                                    <td>{{ $row->eta }}</td>
+                                    <td>{{ $row->plan_ps }}</td>
+                                    <td>{{ $row->flight_no_out }}</td>
+                                    <td>{{ $row->std }}</td>
+                                    <td>{{ $row->atd }}</td>
+                                    <td>
+                                        @forelse($nsrdis as $nsrdi)
+                                            <span class="mod-badge-open" style="margin:0 .25rem .25rem 0;">{{ $nsrdi->nsrdi_number ?: '-' }}</span>
+                                        @empty
+                                            <span style="color:var(--cbm-text-muted);">-</span>
+                                        @endforelse
+                                    </td>
+                                    <td style="white-space:normal;min-width:14rem;max-width:26rem;">
+                                        @forelse($nsrdis as $nsrdi)
+                                            <div style="margin-bottom:.25rem;">{{ $nsrdi->description ?: '-' }}</div>
+                                        @empty
+                                            <span style="color:var(--cbm-text-muted);">-</span>
+                                        @endforelse
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="12">@include('livewire.modules.ac-movement.partials.empty', ['label' => 'data terminal'])</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                @elseif($activeTab === 'ron')
+                    <table class="mod-table" style="white-space:nowrap;">
+                        <thead>
+                            <tr><th>NO</th><th>DATE</th><th>REG</th><th>EX FLT</th><th>STA/ATA</th><th>STAND</th><th>FLT NO</th><th>ROUTE</th><th>STD</th><th>REMARKS</th></tr>
+                        </thead>
+                        <tbody>
+                            @forelse($shown as $row)
+                                <tr wire:key="ron-{{ $row->id }}">
+                                    <td>{{ $row->no_seq }}</td>
+                                    <td>{{ $row->ron_date?->format('d M Y') }}</td>
+                                    <td><div class="mod-aircraft-name">{{ $row->reg_flt }}</div></td>
+                                    <td>{{ $row->ex_flt }}</td>
+                                    <td>{{ $row->sta_ata }}</td>
+                                    <td>{{ $row->stand }}</td>
+                                    <td>{{ $row->flt_no }}</td>
+                                    <td>{{ $row->route }}</td>
+                                    <td>{{ $row->std }}</td>
+                                    <td style="white-space:normal;min-width:12rem;">{{ $row->remarks }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="10">@include('livewire.modules.ac-movement.partials.empty', ['label' => 'AC RON'])</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                @else
+                    <table class="mod-table" style="white-space:nowrap;">
+                        <thead>
+                            <tr><th>NO</th><th>AIRLINE</th><th>REG</th><th>STAND</th><th>PLAN RTS</th><th>REMARKS</th></tr>
+                        </thead>
+                        <tbody>
+                            @forelse($shown as $row)
+                                <tr wire:key="sb-{{ $row->id }}">
+                                    <td>{{ $row->no_seq }}</td>
+                                    <td>{{ $row->airline_category }}</td>
+                                    <td><div class="mod-aircraft-name">{{ $row->reg_flt }}</div></td>
+                                    <td>{{ $row->parking }}</td>
+                                    <td>{{ $row->plan_rts }}</td>
+                                    <td style="white-space:normal;min-width:12rem;">{{ $row->remarks }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6">@include('livewire.modules.ac-movement.partials.empty', ['label' => 'AC STBY'])</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                @endif
+            </div>
+        </div>
+    @endif
 </div>

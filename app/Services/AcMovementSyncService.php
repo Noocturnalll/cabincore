@@ -52,10 +52,20 @@ class AcMovementSyncService
 
         $counts = [];
         $errors = [];
+        $kept = [];
 
         foreach ($tabs as $wanted => $actualTitle) {
             try {
                 $rows = $this->reader->values($spreadsheetId, $actualTitle);
+
+                // A completely empty response (no header either) is far more likely an API hiccup than the planner
+                // wiping the tab. Keep what we have instead of mirroring "nothing" over live data.
+                if ($rows === []) {
+                    $kept[] = $wanted;
+
+                    continue;
+                }
+
                 $counts[$wanted] = $this->syncTab($wanted, $rows);
             } catch (\Throwable $e) {
                 Log::error("AC Movement sync failed on tab {$actualTitle}: ".$e->getMessage());
@@ -71,11 +81,16 @@ class AcMovementSyncService
             $message .= '. Tab tidak ditemukan: '.implode(', ', $missing);
         }
 
+        if ($kept) {
+            $message .= '. Tab kosong, data lama dipertahankan: '.implode(', ', $kept);
+        }
+
         if ($errors) {
             $message .= '. Gagal: '.implode('; ', $errors);
         }
 
-        return ['success' => $counts !== [], 'message' => $message, 'counts' => $counts];
+        // A tab that threw means the mirror is incomplete: report it as failed so it is noticed
+        return ['success' => $counts !== [] && $errors === [], 'message' => $message, 'counts' => $counts];
     }
 
     /**

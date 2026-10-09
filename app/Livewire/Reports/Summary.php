@@ -36,7 +36,7 @@ class Summary extends Component
             $endDate = Carbon::now()->endOfMonth();
         }
 
-        $d = [$startDate->format('Y-m-d 00:00:00'), $endDate->format('Y-m-d 23:59:59')];
+        $d = [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]; // date columns: plain dates (sqlite compares as text)
 
         // ============================================
         // 1. CABIN MAINTENANCE KPIs (GLOBAL)

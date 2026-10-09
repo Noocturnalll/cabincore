@@ -1,137 +1,94 @@
 <div>
-    <div class="cbm-page-header" style="margin-bottom: 2rem;">
-        <div style="display: flex; align-items: center; gap: 1rem; justify-content: space-between; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-cyan)); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 1rem rgba(59,130,246,0.3);">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.75rem; height: 1.75rem;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="cbm-greeting" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Document Center</h1>
-                    <p class="cbm-greeting-sub">Unduh template laporan, SOP, dan regulasi terbaru.</p>
-                </div>
-            </div>
-            
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari dokumen..." style="background: var(--cbm-input-bg); border: 1px solid var(--cbm-input-border); border-radius: 0.75rem; padding: 0.5rem 1rem; color: var(--cbm-text); outline: none; font-family: inherit; font-size: 0.875rem;">
-                <select wire:model.live="category" style="background: var(--cbm-input-bg); border: 1px solid var(--cbm-input-border); border-radius: 0.75rem; padding: 0.5rem 1rem; color: var(--cbm-text); outline: none; font-family: inherit; font-size: 0.875rem;">
-                    <option value="all">Semua Kategori</option>
-                    <option value="template">Template Excel</option>
-                    <option value="sop">SOP & Panduan</option>
-                    <option value="regulasi">Regulasi</option>
-                </select>
-            </div>
+    <style>
+        .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr)); gap: 1.25rem; }
+        .doc-card { background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; box-shadow: var(--cbm-card-shadow); }
+        .doc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 1.5rem var(--cbm-blue-glow); border-color: var(--cbm-blue); }
+        .doc-icon { width: 3rem; height: 3rem; border-radius: .75rem; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .75rem; font-weight: 800; letter-spacing: .03em; flex-shrink: 0; }
+        .doc-icon.xls { background: linear-gradient(135deg, #10b981, #059669); }
+        .doc-icon.pdf { background: linear-gradient(135deg, #f43f5e, #be123c); }
+        .doc-icon.doc { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .doc-icon.ppt { background: linear-gradient(135deg, #fb923c, #ea580c); }
+        .doc-icon.other { background: linear-gradient(135deg, #64748b, #475569); }
+        .doc-title { font-size: 1rem; font-weight: 700; color: var(--cbm-text); line-height: 1.3; margin: 0; word-break: break-word; }
+        .doc-meta { font-size: .75rem; color: var(--cbm-text-muted); display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap; }
+        .doc-btn { background: var(--cbm-nav-hover); color: var(--cbm-blue); border: 0; border-radius: .625rem; padding: .55rem; font-size: .8125rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: .375rem; text-decoration: none; transition: background .2s, color .2s; width: 100%; }
+        .doc-btn:hover { background: var(--cbm-blue); color: #fff; }
+        .doc-btn.missing { color: #ef4444; cursor: not-allowed; pointer-events: none; }
+    </style>
+
+    <div class="mod-header">
+        <div class="mod-title-block">
+            <div class="mod-title-accent mod-title-accent-blue">Lainnya</div>
+            <h1 class="mod-title">Document Center</h1>
+            <p class="mod-subtitle">Unduh template laporan, SOP, dan regulasi terbaru.</p>
+        </div>
+        <div class="mod-actions">
+            @hasrole(\App\Helpers\RoleHelper::SUPER_ADMIN)
+                <a href="{{ route('documents.master') }}" wire:navigate class="mod-btn-outline" style="text-decoration:none;">Kelola dokumen</a>
+            @endhasrole
         </div>
     </div>
 
-    <style>
-        .doc-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.25rem;
-        }
-        .doc-card {
-            background: var(--cbm-card-bg);
-            border: 1px solid var(--cbm-card-border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            transition: var(--cbm-transition), transform 0.2s;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .doc-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 1.5rem var(--cbm-blue-glow);
-            border-color: var(--cbm-blue);
-        }
-        .doc-icon {
-            width: 3rem;
-            height: 3rem;
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.875rem;
-            font-weight: 800;
-        }
-        .icon-xlsx { background: linear-gradient(135deg, #10b981, #059669); }
-        .icon-pdf { background: linear-gradient(135deg, #f43f5e, #be123c); }
-        
-        .doc-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--cbm-text);
-            line-height: 1.3;
-        }
-        .doc-meta {
-            font-size: 0.75rem;
-            color: var(--cbm-text-muted);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .doc-btn {
-            background: var(--cbm-nav-hover);
-            color: var(--cbm-blue);
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--cbm-transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.375rem;
-            text-decoration: none;
-        }
-        .doc-btn:hover {
-            background: var(--cbm-blue);
-            color: white;
-        }
-    </style>
+    <div class="cbm-tabs" style="margin-bottom:1rem;border:1px solid var(--cbm-card-border);border-radius:1rem;background:var(--cbm-card-bg);padding-top:.25rem;">
+        <button type="button" wire:click="setCategory('all')" class="cbm-tab {{ $category === 'all' ? 'active' : '' }}">Semua <span class="cbm-tab-count">{{ $counts->sum() }}</span></button>
+        @foreach($categories as $value => $label)
+            <button type="button" wire:click="setCategory('{{ $value }}')" class="cbm-tab {{ $category === $value ? 'active' : '' }}">{{ $label }} <span class="cbm-tab-count">{{ $counts[$value] ?? 0 }}</span></button>
+        @endforeach
+    </div>
+
+    <div class="mod-card" style="padding:0;margin-bottom:1.25rem;">
+        <div class="mod-toolbar" style="border-bottom:0;">
+            <div class="mod-filters">
+                <div class="mod-field mod-field-search" style="max-width:26rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input wire:model.live.debounce.300ms="search" class="mod-search-input" type="search" placeholder="Cari judul dokumen..." aria-label="Cari dokumen">
+                    <button type="button" wire:click="$set('search', '')" class="mod-clear-btn" aria-label="Hapus pencarian" x-data x-show="$wire.search" x-cloak>&times;</button>
+                </div>
+                <span wire:loading wire:target="search, setCategory" class="cbm-spinner" aria-label="Memuat"></span>
+            </div>
+            <div class="mod-meta"><span class="mod-record-count">{{ number_format($documents->total()) }} dokumen</span></div>
+        </div>
+    </div>
 
     <div class="doc-grid">
         @forelse($documents as $doc)
-        <div class="doc-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div class="doc-icon icon-{{ $doc->file_extension }}">
-                    {{ strtoupper($doc->file_extension) }}
+            <div class="doc-card" wire:key="doc-{{ $doc->id }}">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;">
+                    <div class="doc-icon {{ $doc->typeClass() }}">{{ strtoupper($doc->file_extension ?: 'FILE') }}</div>
+                    <div style="display:flex;gap:.375rem;flex-wrap:wrap;justify-content:flex-end;">
+                        @if($doc->updated_at->gt(now()->subDays(7)))<span class="mod-badge-closed">Baru</span>@endif
+                        <span class="mod-badge-inactive" style="text-transform:uppercase;">{{ $doc->categoryLabel() }}</span>
+                    </div>
                 </div>
-                <span style="font-size: 0.6875rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6.1875rem; background: var(--cbm-nav-hover); color: var(--cbm-text-sub); text-transform: uppercase;">
-                    {{ $doc->category }}
-                </span>
-            </div>
-            
-            <div>
+
                 <h3 class="doc-title">{{ $doc->title }}</h3>
-            </div>
-            
-            <div style="margin-top: auto;">
-                <div class="doc-meta" style="margin-bottom: 0.75rem;">
-                    <span>{{ $doc->file_size }}</span>
-                    <span>Diperbarui: {{ $doc->updated_at->format('d M Y') }}</span>
+
+                <div style="margin-top:auto;">
+                    <div class="doc-meta" style="margin-bottom:.75rem;">
+                        <span>{{ $doc->file_size ?: '-' }}</span>
+                        <span>Diperbarui {{ $doc->updated_at->format('d M Y') }}</span>
+                    </div>
+                    @if($doc->fileExists())
+                        <a href="{{ route('documents.download', $doc) }}" class="doc-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                            Unduh dokumen
+                        </a>
+                    @else
+                        <span class="doc-btn missing" title="File tidak ada di server. Hubungi administrator.">File tidak tersedia</span>
+                    @endif
                 </div>
-                <a href="{{ \Illuminate\Support\Facades\Storage::url($doc->file_path) }}" target="_blank" class="doc-btn" style="width: 100%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1rem; height: 1rem;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    Unduh Dokumen
-                </a>
             </div>
-        </div>
         @empty
-        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: var(--cbm-card-bg); border: 1px dashed var(--cbm-divider); border-radius: 1rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 3rem; height: 3rem; margin: 0 auto 1rem; color: var(--cbm-text-muted); opacity: 0.5;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-            </svg>
-            <p style="color: var(--cbm-text-muted); font-weight: 500;">Tidak ada dokumen yang ditemukan.</p>
-        </div>
+            <div class="mod-card" style="grid-column:1/-1;">
+                <div class="mod-empty">
+                    <div class="mod-empty-title">{{ ($search || $category !== 'all') ? 'Tidak ada dokumen yang cocok' : 'Belum ada dokumen' }}</div>
+                    <div class="mod-empty-sub">{{ ($search || $category !== 'all') ? 'Ubah kata kunci atau pilih kategori lain.' : 'Dokumen akan muncul di sini setelah diunggah oleh administrator.' }}</div>
+                </div>
+            </div>
         @endforelse
     </div>
 
+    @if($documents->hasPages())
+        <div class="mod-pagination" style="margin-top:1rem;">{{ $documents->links('pagination::tailwind') }}</div>
+    @endif
 </div>

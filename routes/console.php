@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('sync:daily-dja')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('sync:ac-movement')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('sources:sync --every=hourly')->hourly()->withoutOverlapping();   // briefing evidence, CBM closing
+Schedule::command('sources:sync --every=daily')->dailyAt('05:30')->withoutOverlapping();   // AMM working groups, targets
 Schedule::command('dailyreport:auto-submit')->everyFifteenMinutes();
 Schedule::command('dja:notify-missing-reasons')->hourly()->between('6:00', '18:00');
+Schedule::command('ims:notify-overdue-loans')->dailyAt('08:00');
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

@@ -4,10 +4,11 @@ namespace App\Livewire\Modules\DmiLog;
 
 use App\Exports\DmiExport;
 use App\Imports\DmiImport;
-use App\Models\DailyJobAssignment;
+use App\Livewire\Traits\ManagesLogStatus;
+use App\Livewire\Traits\ShowsCarryOver;
+use App\Livewire\Traits\WithLogTable;
 use App\Models\DmiLog;
 use App\Notifications\SystemNotification;
-use App\Services\GoogleSheetsSyncService;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -15,23 +16,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithFileUploads, WithPagination;
+    use ManagesLogStatus, ShowsCarryOver, WithFileUploads, WithLogTable, WithPagination;
 
     public $activeTab = 'planned';
-
-    public $isModalOpen = false;
 
     public $isImportModalOpen = false;
 
     public $file;
-
-    public $selectedLogId = null;
-
-    public $status = 'Open';
-
-    public $hold_reason_category = '';
-
-    public $hold_remarks = '';
 
     public $search = '';
 
@@ -56,48 +47,14 @@ class Index extends Component
         }
     }
 
-    public function setTab($tab)
+    protected function statusLogModel(): string
     {
-        $this->activeTab = $tab;
+        return DmiLog::class;
     }
 
-    public function openStatusModal($id)
+    protected function statusSheetTab(): string
     {
-        $this->selectedLogId = $id;
-        $log = DmiLog::find($id);
-        if ($log) {
-            $this->status = $log->status === 'Closed' ? 'Closed' : 'Open';
-            $this->hold_reason_category = $log->hold_reason_category;
-            $this->hold_remarks = $log->hold_remarks;
-            $this->isModalOpen = true;
-        }
-    }
-
-    public function updateStatus(GoogleSheetsSyncService $syncService)
-    {
-        $this->validate([
-            'status' => 'required|in:Open,Closed',
-            'hold_reason_category' => 'required_if:status,Open',
-        ]);
-
-        $log = DmiLog::find($this->selectedLogId);
-        if ($log) {
-            $log->status = $this->status;
-            $log->hold_reason_category = $this->status === 'Open' ? $this->hold_reason_category : null;
-            $log->hold_remarks = $this->status === 'Open' ? $this->hold_remarks : null;
-            $log->save();
-
-            if ($log->dja_id) {
-                $dja = DailyJobAssignment::find($log->dja_id);
-                if ($dja && $dja->source_spreadsheet_id) {
-                    $syncService->pushSync($dja->source_spreadsheet_id, 'DJA DMI', $dja->task_id, $this->status, $this->hold_remarks);
-                }
-            }
-        }
-
-        $this->isModalOpen = false;
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Status updated successfully.']);
-        auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Status updated successfully.']));
+        return 'DJA DMI';
     }
 
     public function exportExcel()
@@ -112,7 +69,9 @@ class Index extends Component
     public function render()
     {
         $query = DmiLog::query();
-        $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
+        // A chosen date replaces the default "active date" (otherwise other dates could never be viewed)
+        $activeDate = $this->dateFilter
+            ?: (now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d'));
 
         $query->where(function ($q) use ($activeDate) {
             $q->whereHas('dailyJobAssignment', function ($q2) use ($activeDate) {
@@ -120,6 +79,11 @@ class Index extends Component
             })->orWhere(function ($q2) use ($activeDate) {
                 $q2->whereNull('dja_id')->whereDate('date', $activeDate);
             });
+
+            // unfinished logs of earlier days stay visible until they are closed / completed
+            if (! $this->dateFilter) {
+                $this->addCarryOver($q, $activeDate, 'DATE(date)');
+            }
         });
 
         if ($this->search) {
@@ -137,10 +101,6 @@ class Index extends Component
             });
         }
 
-        if ($this->dateFilter) {
-            $query->whereDate('date', $this->dateFilter);
-        }
-
         $query->orderBy('date', 'asc');
 
         if ($this->activeTab === 'planned') {
@@ -150,7 +110,8 @@ class Index extends Component
         }
 
         return view('livewire.modules.dmi-log.index', [
-            'logs' => $query->with('dailyJobAssignment')->get(),
+            'carryOver' => $this->dateFilter ? 0 : $this->carryOverCount(DmiLog::class, 'DATE(date)'),
+            'logs' => $query->with('dailyJobAssignment')->paginate($this->perPage),
         ])->layout('components.layouts.app', ['title' => 'DMI Logs']);
     }
 }

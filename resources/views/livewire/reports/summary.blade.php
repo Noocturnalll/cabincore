@@ -98,7 +98,7 @@
             </div>
         </div>
         
-        <div style="display: flex; gap: 1rem; align-items: center;">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; max-width: 100%;">
             <div class="toggle-container">
                 <!-- Sliding Background Pill -->
                 <div class="toggle-pill" 

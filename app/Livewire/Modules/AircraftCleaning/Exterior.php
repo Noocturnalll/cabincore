@@ -2,181 +2,30 @@
 
 namespace App\Livewire\Modules\AircraftCleaning;
 
-use App\Models\AircraftCleaning;
-use App\Notifications\SystemNotification;
-use Livewire\Component;
-use Livewire\WithPagination;
-
-class Exterior extends Component
+class Exterior extends CleaningLog
 {
-    use WithPagination;
-
-    public $search = '';
-
-    public $isModalOpen = false;
-
-    public $deleteId = null;
-
-    // Form fields
-    public $cleaningId;
-
-    public $aircraft_registration;
-
-    public $station;
-
-    public $date;
-
-    public $shift;
-
-    public $status = 'Aktif';
-
-    public $remarks;
-
-    public $operator;
-
-    protected $rules = [
-        'aircraft_registration' => 'required|string|max:255',
-        'station' => 'required|string|max:50',
-        'date' => 'required|date',
-        'shift' => 'required|string|max:50',
-        'status' => 'required|string',
-        'remarks' => 'nullable|string',
-        'operator' => 'nullable|string|max:255',
-    ];
-
-    public function updatingSearch()
+    protected function type(): string
     {
-        $this->resetPage();
+        return 'DCE';
     }
 
-    public function render()
+    protected function title(): string
     {
-        $user = auth()->user();
-
-        $cleanings = AircraftCleaning::where('type', 'DCE')
-            ->when($user->jabatan !== 'Super Admin' && $user->jabatan !== 'Manager', function ($query) use ($user) {
-                $query->where('station', $user->station);
-            })
-            ->where(function ($query) {
-                $query->where('aircraft_registration', 'like', '%'.$this->search.'%')
-                    ->orWhere('operator', 'like', '%'.$this->search.'%')
-                    ->orWhere('station', 'like', '%'.$this->search.'%')
-                    ->orWhere('shift', 'like', '%'.$this->search.'%')
-                    ->orWhere('status', 'like', '%'.$this->search.'%')
-                    ->orWhere('remarks', 'like', '%'.$this->search.'%');
-            })
-            ->orderBy('date', 'desc')
-            ->paginate(10);
-
-        return view('livewire.modules.aircraft-cleaning.exterior', [
-            'cleanings' => $cleanings,
-        ])->layout('components.layouts.app', ['title' => 'Exterior Cleaning']);
+        return 'Exterior Cleaning (DCE)';
     }
 
-    public function create()
+    protected function subtitle(): string
     {
-        $this->resetInputFields();
-        $this->station = auth()->user()->station ?? '';
-        $this->date = date('Y-m-d');
-        $this->isModalOpen = true;
+        return 'Log dan laporan Deep Cleaning Exterior pesawat';
     }
 
-    public function edit($id)
+    protected function teamLabel(): string
     {
-        $this->resetInputFields();
-        $record = AircraftCleaning::findOrFail($id);
-        $this->cleaningId = $id;
-        $this->aircraft_registration = $record->aircraft_registration;
-        $this->station = $record->station;
-        $this->date = $record->date;
-        $this->shift = $record->shift;
-        $this->status = $record->status;
-        $this->remarks = $record->remarks;
-        $this->operator = $record->operator;
-
-        $this->isModalOpen = true;
+        return 'Area Cuci / Shift';
     }
 
-    public function save()
+    protected function accent(): string
     {
-        $this->validate();
-
-        AircraftCleaning::updateOrCreate(
-            ['id' => $this->cleaningId],
-            [
-                'aircraft_registration' => $this->aircraft_registration,
-                'station' => $this->station,
-                'date' => $this->date,
-                'shift' => $this->shift,
-                'type' => 'DCE',
-                'status' => $this->status,
-                'remarks' => $this->remarks,
-                'operator' => $this->operator,
-            ]
-        );
-
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data Exterior Cleaning berhasil disimpan!']);
-        auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data Exterior Cleaning berhasil disimpan!']));
-        $this->closeModal();
-    }
-
-    public function deleteConfirm($id)
-    {
-        $this->deleteId = $id;
-    }
-
-    public function delete()
-    {
-        if ($this->deleteId) {
-            AircraftCleaning::find($this->deleteId)->delete();
-            $this->deleteId = null;
-            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data berhasil dihapus!']);
-            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data berhasil dihapus!']));
-        }
-    }
-
-    public function closeModal()
-    {
-        $this->isModalOpen = false;
-        $this->resetInputFields();
-    }
-
-    public $isSyncModalOpen = false;
-    public $syncUrl = '';
-
-    public function openSyncModal()
-    {
-        $this->isSyncModalOpen = true;
-    }
-
-    public function closeSyncModal()
-    {
-        $this->isSyncModalOpen = false;
-        $this->syncUrl = '';
-    }
-
-    public function syncData()
-    {
-        // Placeholder for future Google Sheets Sync Service
-        $this->validate([
-            'syncUrl' => 'required|url'
-        ]);
-
-        sleep(1); // Simulate processing time
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Fitur Sync Aircraft Cleaning (UI) berhasil. Logika mapping TBD.']);
-        $this->closeSyncModal();
-    }
-
-    private function resetInputFields()
-    {
-        $this->cleaningId = null;
-        $this->aircraft_registration = '';
-        $this->station = auth()->user()->station ?? '';
-        $this->date = '';
-        $this->shift = '';
-        $this->status = 'Aktif';
-        $this->remarks = '';
-        $this->operator = '';
-        $this->resetValidation();
+        return 'purple';
     }
 }

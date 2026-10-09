@@ -2,31 +2,50 @@
 
 namespace App\Livewire\Modules\AircraftRotation;
 
-use App\Imports\AircraftRotationImport;
-use App\Models\AircraftRotation;
-use Illuminate\Support\Facades\Log;
+use App\Models\Rotation;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
-use Livewire\WithFileUploads;
-use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithFileUploads;
+    /** How many uploads the history list shows before "Muat lebih banyak". */
+    public int $limit = 20;
 
-    public $importFile;
+    public function loadMore(): void
+    {
+        $this->limit += 20;
+    }
 
     public function deleteRotation($id)
     {
-        $rotation = \App\Models\Rotation::findOrFail($id);
-        \Illuminate\Support\Facades\Storage::delete([$rotation->file_path, $rotation->html_path]);
+        $rotation = Rotation::findOrFail($id);
+
+        // Storage::delete ignores files that are already gone, so a stale record can still be removed
+        Storage::delete(array_filter([$rotation->file_path, $rotation->html_path]));
         $rotation->delete();
-        session()->flash('message', 'File Rotasi berhasil dihapus.');
+
+        session()->flash('success', 'File rotasi "'.$rotation->title.'" berhasil dihapus.');
+        $this->dispatch('rotation-deleted', id: (int) $id);
+    }
+
+    private function fileSize(?string $path): ?int
+    {
+        try {
+            return $path && Storage::exists($path) ? Storage::size($path) : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     public function render()
     {
-        $rotations = \App\Models\Rotation::latest()->get();
+        $total = Rotation::count();
+        $rotations = Rotation::latest()->latest('id')->take($this->limit)->get()
+            ->each(fn ($r) => $r->setAttribute('size_bytes', $this->fileSize($r->file_path)));
 
-        return view('livewire.modules.aircraft-rotation.index', compact('rotations'))->layout('components.layouts.app');
+        return view('livewire.modules.aircraft-rotation.index', [
+            'rotations' => $rotations,
+            'total' => $total,
+        ])->layout('components.layouts.app', ['title' => 'Aircraft Rotation']);
     }
 }

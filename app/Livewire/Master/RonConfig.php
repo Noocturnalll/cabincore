@@ -59,6 +59,15 @@ class RonConfig extends Component
 
     public function saveRon()
     {
+        $this->validate([
+            'ron_jt' => 'required|integer|min:0|max:999',
+            'ron_iw' => 'required|integer|min:0|max:999',
+            'ron_id' => 'required|integer|min:0|max:999',
+            'ron_iu' => 'required|integer|min:0|max:999',
+            'ron_sl' => 'required|integer|min:0|max:999',
+            'ron_od' => 'required|integer|min:0|max:999',
+        ]);
+
         CapacityStation::where('id', $this->station_id)->update([
             'ron_jt' => $this->ron_jt,
             'ron_iw' => $this->ron_iw,
@@ -71,6 +80,12 @@ class RonConfig extends Component
         $this->isModalOpen = false;
         $this->loadData();
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data RON berhasil diperbarui.']);
+    }
+
+    public function closeModal()
+    {
+        $this->isModalOpen = false;
+        $this->resetValidation();
     }
 
     public function resetToDefault()

@@ -31,8 +31,9 @@
 .kpi-card-sub { font-size:.72rem; color:var(--cbm-text-muted); margin-top:.15rem; margin-bottom:.75rem; }
 .kpi-chart-box { position:relative; height:16.25rem; }
 .kpi-gauge-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; }
-.kpi-gauge { text-align:center; position:relative; }
-.kpi-gauge-canvas { position:relative; height:5.9375rem; }
+.kpi-gauge { text-align:center; position:relative; min-width:0; }
+.kpi-gauge-canvas { position:relative; height:5.9375rem; min-width:0; max-width:100%; overflow:hidden; }
+.kpi-gauge-canvas canvas { max-width:100%; }
 .kpi-gauge-value { position:absolute; left:0; right:0; bottom:2px; font-size:1.35rem; font-weight:800; color:var(--cbm-text); }
 .kpi-gauge-label { font-size:.75rem; font-weight:700; color:var(--cbm-text-muted); margin-top:.35rem; }
 .kpi-gauge-badge { display:inline-block; margin-top:.3rem; font-size:.62rem; font-weight:800; padding:.15rem .5rem; border-radius:62.4375rem; }
@@ -74,9 +75,9 @@
             <div class="kpi-sum-hint">{{ $kpiSummary['nsrdi_critical'] ?? 0 }} sudah lebih dari 30 hari</div>
         </div>
         <div class="kpi-sum-card" style="--kpi-accent:#06b6d4;">
-            <div class="kpi-sum-label">Stasiun Aktif</div>
+            <div class="kpi-sum-label">Station Aktif</div>
             <div class="kpi-sum-value">{{ $kpiSummary['active_stations'] ?? 0 }} <span style="font-size:1rem;color:var(--cbm-text-muted);">/ {{ $kpiSummary['total_stations'] ?? 0 }}</span></div>
-            <div class="kpi-sum-hint">Stasiun dengan laporan 30 hari terakhir</div>
+            <div class="kpi-sum-hint">Station dengan laporan 30 hari terakhir</div>
         </div>
     </div>
 
@@ -133,12 +134,12 @@
     {{-- Station bar + Scatter --}}
     <div class="kpi-row kpi-row-2b">
         <div class="kpi-card">
-            <div class="kpi-card-title">Closed vs Open per Stasiun (30 Hari)</div>
-            <div class="kpi-card-sub">Stasiun dari data master bandara aktif</div>
+            <div class="kpi-card-title">Closed vs Open per Station (30 Hari)</div>
+            <div class="kpi-card-sub">Station dari data master bandara aktif</div>
             <div class="kpi-chart-box" wire:ignore><canvas id="kpi-station-chart"></canvas></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-card-title">Korelasi Volume vs Close Rate Stasiun</div>
+            <div class="kpi-card-title">Korelasi Volume vs Close Rate Station</div>
             <div class="kpi-card-sub">Scatter: sumbu X jumlah laporan, sumbu Y close rate (%)</div>
             <div class="kpi-chart-box" wire:ignore><canvas id="kpi-scatter-chart"></canvas></div>
         </div>
@@ -280,7 +281,7 @@
         var pts = kpiData.scatter || [];
         make(document.getElementById('kpi-scatter-chart'), {
             type: 'scatter',
-            data: { datasets: [{ label: 'Stasiun', data: pts,
+            data: { datasets: [{ label: 'Station', data: pts,
                     backgroundColor: pts.map(function (p) { return p.y >= (kpiData.target || 90) ? 'rgba(52,211,153,.8)' : 'rgba(96,165,250,.8)'; }),
                     pointRadius: 7, pointHoverRadius: 10 }] },
             options: { responsive: true, maintainAspectRatio: false,

@@ -2,17 +2,18 @@
 
 namespace Tests\Feature\Ims;
 
+use App\Livewire\Modules\Ims\Approval\Index;
+use App\Models\Ims\Category;
 use App\Models\Ims\Item;
 use App\Models\Ims\Location;
-use App\Models\Ims\Category;
-use App\Models\Ims\Unit;
 use App\Models\Ims\Transaction;
 use App\Models\Ims\TransactionItem;
+use App\Models\Ims\Unit;
 use App\Models\User;
 use App\Services\Ims\StockService;
-use Livewire\Livewire;
-use App\Livewire\Modules\Ims\Approval\Index;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class Phase2Test extends TestCase
@@ -20,8 +21,13 @@ class Phase2Test extends TestCase
     use RefreshDatabase;
 
     protected $item;
+
     protected $location;
+
     protected $user;
+
+    protected $approver;
+
     protected $transaction;
 
     protected function setUp(): void
@@ -30,11 +36,11 @@ class Phase2Test extends TestCase
 
         $cat = Category::create(['code' => 'C1', 'name' => 'Cat 1']);
         $unit = Unit::create(['code' => 'PCS', 'name' => 'Pieces']);
-        
+
         $this->location = Location::create([
-            'code' => 'L1', 
-            'name' => 'Loc 1', 
-            'type' => 'warehouse'
+            'code' => 'L1',
+            'name' => 'Loc 1',
+            'type' => 'warehouse',
         ]);
 
         $this->item = Item::create([
@@ -43,7 +49,7 @@ class Phase2Test extends TestCase
             'description' => 'Test',
             'category_id' => $cat->id,
             'unit_id' => $unit->id,
-            'tracking_type' => 'quantity'
+            'tracking_type' => 'quantity',
         ]);
 
         $stockService = app(StockService::class);
@@ -51,6 +57,9 @@ class Phase2Test extends TestCase
         $stockService->reserve($this->item->id, $this->location->id, 2);
 
         $this->user = User::factory()->create();
+        Permission::findOrCreate('ims.approval.act');
+        $this->approver = User::factory()->create();
+        $this->approver->givePermissionTo('ims.approval.act');
 
         $this->transaction = Transaction::create([
             'code' => 'OUT-TEST-001',
@@ -70,9 +79,31 @@ class Phase2Test extends TestCase
         ]);
     }
 
+    public function test_user_without_permission_cannot_approve_or_reject()
+    {
+        $outsider = User::factory()->create();
+
+        Livewire::actingAs($outsider)
+            ->test(Index::class)
+            ->call('approve', $this->transaction->id)
+            ->assertForbidden();
+
+        $this->assertEquals('pending_approval', $this->transaction->fresh()->status);
+    }
+
+    public function test_a_requester_cannot_approve_their_own_request(): void
+    {
+        $this->user->givePermissionTo('ims.approval.act');
+
+        Livewire::actingAs($this->user)->test(Index::class)->call('approve', $this->transaction->id);
+
+        $this->assertEquals('pending_approval', $this->transaction->fresh()->status);
+        $this->assertEquals(2, $this->item->stocks()->first()->qty_reserved, 'Reservation is untouched.');
+    }
+
     public function test_approve_transaction_deducts_stock()
     {
-        Livewire::actingAs($this->user)
+        Livewire::actingAs($this->approver)
             ->test(Index::class)
             ->call('approve', $this->transaction->id)
             ->assertHasNoErrors();
@@ -87,15 +118,12 @@ class Phase2Test extends TestCase
 
     public function test_reject_transaction_releases_stock()
     {
-        Livewire::actingAs($this->user)
+        Livewire::actingAs($this->approver)
             ->test(Index::class)
             ->set('selectedTransactionId', $this->transaction->id)
             ->set('rejectReason', 'Part not needed anymore')
             ->call('reject')
-            ->assertHasNoErrors()
-            ->tap(function () {
-                dump(\App\Models\Ims\Transaction::all()->toArray());
-            });
+            ->assertHasNoErrors();
 
         $this->transaction->refresh();
         $this->assertEquals('rejected', $this->transaction->status);

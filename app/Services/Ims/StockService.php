@@ -2,10 +2,10 @@
 
 namespace App\Services\Ims;
 
-use Illuminate\Support\Facades\DB;
 use App\Models\Ims\Stock;
 use App\Models\Ims\StockMovement;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class StockService
 {
@@ -17,12 +17,12 @@ class StockService
         return DB::transaction(function () use ($itemId, $locationId, $qty) {
             $stock = Stock::lockForUpdate()->firstOrCreate([
                 'item_id' => $itemId,
-                'location_id' => $locationId
+                'location_id' => $locationId,
             ]);
 
             $available = $stock->qty_on_hand - $stock->qty_reserved;
             if ($available < $qty) {
-                throw new Exception("Insufficient stock available.");
+                throw new Exception('Insufficient stock available.');
             }
 
             $stock->qty_reserved += $qty;
@@ -43,6 +43,7 @@ class StockService
                 $stock->qty_reserved = max(0, $stock->qty_reserved - $qty);
                 $stock->save();
             }
+
             return $stock;
         });
     }
@@ -55,11 +56,11 @@ class StockService
         return DB::transaction(function () use ($itemId, $locationId, $qty, $transactionId, $notes) {
             $stock = Stock::lockForUpdate()->firstOrCreate([
                 'item_id' => $itemId,
-                'location_id' => $locationId
+                'location_id' => $locationId,
             ]);
 
             if ($stock->qty_on_hand < $qty || $stock->qty_reserved < $qty) {
-                throw new Exception("Insufficient stock or reservation to commit out.");
+                throw new Exception('Insufficient stock or reservation to commit out.');
             }
 
             $balanceBefore = $stock->qty_on_hand ?? 0;
@@ -76,19 +77,19 @@ class StockService
     /**
      * Receive stock
      */
-    public function receive($itemId, $locationId, $qty, $transactionId = null, $type = 'in', $notes = null)
+    public function receive($itemId, $locationId, $qty, $transactionId = null, $type = 'in', $notes = null, $repairCode = null)
     {
-        return DB::transaction(function () use ($itemId, $locationId, $qty, $transactionId, $type, $notes) {
+        return DB::transaction(function () use ($itemId, $locationId, $qty, $transactionId, $type, $notes, $repairCode) {
             $stock = Stock::lockForUpdate()->firstOrCreate([
                 'item_id' => $itemId,
-                'location_id' => $locationId
+                'location_id' => $locationId,
             ]);
 
             $balanceBefore = $stock->qty_on_hand ?? 0;
             $stock->qty_on_hand += $qty;
             $stock->save();
 
-            $this->logMovement($itemId, $locationId, $type, $qty, $balanceBefore, $stock->qty_on_hand, $transactionId, null, $notes);
+            $this->logMovement($itemId, $locationId, $type, $qty, $balanceBefore, $stock->qty_on_hand, $transactionId, $repairCode, $notes);
 
             return $stock;
         });
@@ -102,20 +103,20 @@ class StockService
         return DB::transaction(function () use ($itemId, $locationId, $newQty, $reason, $transactionId) {
             $stock = Stock::lockForUpdate()->firstOrCreate([
                 'item_id' => $itemId,
-                'location_id' => $locationId
+                'location_id' => $locationId,
             ]);
 
             if ($newQty < $stock->qty_reserved) {
-                throw new Exception("New quantity cannot be less than reserved quantity.");
+                throw new Exception('New quantity cannot be less than reserved quantity.');
             }
 
             $balanceBefore = $stock->qty_on_hand ?? 0;
             $diff = $newQty - $balanceBefore;
-            
+
             if ($diff != 0) {
                 $stock->qty_on_hand = $newQty;
                 $stock->save();
-                
+
                 $type = $diff > 0 ? 'adjust_plus' : 'adjust_minus';
                 $this->logMovement($itemId, $locationId, $type, $diff, $balanceBefore, $newQty, $transactionId, null, $reason);
             }
@@ -133,7 +134,7 @@ class StockService
             // Lock in consistent order to prevent deadlock
             $locs = [$fromLocationId, $toLocationId];
             sort($locs);
-            
+
             foreach ($locs as $loc) {
                 Stock::lockForUpdate()->firstOrCreate(['item_id' => $itemId, 'location_id' => $loc]);
             }
@@ -142,7 +143,7 @@ class StockService
             $toStock = Stock::where('item_id', $itemId)->where('location_id', $toLocationId)->first();
 
             if ($fromStock->qty_on_hand - $fromStock->qty_reserved < $qty) {
-                throw new Exception("Insufficient stock to transfer.");
+                throw new Exception('Insufficient stock to transfer.');
             }
 
             $fromBefore = $fromStock->qty_on_hand;

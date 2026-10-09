@@ -8,7 +8,7 @@ use App\Models\User;
 class DashboardScope
 {
     public function __construct(
-        public ?array $stations,   // null = semua stasiun
+        public ?array $stations,   // null = semua station
         public array $modules,     // modul yang boleh tampil
         public array $periods,     // periode yang boleh dipilih
     ) {}

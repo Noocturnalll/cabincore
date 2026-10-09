@@ -12,12 +12,7 @@
             </button>
         </div>
     </div>
-
-    @if (session()->has('success'))
-        <div style="background: #ecfdf5; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #10b981;">
-            {{ session('success') }}
-        </div>
-    @endif
+    <x-flash />
 
     <div class="mod-card">
         <div class="mod-toolbar">
@@ -53,10 +48,10 @@
                                     <span class="mod-badge-inactive">Nonaktif</span>
                                 @endif
                             </td>
-                            <td style="text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                            <td style="text-align:right;"><div style="display:flex;justify-content:flex-end;gap:.5rem;">
                                 <button wire:click="edit({{ $record->id }})" class="mod-action-btn">Edit</button>
-                                <button wire:click="delete({{ $record->id }})" class="mod-action-btn" style="color: #ef4444; border-color: #ef4444;" onclick="confirm('Yakin ingin menghapus data ini?') || event.stopImmediatePropagation()">Hapus</button>
-                            </td>
+                                <button wire:click="delete({{ $record->id }})" class="mod-action-btn" style="color: #ef4444; border-color: #ef4444;" wire:confirm="Yakin ingin menghapus data ini?">Hapus</button>
+                            </div></td>
                         </tr>
                     @empty
                         <tr>

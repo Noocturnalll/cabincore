@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Master;
 
+use App\Models\Division;
 use App\Models\JobCategory;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -31,6 +33,13 @@ class Categories extends Component
         $this->resetPage();
     }
 
+    /** Active divisions, plus any value an existing category still carries so old rows stay editable. */
+    public function divisionOptions(): array
+    {
+        return Division::where('status', 'Aktif')->orderBy('name')->pluck('name')
+            ->merge(JobCategory::query()->distinct()->pluck('divisi'))->filter()->unique()->values()->all();
+    }
+
     public function create()
     {
         $this->resetInputFields();
@@ -53,10 +62,11 @@ class Categories extends Component
 
     public function store()
     {
+        $this->kode = strtoupper(trim((string) $this->kode));
         $this->validate([
             'kode' => 'required|string|max:50|unique:job_categories,kode',
             'nama' => 'required|string|max:255',
-            'divisi' => 'required|string|max:100',
+            'divisi' => ['required', Rule::in($this->divisionOptions())],
             'aktif' => 'required|boolean',
         ]);
 
@@ -74,10 +84,11 @@ class Categories extends Component
 
     public function update()
     {
+        $this->kode = strtoupper(trim((string) $this->kode));
         $this->validate([
             'kode' => 'required|string|max:50|unique:job_categories,kode,'.$this->category_id,
             'nama' => 'required|string|max:255',
-            'divisi' => 'required|string|max:100',
+            'divisi' => ['required', Rule::in($this->divisionOptions())],
             'aktif' => 'required|boolean',
         ]);
 
@@ -113,18 +124,22 @@ class Categories extends Component
         $this->nama = '';
         $this->divisi = '';
         $this->aktif = 1;
+        $this->resetValidation();
     }
 
     public function render()
     {
-        $categories = JobCategory::where('kode', 'like', '%'.$this->search.'%')
-            ->orWhere('nama', 'like', '%'.$this->search.'%')
-            ->orWhere('divisi', 'like', '%'.$this->search.'%')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        $categories = JobCategory::query()
+            ->when($this->search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->where('kode', 'like', '%'.$this->search.'%')
+                ->orWhere('nama', 'like', '%'.$this->search.'%')
+                ->orWhere('divisi', 'like', '%'.$this->search.'%')))
+            ->orderBy('divisi')
+            ->orderBy('kode')
+            ->paginate(15);
 
         return view('livewire.master.categories', [
             'categories' => $categories,
-        ])->layout('components.layouts.app');
+        ])->layout('components.layouts.app', ['title' => 'Master Kategori Pekerjaan']);
     }
 }

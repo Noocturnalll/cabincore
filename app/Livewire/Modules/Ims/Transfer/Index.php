@@ -2,29 +2,34 @@
 
 namespace App\Livewire\Modules\Ims\Transfer;
 
-use Livewire\Component;
-use App\Models\Ims\Item;
+use App\Livewire\Traits\WithItemPicker;
 use App\Models\Ims\Location;
 use App\Models\Ims\Stock;
 use App\Services\Ims\StockService;
+use Livewire\Component;
 
 class Index extends Component
 {
+    use WithItemPicker;
+
     public $itemId;
+
     public $fromLocationId;
+
     public $toLocationId;
+
     public $qty;
+
     public $notes;
-    
+
     public $availableQty = 0;
-    public $searchItem = '';
 
     protected $rules = [
         'itemId' => 'required|exists:ims_items,id',
         'fromLocationId' => 'required|exists:ims_locations,id',
         'toLocationId' => 'required|exists:ims_locations,id|different:fromLocationId',
         'qty' => 'required|integer|min:1',
-        'notes' => 'nullable|string'
+        'notes' => 'nullable|string',
     ];
 
     public function updatedItemId()
@@ -49,10 +54,12 @@ class Index extends Component
 
     public function submit(StockService $stockService)
     {
+        $this->authorizeStockAction('ims.stock.transfer');
         $this->validate();
 
         if ($this->qty > $this->availableQty) {
             $this->addError('qty', 'Jumlah transfer melebihi stok yang tersedia.');
+
             return;
         }
 
@@ -67,27 +74,18 @@ class Index extends Component
             );
 
             session()->flash('success', 'Transfer stok berhasil dilakukan.');
-            
+
             $this->reset(['itemId', 'fromLocationId', 'toLocationId', 'qty', 'notes', 'searchItem']);
             $this->availableQty = 0;
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal melakukan transfer: ' . $e->getMessage());
+            session()->flash('error', 'Gagal melakukan transfer: '.$e->getMessage());
         }
     }
 
     public function render()
     {
-        $itemsQuery = Item::where('is_active', true);
-        
-        if ($this->searchItem) {
-            $itemsQuery->where(function($q) {
-                $q->where('name', 'like', '%' . $this->searchItem . '%')
-                  ->orWhere('part_number', 'like', '%' . $this->searchItem . '%');
-            });
-        }
-        
-        $items = $itemsQuery->limit(20)->get();
-        $locations = Location::where('is_active', true)->get();
+        $items = $this->pickerItems();
+        $locations = Location::where('is_active', true)->orderBy('name')->get();
 
         return view('livewire.modules.ims.transfer.index', [
             'items' => $items,

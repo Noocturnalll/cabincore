@@ -1,146 +1,96 @@
 <div>
-    <style>
-        .cbm-file-input::-webkit-file-upload-button {
-            background: var(--cbm-bg);
-            border: 1px solid var(--cbm-input-border);
-            color: var(--cbm-text);
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            margin-right: 0.75rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        .cbm-file-input::-webkit-file-upload-button:hover {
-            background: var(--cbm-nav-hover);
-        }
-        .cbm-file-input::file-selector-button {
-            background: var(--cbm-bg);
-            border: 1px solid var(--cbm-input-border);
-            color: var(--cbm-text);
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            margin-right: 0.75rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        .cbm-file-input::file-selector-button:hover {
-            background: var(--cbm-nav-hover);
-        }
-    </style>
-    <div class="cbm-page-header" style="margin-bottom: 2rem;">
-        <div style="display: flex; align-items: center; gap: 1rem; justify-content: space-between; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <div style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; box-shadow: 0 8px 1rem rgba(16,185,129,0.3);">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.75rem; height: 1.75rem;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="cbm-greeting" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Master Data Dokumen</h1>
-                    <p class="cbm-greeting-sub">Kelola file template, SOP, dan regulasi yang akan tampil di Document Center.</p>
-                </div>
-            </div>
-            
-            <button wire:click="create()" class="cbm-btn cbm-btn-primary" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; padding: 0.5rem 1.5rem; border-radius: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                Upload Dokumen
-            </button>
-        </div>
-    </div>
+    <x-master.page-header title="Master Data Dokumen" subtitle="Kelola file template, SOP, dan regulasi yang tampil di Document Center." accent="green" eyebrow="Lainnya" create-label="Upload Dokumen" />
 
-    <div class="cbm-card" style="padding: 0; overflow: hidden; border: 1px solid var(--cbm-card-border);">
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; min-width: 37.5rem;">
+    <x-flash />
+
+    <div class="mod-card mod-card-accent-green">
+        <div class="mod-toolbar">
+            <div class="mod-filters">
+                <div class="mod-field mod-field-search">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input wire:model.live.debounce.300ms="search" class="mod-search-input" type="search" placeholder="Cari judul dokumen..." aria-label="Cari dokumen">
+                </div>
+                <label class="mod-field mod-field-labelled"><span>Kategori</span>
+                    <select wire:model.live="categoryFilter" class="mod-search-input mod-input-plain">
+                        <option value="">Semua</option>
+                        @foreach($categories as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
+                    </select>
+                </label>
+                @if($search || $categoryFilter)
+                    <button type="button" wire:click="clearFilters" class="mod-btn-outline mod-btn-sm">Reset filter</button>
+                @endif
+            </div>
+            <div class="mod-meta"><span class="mod-record-count">{{ number_format($documents->total()) }} dokumen</span></div>
+        </div>
+
+        <div class="mod-table-wrap">
+            <table class="mod-table">
                 <thead>
-                    <tr style="background: var(--cbm-nav-hover); border-bottom: 1px solid var(--cbm-card-border); text-align: left;">
-                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Judul Dokumen</th>
-                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Kategori</th>
-                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Tipe & Ukuran</th>
-                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Diperbarui</th>
-                        <th style="padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 700; color: var(--cbm-text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Aksi</th>
-                    </tr>
+                    <tr><th>JUDUL DOKUMEN</th><th>KATEGORI</th><th>TIPE &amp; UKURAN</th><th>DIPERBARUI</th><th style="text-align:right;">AKSI</th></tr>
                 </thead>
-                <tbody style="background: var(--cbm-card-bg);">
+                <tbody>
                     @forelse($documents as $doc)
-                    <tr style="border-bottom: 1px solid var(--cbm-card-border);">
-                        <td style="padding: 1rem 1.5rem; font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">{{ $doc->title }}</td>
-                        <td style="padding: 1rem 1.5rem;">
-                            <span style="font-size: 0.6875rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6.1875rem; background: rgba(59,130,246,0.1); color: #3b82f6; text-transform: uppercase;">
-                                {{ $doc->category }}
-                            </span>
-                        </td>
-                        <td style="padding: 1rem 1.5rem; font-size: 0.875rem; color: var(--cbm-text-muted);">
-                            <span style="font-weight: 700; color: var(--cbm-text);">{{ strtoupper($doc->file_extension) }}</span> &middot; {{ $doc->file_size }}
-                        </td>
-                        <td style="padding: 1rem 1.5rem; font-size: 0.875rem; color: var(--cbm-text-muted);">
-                            {{ $doc->updated_at->format('d M Y') }}
-                        </td>
-                        <td style="padding: 1rem 1.5rem; text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem;">
-                            <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="cbm-btn" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; border-radius: 0.5rem; background: rgba(59,130,246,0.1); color: #3b82f6; text-decoration: none;">Lihat</a>
-                            <button wire:click="edit({{ $doc->id }})" class="cbm-btn" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; border-radius: 0.5rem; background: var(--cbm-nav-hover); color: var(--cbm-text);">Edit</button>
-                            <button wire:click="delete({{ $doc->id }})" wire:confirm="Yakin ingin menghapus dokumen ini?" class="cbm-btn" style="padding: 0.375rem 0.75rem; font-size: 0.75rem; border-radius: 0.5rem; background: rgba(239,68,68,0.1); color: #ef4444;">Hapus</button>
-                        </td>
-                    </tr>
+                        <tr wire:key="doc-{{ $doc->id }}">
+                            <td>
+                                <div class="mod-aircraft-name">{{ $doc->title }}</div>
+                                @unless($doc->fileExists())<div class="mod-aircraft-sub" style="color:#ef4444;">File tidak ada di server</div>@endunless
+                            </td>
+                            <td><span class="mod-badge-inactive">{{ $doc->categoryLabel() }}</span></td>
+                            <td><strong>{{ strtoupper($doc->file_extension ?: '-') }}</strong> &middot; {{ $doc->file_size ?: '-' }}</td>
+                            <td style="white-space:nowrap;">{{ $doc->updated_at->format('d M Y') }}</td>
+                            <td style="text-align:right;">
+                                <div style="display:flex;justify-content:flex-end;gap:.5rem;">
+                                    @if($doc->fileExists())
+                                        <a href="{{ route('documents.download', $doc) }}" class="mod-action-btn" style="text-decoration:none;">Unduh</a>
+                                    @endif
+                                    <button type="button" wire:click="edit({{ $doc->id }})" class="mod-action-btn">Edit</button>
+                                    <button type="button" wire:click="delete({{ $doc->id }})" wire:confirm="Hapus dokumen &quot;{{ $doc->title }}&quot; beserta filenya?" class="mod-action-btn" style="color:#ef4444;border-color:rgba(239,68,68,.35);">Hapus</button>
+                                </div>
+                            </td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="5" style="padding: 3rem 1.5rem; text-align: center; color: var(--cbm-text-muted); font-size: 0.875rem;">
-                            Belum ada master data dokumen.
-                        </td>
-                    </tr>
+                        <tr><td colspan="5">
+                            <div class="mod-empty">
+                                <div class="mod-empty-title">{{ ($search || $categoryFilter) ? 'Tidak ada dokumen yang cocok' : 'Belum ada dokumen' }}</div>
+                                <div class="mod-empty-sub">{{ ($search || $categoryFilter) ? 'Ubah kata kunci atau reset filter.' : 'Klik "Upload Dokumen" untuk menambahkan.' }}</div>
+                            </div>
+                        </td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+        @if($documents->hasPages())
+            <div class="mod-pagination">{{ $documents->links('pagination::tailwind') }}</div>
+        @endif
     </div>
 
-    <!-- Modal Form -->
-    @if($isModalOpen)
-    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; backdrop-filter: blur(4px);">
-        <div style="background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1.25rem; width: 100%; max-width: 32rem; box-shadow: 0 1.25rem 1.5625rem -5px rgba(0,0,0,0.1); overflow: hidden;">
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--cbm-card-border); display: flex; justify-content: space-between; align-items: center; background: var(--cbm-nav-hover);">
-                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--cbm-text); margin: 0;">{{ $documentId ? 'Edit Dokumen' : 'Upload Dokumen Baru' }}</h3>
-                <button wire:click="closeModal()" style="background: transparent; border: none; color: var(--cbm-text-muted); cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.5rem; height: 1.5rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
-            
-            <form wire:submit.prevent="save" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
-                
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">Judul Dokumen <span style="color: #ef4444;">*</span></label>
-                    <input type="text" wire:model.defer="title" class="cbm-input" required style="padding: 0.75rem; border-radius: 0.75rem; border: 1px solid var(--cbm-input-border); background: var(--cbm-bg); color: var(--cbm-text);">
-                    @error('title') <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span> @enderror
-                </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">Kategori <span style="color: #ef4444;">*</span></label>
-                    <select wire:model.defer="category" class="cbm-input" required style="padding: 0.75rem; border-radius: 0.75rem; border: 1px solid var(--cbm-input-border); background: var(--cbm-bg); color: var(--cbm-text);">
-                        <option value="template">Template Excel</option>
-                        <option value="sop">SOP & Panduan</option>
-                        <option value="regulasi">Regulasi</option>
-                        <option value="lainnya">Lainnya</option>
-                    </select>
-                    @error('category') <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span> @enderror
-                </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <label style="font-size: 0.875rem; font-weight: 600; color: var(--cbm-text);">File Dokumen {{ $documentId ? '(Opsional - isi jika ingin mengganti file)' : '*' }}</label>
-                    <input type="file" wire:model="file" class="cbm-input cbm-file-input" {{ $documentId ? '' : 'required' }} style="padding: 0.75rem; border-radius: 0.75rem; border: 1px solid var(--cbm-input-border); background: var(--cbm-bg); color: var(--cbm-text);">
-                    <span style="font-size: 0.75rem; color: var(--cbm-text-muted);">Format didukung: PDF, XLSX, DOCX (Maks: 50MB)</span>
-                    @error('file') <span style="color: #ef4444; font-size: 0.75rem;">{{ $message }}</span> @enderror
-                </div>
-                
-                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
-                    <button type="button" wire:click="closeModal()" class="cbm-btn" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; background: transparent; border: 1px solid var(--cbm-input-border); color: var(--cbm-text);">Batal</button>
-                    <button type="submit" class="cbm-btn cbm-btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; display: flex; align-items: center; gap: 0.5rem;">
-                        <span wire:loading wire:target="save, file" style="margin-right: 0.25rem;">⏳</span>
-                        Simpan Dokumen
-                    </button>
-                </div>
-            </form>
+    <x-master.modal :show="$isModalOpen" :title="$documentId ? 'Edit Dokumen' : 'Upload Dokumen Baru'" submit="save" close="closeModal" max-width="32rem" submit-label="Simpan Dokumen">
+        <div class="cbm-form-group">
+            <label class="cbm-form-label" for="doc-title">Judul dokumen *</label>
+            <input id="doc-title" type="text" wire:model="title" class="cbm-form-input" maxlength="255" autocomplete="off">
+            @error('title') <span class="mod-field-error">{{ $message }}</span> @enderror
         </div>
-    </div>
-    @endif
+        <div class="cbm-form-group">
+            <label class="cbm-form-label" for="doc-cat">Kategori *</label>
+            <div class="cbm-select-wrap">
+                <select id="doc-cat" wire:model="category" class="cbm-form-select">
+                    @foreach($categories as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
+                </select>
+            </div>
+            @error('category') <span class="mod-field-error">{{ $message }}</span> @enderror
+        </div>
+        <div class="cbm-form-group" style="margin-bottom:0;">
+            <label class="cbm-form-label">File dokumen {{ $documentId ? '(kosongkan jika tidak ingin mengganti)' : '*' }}</label>
+            <div class="cbm-upload-zone">
+                <input type="file" wire:model="file" accept=".{{ implode(',.', \App\Models\Document::ALLOWED_EXTENSIONS) }}">
+                <div class="cbm-upload-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                </div>
+                <div class="cbm-upload-title">{{ $file ? $file->getClientOriginalName() : 'Klik untuk pilih file' }}</div>
+                <div class="cbm-upload-sub">{{ $allowed }} &middot; maks. {{ $maxMb }} MB</div>
+                <div wire:loading wire:target="file" style="margin-top:.5rem;font-size:.8125rem;color:var(--cbm-text-muted);">Mengunggah file...</div>
+            </div>
+            @error('file') <span class="mod-field-error">{{ $message }}</span> @enderror
+        </div>
+    </x-master.modal>
 </div>

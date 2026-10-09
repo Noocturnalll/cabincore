@@ -4,19 +4,27 @@ namespace App\Livewire\Modules\IctFindingTbd;
 
 use App\Exports\IctFindingExport;
 use App\Imports\IctFindingImport;
+use App\Livewire\Traits\WithLogTable;
 use App\Models\IctFinding;
 use App\Notifications\SystemNotification;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WithLogTable, WithPagination;
 
     public $search = '';
 
     public $dateFilter = '';
+
+    /** '' = semua, 'Open', 'Closed' */
+    public $statusFilter = '';
+
+    // dipakai oleh WithLogTable::setTab()
+    public $activeTab = '';
 
     // For import
     public $file;
@@ -31,11 +39,6 @@ class Index extends Component
     public $editStatus = 'Open';
 
     public $showEditModal = false;
-
-    public function mount()
-    {
-        $this->dateFilter = now()->format('Y-m-d'); // Default to today
-    }
 
     public function import()
     {
@@ -57,7 +60,7 @@ class Index extends Component
 
     public function export()
     {
-        return Excel::download(new IctFindingExport($this->search, $this->dateFilter), 'ict-findings.xlsx');
+        return Excel::download(new IctFindingExport($this->search, $this->dateFilter, $this->statusFilter), 'ict-findings.xlsx');
     }
 
     public function editFinding($id)
@@ -71,8 +74,18 @@ class Index extends Component
         }
     }
 
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function saveFinding()
     {
+        $this->validate([
+            'editStatus' => 'required|in:Open,Closed',
+            'editRemarks' => 'nullable|string|max:2000',
+        ]);
+
         $finding = IctFinding::find($this->editingId);
         if ($finding) {
             $finding->update([
@@ -109,7 +122,16 @@ class Index extends Component
             $query->whereDate('date', $this->dateFilter);
         }
 
-        $findings = $query->orderBy('date', 'desc')->get();
+        if (in_array($this->statusFilter, ['Open', 'Closed'], true)) {
+            $query->where('status', $this->statusFilter);
+        }
+
+        // Open lebih dulu (perlu tindak lanjut), lalu terbaru
+        $findings = $query
+            ->orderByRaw("CASE WHEN status = 'Open' THEN 0 ELSE 1 END")
+            ->orderBy('date', 'desc')
+            ->orderByDesc('id')
+            ->paginate($this->perPage);
 
         return view('livewire.modules.ict-finding-tbd.index', [
             'findings' => $findings,

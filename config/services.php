@@ -37,6 +37,11 @@ return [
 
     'telegram' => [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+    ],
+
+    'sheets_sync' => [
+        'token' => env('SHEETS_SYNC_TOKEN'),
     ],
 
 ];

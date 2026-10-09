@@ -15,8 +15,14 @@ class CmlExport implements FromCollection, WithHeadings
 
     protected $activeTab; // For planned/unplanned if applicable
 
-    public function __construct($search = '', $dateFilter = '', $activeTab = '')
+    protected $dateEnd;
+
+    protected $station;
+
+    public function __construct($search = '', $dateFilter = '', $activeTab = '', $dateEnd = '', $station = '')
     {
+        $this->dateEnd = $dateEnd;
+        $this->station = $station;
         $this->search = $search;
         $this->dateFilter = $dateFilter;
         $this->activeTab = $activeTab;
@@ -26,15 +32,19 @@ class CmlExport implements FromCollection, WithHeadings
     {
         $query = CmlLog::query();
 
-        $filterDate = $this->dateFilter ?: (now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d'));
+        if ($this->dateEnd || $this->dateFilter) {
+            // Range chosen on screen: dateFilter acts as the start date
+            $from = $this->dateFilter ?: $this->dateEnd;
+            $to = $this->dateEnd ?: $this->dateFilter;
+            $query->whereBetween('date', [$from, $to]);
+        } else {
+            $filterDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
+            $query->whereDate('date', $filterDate);
+        }
 
-        $query->where(function ($q) use ($filterDate) {
-            $q->whereHas('dailyJobAssignment', function ($q2) use ($filterDate) {
-                $q2->whereDate('date', $filterDate);
-            })->orWhere(function ($q2) use ($filterDate) {
-                $q2->whereNull('dja_id')->whereDate('date', $filterDate);
-            });
-        });
+        if ($this->station) {
+            $query->where('station', $this->station);
+        }
 
         if ($this->search) {
             $query->where(function ($q) {

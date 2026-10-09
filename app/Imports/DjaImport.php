@@ -2,12 +2,19 @@
 
 namespace App\Imports;
 
+use App\Services\Dja\DjaIngestor;
 use Maatwebsite\Excel\Concerns\Import;
 use Maatwebsite\Excel\Concerns\SkipsUnknownSheets;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class DjaImport implements Import, SkipsUnknownSheets, WithMultipleSheets
 {
+    public function __construct()
+    {
+        // Fresh counters for this file; the ingestor is shared so the caller can read the totals afterwards
+        app(DjaIngestor::class)->begin();
+    }
+
     public function sheets(): array
     {
         return [

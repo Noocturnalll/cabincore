@@ -4,9 +4,17 @@ namespace App\Livewire\Master;
 
 use App\Models\Position;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Positions extends Component
 {
+    use WithPagination;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public $search = '';
 
     public $position_id;
@@ -77,7 +85,7 @@ class Positions extends Component
         $position = Position::findOrFail($id);
 
         if ($position->users()->count() > 0) {
-            $this->js("alert('Gagal menghapus: Jabatan ini masih digunakan oleh {$position->users()->count()} pengguna aktif.');");
+            $this->dispatch('notify', ['icon' => 'error', 'message' => "Gagal menghapus: Jabatan ini masih digunakan oleh {$position->users()->count()} pengguna.", 'timer' => 6000]);
 
             return;
         }
@@ -97,13 +105,15 @@ class Positions extends Component
         $this->position_id = null;
         $this->name = '';
         $this->status = 'Aktif';
+        $this->resetValidation();
     }
 
     public function render()
     {
         $positions = Position::where('name', 'like', '%'.$this->search.'%')
+            ->withCount('users')
             ->orderBy('name', 'asc')
-            ->get();
+            ->paginate(15);
 
         return view('livewire.master.positions', [
             'positions' => $positions,

@@ -7,16 +7,10 @@
         </div>
     </div>
 
-    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--cbm-border); padding-bottom: 0;">
-        <button type="button" wire:click="$set('activeTab', 'mutasi')" style="padding: 0.75rem 1.5rem; font-weight: 600; border-bottom: 2px solid {{ $activeTab == 'mutasi' ? 'var(--cbm-blue)' : 'transparent' }}; color: {{ $activeTab == 'mutasi' ? 'var(--cbm-text)' : 'var(--cbm-text-muted)' }};">
-            Log Mutasi (Keluar/Masuk)
-        </button>
-        <button type="button" wire:click="$set('activeTab', 'pivot_stock')" style="padding: 0.75rem 1.5rem; font-weight: 600; border-bottom: 2px solid {{ $activeTab == 'pivot_stock' ? 'var(--cbm-blue)' : 'transparent' }}; color: {{ $activeTab == 'pivot_stock' ? 'var(--cbm-text)' : 'var(--cbm-text-muted)' }};">
-            Pivot: Stok per Lokasi
-        </button>
-        <button type="button" wire:click="$set('activeTab', 'pivot_trx')" style="padding: 0.75rem 1.5rem; font-weight: 600; border-bottom: 2px solid {{ $activeTab == 'pivot_trx' ? 'var(--cbm-blue)' : 'transparent' }}; color: {{ $activeTab == 'pivot_trx' ? 'var(--cbm-text)' : 'var(--cbm-text-muted)' }};">
-            Pivot: Tren Transaksi 6 Bulan
-        </button>
+    <div class="cbm-tabs" style="margin-bottom:1rem;padding-top:0;">
+        <button type="button" wire:click="$set('activeTab', 'mutasi')" class="cbm-tab {{ $activeTab == 'mutasi' ? 'active' : '' }}">Log Mutasi (Keluar/Masuk)</button>
+        <button type="button" wire:click="$set('activeTab', 'pivot_stock')" class="cbm-tab {{ $activeTab == 'pivot_stock' ? 'active' : '' }}">Pivot: Stok per Lokasi</button>
+        <button type="button" wire:click="$set('activeTab', 'pivot_trx')" class="cbm-tab {{ $activeTab == 'pivot_trx' ? 'active' : '' }}">Pivot: Tren Transaksi 6 Bulan</button>
     </div>
 
     @if($activeTab == 'mutasi')
@@ -35,7 +29,12 @@
                 <input type="date" wire:model.live="startDate" class="mod-search-input">
                 <input type="date" wire:model.live="endDate" class="mod-search-input">
                 <div style="margin-left: auto;">
-                    <button class="mod-btn-primary">Ekspor Laporan</button>
+                    @can('ims.report.export')
+                    <button type="button" class="mod-btn-primary" wire:click="exportMutasi" wire:loading.attr="disabled" wire:target="exportMutasi">
+                        <span wire:loading.remove wire:target="exportMutasi">Ekspor CSV</span>
+                        <span wire:loading wire:target="exportMutasi"><span class="cbm-spinner"></span> Mengekspor...</span>
+                    </button>
+                    @endcan
                 </div>
             </div>
         </div>

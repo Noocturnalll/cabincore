@@ -6,11 +6,11 @@ use App\Helpers\RoleHelper;
 use App\Models\Airport;
 use App\Models\IctFinding;
 use App\Models\User;
+use App\Support\DashboardScope;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Support\DashboardScope;
-use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\Component;
 
 class Dashboard extends Component
 {
@@ -23,18 +23,36 @@ class Dashboard extends Component
 
     private function range(): array
     {
-        $scope = $this->scope();
-        $period = in_array($this->period, $scope->periods, true) ? $this->period : 'daily';
-        
+        $period = $this->effectivePeriod();
+
         $active = now()->hour >= 18 ? now() : now()->subDay();
 
         [$from, $to] = match ($period) {
-            'weekly'  => [$active->copy()->startOfWeek(), $active->copy()],
+            'weekly' => [$active->copy()->startOfWeek(), $active->copy()],
             'monthly' => [$active->copy()->startOfMonth(), $active->copy()],
-            default   => [$active->copy(), $active->copy()],
+            default => [$active->copy(), $active->copy()],
         };
 
-        return [$from->startOfDay()->toDateTimeString(), $to->endOfDay()->toDateTimeString()];
+        return [$from->format('Y-m-d'), $to->format('Y-m-d')];
+    }
+
+    /** Range as full timestamps, for datetime columns such as created_at. */
+    private function rangeTimestamps(): array
+    {
+        [$from, $to] = $this->range();
+
+        return [$from.' 00:00:00', $to.' 23:59:59'];
+    }
+
+    /** Period actually used, limited to what the user's role may select. */
+    public function effectivePeriod(): string
+    {
+        return in_array($this->period, $this->scope()->periods, true) ? $this->period : 'daily';
+    }
+
+    private function has(string $module): bool
+    {
+        return in_array($module, $this->scope()->modules, true);
     }
 
     public function updatedPeriod()
@@ -51,9 +69,12 @@ class Dashboard extends Component
 
         if ($djaJoinTable) {
             $query->whereIn("{$djaJoinTable}.station", $scope->stations);
+        } elseif ($table === 'nsrdi_logs') {
+            $query->where(fn ($q) => $q->whereIn('nsrdi_logs.act_station', $scope->stations)
+                ->orWhereIn('nsrdi_logs.plan_station', $scope->stations));
         } else {
-            $column = match($table) {
-                'wo_logs', 'dmi_logs', 'nsrdi_logs' => 'act_station',
+            $column = match ($table) {
+                'wo_logs', 'dmi_logs' => 'act_station',
                 'cml_logs', 'aircraft_cleanings' => 'station',
                 default => null,
             };
@@ -61,9 +82,10 @@ class Dashboard extends Component
                 $query->whereIn("{$table}.{$column}", $scope->stations);
             }
         }
-        
+
         return $query;
     }
+
     private function getDashboardStats(): array
     {
         $scope = $this->scope();
@@ -107,9 +129,10 @@ class Dashboard extends Component
         $cml_open = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')->whereBetween('date', [$from, $to])->where('status', 'Open')->count();
 
         // ─── 4. ICT Findings ────────────────────────────────────────────────
-        $ict_total = DB::table('ict_findings')->whereBetween('date', [$from, $to])->count();
-        $ict_closed = DB::table('ict_findings')->whereBetween('date', [$from, $to])->where('status', 'Closed')->count();
-        $ict_open = DB::table('ict_findings')->whereBetween('date', [$from, $to])->where('status', 'Open')->count();
+        $hasIct = $this->has('ict');
+        $ict_total = $hasIct ? DB::table('ict_findings')->whereBetween('date', [$from, $to])->count() : 0;
+        $ict_closed = $hasIct ? DB::table('ict_findings')->whereBetween('date', [$from, $to])->where('status', 'Closed')->count() : 0;
+        $ict_open = $hasIct ? DB::table('ict_findings')->whereBetween('date', [$from, $to])->where('status', 'Open')->count() : 0;
 
         // ICT breakdown by operator (daily)
         $ict_breakdown_raw = DB::table('ict_findings')
@@ -120,6 +143,7 @@ class Dashboard extends Component
                 DB::raw('COUNT(*) as total_count')
             )
             ->whereBetween('date', [$from, $to])
+            ->when(! $hasIct, fn ($q) => $q->whereRaw('1 = 0'))
             ->groupBy('operator')
             ->get();
 
@@ -144,6 +168,7 @@ class Dashboard extends Component
                 DB::raw("SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count")
             )
             ->whereBetween('date', [$monthStart, $monthEnd])
+            ->when(! $hasIct, fn ($q) => $q->whereRaw('1 = 0'))
             ->groupBy('operator')
             ->get();
 
@@ -166,14 +191,21 @@ class Dashboard extends Component
         }
 
         // ─── 4b. IMS & Repair ───────────────────────────────────────────────
-        $ims_transactions = DB::table('ims_transactions')->whereBetween('created_at', [$from, $to])->count();
-        $ims_transactions_in = DB::table('ims_transactions')->whereBetween('created_at', [$from, $to])->where('type', 'IN')->count();
-        $ims_transactions_out = DB::table('ims_transactions')->whereBetween('created_at', [$from, $to])->where('type', 'OUT')->count();
-        
-        $repair_waiting = DB::table('ims_repair_waiting')->count();
-        $repair_progress = DB::table('ims_repair_in_progress')->count();
-        $repair_completed_today = DB::table('ims_repair_completed')->whereBetween('created_at', [$from, $to])->count();
+        [$tsFrom, $tsTo] = $this->rangeTimestamps();
+        $hasIms = $this->has('ims');
+        // Stock is warehouse-wide (locations have no station), so IMS figures are not station-filtered.
+        // Source of truth is the stock movement log: it covers requests, direct receipts, transfers, adjustments, loan
+        // returns and repair returns alike.
+        $imsMoves = fn () => DB::table('ims_stock_movements')->whereBetween('created_at', [$tsFrom, $tsTo]);
 
+        $ims_transactions = $hasIms ? $imsMoves()->count() : 0;
+        $ims_transactions_in = $hasIms ? $imsMoves()->whereIn('movement_type', ['in', 'loan_return', 'repair_return'])->count() : 0;
+        $ims_transactions_out = $hasIms ? $imsMoves()->where('movement_type', 'out')->count() : 0;
+
+        $repair_waiting = $hasIms ? DB::table('ims_repair_waiting')->whereNull('deleted_at')->count() : 0;
+        $repair_progress = $hasIms ? DB::table('ims_repair_in_progress')->whereNull('deleted_at')->count() : 0;
+        $repair_completed_today = $hasIms ? DB::table('ims_repair_completed')->whereBetween('completed_at', [$tsFrom, $tsTo])->count() : 0;
+        $repair_completed_all = $hasIms ? DB::table('ims_repair_completed')->count() : 0;
 
         // ─── 5. Aggregations ────────────────────────────────────────────────
         $dja_total_laporan = $wo_dja_total + $dmi_dja_total + $nsrdi_dja_total;
@@ -234,7 +266,7 @@ class Dashboard extends Component
                     DB::raw("SUM(CASE WHEN {$table}.status = 'Open' THEN 1 ELSE 0 END) as open_count")
                 )
                 ->whereBetween("{$table}.{$dateCol}", [$from, $to])
-                ->when($scope->stations, fn($q) => $q->whereIn('daily_job_assignments.station', $scope->stations))
+                ->when($scope->stations, fn ($q) => $q->whereIn('daily_job_assignments.station', $scope->stations))
                 ->groupBy('daily_job_assignments.station')
                 ->get();
 
@@ -285,12 +317,13 @@ class Dashboard extends Component
 
         // ─── 7. 7-Day Trend ─────────────────────────────────────────────────
         $trendLabels = [];
-        
 
         $targetDates = [];
-        $periodMode = in_array($this->period, $scope->periods, true) ? $this->period : 'daily';
-        $loopCount = match($periodMode) { 'weekly' => 8, 'monthly' => 6, default => 7 };
-        
+        $periodMode = $this->effectivePeriod();
+        $loopCount = match ($periodMode) {
+            'weekly' => 8, 'monthly' => 6, default => 7
+        };
+
         $trendCmlClosed = array_fill(0, $loopCount, 0);
         $trendAcTotal = array_fill(0, $loopCount, 0);
         $trendDja = array_fill(0, $loopCount, 0);
@@ -299,7 +332,7 @@ class Dashboard extends Component
         for ($i = $loopCount - 1; $i >= 0; $i--) {
             if ($periodMode === 'weekly') {
                 $d = $activeCarbon->copy()->subWeeks($i);
-                $trendLabels[] = 'W' . $d->weekOfYear;
+                $trendLabels[] = 'W'.$d->weekOfYear;
                 $targetDates[] = [$d->copy()->startOfWeek()->format('Y-m-d'), $d->copy()->endOfWeek()->format('Y-m-d')];
             } elseif ($periodMode === 'monthly') {
                 $d = $activeCarbon->copy()->subMonths($i);
@@ -311,19 +344,20 @@ class Dashboard extends Component
                 $targetDates[] = [$d->format('Y-m-d'), $d->format('Y-m-d')];
             }
         }
-        
-        $getDayIndex = function (string $dateStr) use ($targetDates, $periodMode): int {
+
+        $getDayIndex = function (string $dateStr) use ($targetDates): int {
             $dateStr = substr($dateStr, 0, 10);
             foreach ($targetDates as $idx => $range) {
-                if ($dateStr >= $range[0] && $dateStr <= $range[1]) return $idx;
+                if ($dateStr >= $range[0] && $dateStr <= $range[1]) {
+                    return $idx;
+                }
             }
+
             return -1;
         };
 
-        $startDateStr = $targetDates[0][0] . ' 00:00:00';
-        $endDateStr = $targetDates[$loopCount - 1][1] . ' 23:59:59';
-
-        
+        $startDateStr = $targetDates[0][0];
+        $endDateStr = $targetDates[$loopCount - 1][1];
 
         // CML closed trend
         $cmlTrend = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')
@@ -354,7 +388,7 @@ class Dashboard extends Component
 
         // DJA and Unplanned trend
         foreach (['wo_logs', 'dmi_logs'] as $t) {
-            $logs = DB::table($t)
+            $logs = $this->applyStationFilter(DB::table($t), $t)
                 ->whereBetween('date', [$startDateStr, $endDateStr])
                 ->select('date as the_date', 'dja_id')
                 ->get();
@@ -457,7 +491,9 @@ class Dashboard extends Component
         }
 
         // ─── 9. Man Power & Man Hours ────────────────────────────────────────
-        $man_power = User::role(RoleHelper::ALL_PIC)->count();
+        $man_power = User::role(RoleHelper::ALL_PIC)
+            ->when($scope->stations, fn ($q) => $q->whereIn('station', $scope->stations))
+            ->count();
         $man_hours = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->sum('man_hour') ?: 0;
 
         // ─── 10. NSRDI Overdue (Open & past due_date) ────────────────────────
@@ -495,11 +531,11 @@ class Dashboard extends Component
             'cml' => $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')->count(),
             'dmi' => $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->count(),
             'nsrdi' => $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->count(),
-            'ict' => DB::table('ict_findings')->count(),
-            'ict_open' => DB::table('ict_findings')->where('status', 'Open')->count(),
+            'ict' => $hasIct ? DB::table('ict_findings')->count() : 0,
+            'ict_open' => $hasIct ? DB::table('ict_findings')->where('status', 'Open')->count() : 0,
             'ac' => $this->applyStationFilter(DB::table('aircraft_cleanings'), 'aircraft_cleanings')->count(),
-            'ims_transactions' => DB::table('ims_transactions')->count(),
-            'repair_total' => $repair_waiting + $repair_progress + DB::table('ims_repair_completed')->count(),
+            'ims_transactions' => $hasIms ? DB::table('ims_stock_movements')->count() : 0,
+            'repair_total' => $repair_waiting + $repair_progress + $repair_completed_all,
         ];
 
         // ─── 12. Recurring "No Spare" NSRDI ─────────────────────────────────
@@ -547,6 +583,7 @@ class Dashboard extends Component
 
         return [
             'target_date' => $targetDate,
+            'range' => [$from, $to],
 
             'dja' => [
                 'total' => $dja_total_laporan,
@@ -618,7 +655,7 @@ class Dashboard extends Component
                 'tc_close_rate' => $ac_tc_close_rate,
                 'operator_chart' => $acOperatorChart,
             ],
-            
+
             'ims' => [
                 'transactions' => $ims_transactions,
                 'in' => $ims_transactions_in,
@@ -685,7 +722,7 @@ class Dashboard extends Component
         $monthTotals = ['total' => 0, 'closed' => 0, 'open' => 0];
 
         foreach ($sources as $key => $source) {
-            $rows = DB::table($source['table'])
+            $rows = $this->applyStationFilter(DB::table($source['table']), $source['table'])
                 ->selectRaw("{$source['date']} as d, COUNT(*) as total, SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count")
                 ->whereRaw("{$source['date']} BETWEEN ? AND ?", [$startDate, $endDate])
                 ->groupBy('d')
@@ -733,7 +770,10 @@ class Dashboard extends Component
         }
 
         // Station performance (month-to-date) from Airport master
-        $stationCodes = Airport::where('status', 'Aktif')->orderBy('kode')->pluck('kode')->all();
+        $kpiStations = $this->scope()->stations;
+        $stationCodes = Airport::where('status', 'Aktif')
+            ->when($kpiStations, fn ($q) => $q->whereIn('kode', $kpiStations))
+            ->orderBy('kode')->pluck('kode')->all();
         $stationPerf = array_fill_keys($stationCodes, ['total' => 0, 'closed' => 0]);
 
         foreach (['wo_logs' => 'date', 'dmi_logs' => 'date', 'nsrdi_logs' => 'plan_date'] as $table => $dateCol) {
@@ -741,6 +781,7 @@ class Dashboard extends Component
                 ->join('daily_job_assignments', "{$table}.dja_id", '=', 'daily_job_assignments.id')
                 ->selectRaw("daily_job_assignments.station as station, COUNT(*) as total, SUM(CASE WHEN {$table}.status = 'Closed' THEN 1 ELSE 0 END) as closed_count")
                 ->whereRaw("DATE({$table}.{$dateCol}) BETWEEN ? AND ?", [$monthStart, $endDate])
+                ->when($kpiStations, fn ($q) => $q->whereIn('daily_job_assignments.station', $kpiStations))
                 ->groupBy('daily_job_assignments.station')
                 ->get();
 
@@ -807,7 +848,7 @@ class Dashboard extends Component
         $gaugeSources = ['WO' => 'wo_logs', 'DMI' => 'dmi_logs', 'CML' => 'cml_logs', 'AC' => 'aircraft_cleanings'];
         $gauges = [];
         foreach ($gaugeSources as $key => $table) {
-            $row = DB::table($table)
+            $row = $this->applyStationFilter(DB::table($table), $table)
                 ->selectRaw("COUNT(*) as total, SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count")
                 ->whereRaw('DATE(date) BETWEEN ? AND ?', [$monthStart, $endDate])
                 ->first();
@@ -851,26 +892,16 @@ class Dashboard extends Component
 
     public function render()
     {
-        $user = auth()->user();
-        $view = 'livewire.dashboard-pic'; // Default
+        $scope = $this->scope();
+        $openIctFindings = in_array('ict', $scope->modules, true)
+            ? IctFinding::where('status', 'Open')->orderBy('date', 'desc')->take(10)->get()
+            : collect();
 
-        if ($user->hasRole(RoleHelper::SUPER_ADMIN)) {
-            $view = 'livewire.dashboard-super-admin';
-        } elseif ($user->hasRole(RoleHelper::MANAGER)) {
-            $view = 'livewire.dashboard-manager';
-        } elseif ($user->hasRole(RoleHelper::ADMIN_CGK)) {
-            $view = 'livewire.dashboard-admin';
-        }
-
-        $openIctFindings = IctFinding::where('status', 'Open')
-            ->orderBy('date', 'desc')
-            ->take(10)
-            ->get();
-
-        return view($view, [
+        return view('livewire.dashboard', [
             'stats' => $this->getDashboardStats(),
-            'kpi' => $this->getKpiStats(),
+            'kpi' => $this->has('kpi') ? $this->getKpiStats() : [],
             'openIctFindings' => $openIctFindings,
+            'scope' => $scope,
         ])->layout('components.layouts.app', ['title' => 'Dashboard']);
     }
 }

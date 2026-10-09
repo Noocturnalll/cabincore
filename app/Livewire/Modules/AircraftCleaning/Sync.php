@@ -25,17 +25,19 @@ class Sync extends Component
 
         if (! $spreadsheetId) {
             $this->notifyUser('error', 'Link / ID Google Sheet tidak valid.');
+
             return;
         }
 
         $setting = SyncSetting::saveSpreadsheetId(SyncSetting::Cleaning, $spreadsheetId);
         $this->sheetUrl = $setting->sheetUrl();
 
-        // TBD: Actual sync logic here (like $syncService->syncCleaning($spreadsheetId))
-        sleep(1);
-        SyncSetting::recordResult(SyncSetting::Cleaning, true, 'Fitur Sync Aircraft Cleaning berhasil. Logika mapping TBD.');
+        // Pemetaan kolom sheet -> aircraft_cleanings belum dibuat, jadi tidak ada data yang ditarik.
+        // Jangan melaporkan "berhasil" untuk sesuatu yang tidak dijalankan.
+        $message = 'Link sheet disimpan, tetapi sinkronisasi data Aircraft Cleaning belum tersedia (mapping kolom belum dibuat). Gunakan Import Excel di Daily Report untuk sementara.';
+        SyncSetting::recordResult(SyncSetting::Cleaning, false, $message);
 
-        $this->notifyUser('success', 'Fitur Sync Aircraft Cleaning (UI) berhasil. Logika mapping TBD.');
+        $this->notifyUser('warning', $message);
     }
 
     protected function notifyUser(string $type, string $message): void

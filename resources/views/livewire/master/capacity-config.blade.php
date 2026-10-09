@@ -1,123 +1,127 @@
 <div>
-    <div class="mod-header">
-        <div class="mod-title-block">
-            <div class="mod-title-accent mod-title-accent-purple">Master Data</div>
-            <div class="mod-title">Capacity Settings</div>
-            <div class="mod-subtitle">Kelola konfigurasi target NSRDI dan stasiun untuk tabel Capacity.</div>
-        </div>
+    <x-master.page-header title="Capacity Settings" subtitle="Daftar station untuk tabel Capacity dan target NSRDI per maskapai." accent="purple" eyebrow="Master Data" />
+
+    <x-flash />
+
+    <div class="cbm-seg" role="tablist" aria-label="Pengaturan capacity">
+        <button type="button" role="tab" wire:click="setTab('stations')" class="cbm-seg-btn {{ $activeTab === 'stations' ? 'active' : '' }}" aria-selected="{{ $activeTab === 'stations' ? 'true' : 'false' }}">Station <span class="cbm-tab-count">{{ $stations->count() }}</span></button>
+        <button type="button" role="tab" wire:click="setTab('targets')" class="cbm-seg-btn {{ $activeTab === 'targets' ? 'active' : '' }}" aria-selected="{{ $activeTab === 'targets' ? 'true' : 'false' }}">Target NSRDI</button>
     </div>
 
-    <div class="mod-card mod-card-accent-purple" style="padding: 1.5rem;">
-        <div class="mod-tabs" style="display: flex; gap: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.25rem; padding-bottom: 0.625rem;">
-            <button wire:click="setTab('stations')" style="background:none; border:none; color: {{ $activeTab == 'stations' ? '#8b5cf6' : 'var(--cbm-text)' }}; font-weight: {{ $activeTab == 'stations' ? '700' : '400' }}; font-size: 1rem; cursor: pointer;">Stations</button>
-            <button wire:click="setTab('targets')" style="background:none; border:none; color: {{ $activeTab == 'targets' ? '#8b5cf6' : 'var(--cbm-text)' }}; font-weight: {{ $activeTab == 'targets' ? '700' : '400' }}; font-size: 1rem; cursor: pointer;">NSRDI Targets</button>
-        </div>
-
-        @if($activeTab == 'stations')
-            <div style="margin-bottom: 0.9375rem; display: flex; justify-content: flex-end;">
-                <button wire:click="createStation" class="mod-btn mod-btn-primary">
-                    <i class="fas fa-plus"></i> Add Station
-                </button>
+    @if($activeTab === 'stations')
+        <div class="mod-card mod-card-accent-purple">
+            <div class="mod-toolbar">
+                <div class="mod-meta"><span class="mod-record-count">{{ $stations->count() }} station &middot; urut berdasarkan Order No</span></div>
+                <div class="mod-meta">
+                    <button type="button" wire:click="createStation" class="mod-btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/></svg>
+                        Tambah Station
+                    </button>
+                </div>
             </div>
-            
+
             <div class="mod-table-wrap">
                 <table class="mod-table">
                     <thead>
-                        <tr>
-                            <th>NO</th>
-                            <th>KH REGION</th>
-                            <th>GROUP</th>
-                            <th>STA</th>
-                            <th>CODE STORE</th>
-                            <th>HOURS</th>
-                            <th>ACTIONS</th>
-                        </tr>
+                        <tr><th>NO</th><th>KH REGION</th><th>GROUP</th><th>STA</th><th>CODE STORE</th><th>HOURS</th><th style="text-align:center;">DAY</th><th style="text-align:center;">NIGHT</th><th style="text-align:right;">AKSI</th></tr>
                     </thead>
                     <tbody>
-                        @foreach($stations as $s)
-                        <tr wire:key="station-{{ $s->id }}">
-                            <td>{{ $s->order_no }}</td>
-                            <td style="font-weight: bold;">{{ $s->kh_region }}</td>
-                            <td>{{ $s->group_type }}</td>
-                            <td style="font-weight: bold;">{{ $s->station_code }}</td>
-                            <td>{{ $s->code_store }}</td>
-                            <td>{{ $s->working_hours }}</td>
-                            <td style="display: flex; gap: 5px;">
-                                <button type="button" wire:click.prevent="editStation({{ $s->id }})" style="padding: 4px 0.625rem; font-size: 0.8rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
-                                <button type="button" wire:click.prevent="deleteStation({{ $s->id }})" style="padding: 4px 0.625rem; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="confirm('Are you sure you want to delete this station?') || event.stopImmediatePropagation()">Delete</button>
-                            </td>
-                        </tr>
-                        @endforeach
+                        @forelse($stations as $s)
+                            <tr wire:key="station-{{ $s->id }}">
+                                <td>{{ $s->order_no }}</td>
+                                <td style="font-weight:800;">{{ $s->kh_region }}</td>
+                                <td>{{ $s->group_type }}</td>
+                                <td><div class="mod-aircraft-name">{{ $s->station_code }}</div></td>
+                                <td>{{ $s->code_store }}</td>
+                                <td>{{ $s->working_hours }}</td>
+                                <td style="text-align:center;">{{ $s->tech_day ?? '-' }}</td>
+                                <td style="text-align:center;">{{ $s->tech_night ?? '-' }}</td>
+                                <td style="text-align:right;">
+                                    <div style="display:flex;justify-content:flex-end;gap:.5rem;">
+                                        <button type="button" wire:click="editStation({{ $s->id }})" class="mod-action-btn">Edit</button>
+                                        <button type="button" wire:click="deleteStation({{ $s->id }})" wire:confirm="Hapus station {{ $s->station_code }} dari daftar capacity?" class="mod-action-btn" style="color:#ef4444;border-color:rgba(239,68,68,.35);">Hapus</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="9"><div class="mod-empty"><div class="mod-empty-title">Belum ada station</div><div class="mod-empty-sub">Klik "Tambah Station" untuk mulai.</div></div></td></tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            @if($isModalOpen)
-            <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-                <div class="mod-card" style="width: 50rem; max-height: 90vh; overflow-y: auto; padding: 1.5rem;">
-                    <div style="font-weight: bold; font-size: 1.2rem; margin-bottom: 0.9375rem;">{{ $station_id ? 'Edit Station' : 'Add Station' }}</div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9375rem; margin-bottom: 1.25rem;">
-                        <div>
-                            <label>Order No</label>
-                            <input type="number" wire:model="order_no" class="mod-search-input" style="width: 100%;">
-                        </div>
-                        <div>
-                            <label>KH Region (e.g. KH-1)</label>
-                            <input type="text" wire:model="kh_region" class="mod-search-input" style="width: 100%;">
-                        </div>
-                        <div>
-                            <label>Group Type</label>
-                            <input type="text" wire:model="group_type" class="mod-search-input" style="width: 100%;">
-                        </div>
-                        <div>
-                            <label>Station Code (e.g. CGK)</label>
-                            <select wire:model="station_code" class="mod-search-input" style="width: 100%;">
-                                <option value="">-- Pilih Station --</option>
-                                @foreach($airports as $airport)
-                                    <option value="{{ $airport->kode }}">{{ $airport->kode }} - {{ $airport->nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label>Code Store</label>
-                            <input type="text" wire:model="code_store" class="mod-search-input" style="width: 100%;">
-                        </div>
-                        <div>
-                            <label>Working Hours</label>
-                            <input type="text" wire:model="working_hours" class="mod-search-input" style="width: 100%;">
-                        </div>
+        <x-master.modal :show="$isModalOpen" :title="$station_id ? 'Edit Station' : 'Tambah Station'" subtitle="Muncul di tabel Capacity Management." submit="saveStation" close="closeModal" max-width="40rem">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1rem;">
+                <div class="cbm-form-group">
+                    <label class="cbm-form-label" for="cs-order">Order No</label>
+                    <input id="cs-order" type="number" min="0" wire:model="order_no" class="cbm-form-input">
+                    @error('order_no') <span class="mod-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="cbm-form-group">
+                    <label class="cbm-form-label" for="cs-kh">KH Region *</label>
+                    <input id="cs-kh" type="text" wire:model="kh_region" class="cbm-form-input" placeholder="KH-1">
+                    @error('kh_region') <span class="mod-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="cbm-form-group">
+                    <label class="cbm-form-label" for="cs-group">Group</label>
+                    <input id="cs-group" type="text" wire:model="group_type" class="cbm-form-input" placeholder="A">
+                    @error('group_type') <span class="mod-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="cbm-form-group">
+                    <label class="cbm-form-label" for="cs-sta">Station *</label>
+                    <div class="cbm-select-wrap">
+                        <select id="cs-sta" wire:model="station_code" class="cbm-form-select">
+                            <option value="">-- Pilih station --</option>
+                            @if($station_code && ! $airports->contains('kode', $station_code))
+                                <option value="{{ $station_code }}">{{ $station_code }} (tidak ada di master bandara)</option>
+                            @endif
+                            @foreach($airports as $airport)<option value="{{ $airport->kode }}">{{ $airport->kode }} - {{ $airport->nama }}</option>@endforeach
+                        </select>
                     </div>
-
-                    <div style="display: flex; justify-content: flex-end; gap: 0.625rem;">
-                        <button type="button" wire:click.prevent="$set('isModalOpen', false)" class="mod-btn">Cancel</button>
-                        <button type="button" wire:click.prevent="saveStation" class="mod-btn mod-btn-primary">Save Station</button>
-                    </div>
+                    @error('station_code') <span class="mod-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="cbm-form-group">
+                    <label class="cbm-form-label" for="cs-store">Code Store</label>
+                    <input id="cs-store" type="text" wire:model="code_store" class="cbm-form-input" placeholder="K1, K22">
+                    @error('code_store') <span class="mod-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="cbm-form-group">
+                    <label class="cbm-form-label" for="cs-hours">Working Hours</label>
+                    <input id="cs-hours" type="text" wire:model="working_hours" class="cbm-form-input" placeholder="19.00-07.00">
+                    @error('working_hours') <span class="mod-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="cbm-form-group" style="margin-bottom:0;">
+                    <label class="cbm-form-label" for="cs-day">Teknisi Day</label>
+                    <input id="cs-day" type="number" min="0" wire:model="tech_day" class="cbm-form-input">
+                    @error('tech_day') <span class="mod-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="cbm-form-group" style="margin-bottom:0;">
+                    <label class="cbm-form-label" for="cs-night">Teknisi Night</label>
+                    <input id="cs-night" type="number" min="0" wire:model="tech_night" class="cbm-form-input">
+                    @error('tech_night') <span class="mod-field-error">{{ $message }}</span> @enderror
                 </div>
             </div>
-            @endif
-
-        @elseif($activeTab == 'targets')
-            <div style="max-width: 31.25rem;">
-                @if (session()->has('message'))
-                    <div style="padding: 0.625rem; background: rgba(16,185,129,0.1); color: #10b981; border-left: 4px solid #10b981; margin-bottom: 0.9375rem;">
-                        {{ session('message') }}
-                    </div>
-                @endif
-                <div style="margin-bottom: 0.9375rem;">
-                    <label style="display: block; margin-bottom: 5px;">Target Tembus NSRDI - JT</label>
-                    <input type="number" wire:model="target_jt" class="mod-search-input" style="width: 100%;">
+        </x-master.modal>
+    @else
+        <div class="mod-card mod-card-accent-purple" style="max-width:36rem;padding:1.5rem;">
+            <h3 style="font-size:1rem;font-weight:800;color:var(--cbm-text);margin-bottom:.25rem;">Target NSRDI closed per maskapai</h3>
+            <p style="font-size:.8125rem;color:var(--cbm-text-muted);margin-bottom:1.25rem;line-height:1.6;">Jumlah NSRDI yang harus ditutup per hari. Dipakai oleh kartu target di halaman Capacity Management.</p>
+            <form wire:submit="updateTargets">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:1rem;">
+                    @foreach(['jt' => 'JT (Lion)', 'iu' => 'IU (Super Air Jet)', 'id' => 'ID (Batik)'] as $key => $label)
+                        <div class="cbm-form-group">
+                            <label class="cbm-form-label" for="tg-{{ $key }}">{{ $label }}</label>
+                            <input id="tg-{{ $key }}" type="number" min="0" wire:model="target_{{ $key }}" class="cbm-form-input">
+                            @error('target_'.$key) <span class="mod-field-error">{{ $message }}</span> @enderror
+                        </div>
+                    @endforeach
                 </div>
-                <div style="margin-bottom: 0.9375rem;">
-                    <label style="display: block; margin-bottom: 5px;">Target Tembus NSRDI - IU</label>
-                    <input type="number" wire:model="target_iu" class="mod-search-input" style="width: 100%;">
-                </div>
-                <div style="margin-bottom: 0.9375rem;">
-                    <label style="display: block; margin-bottom: 5px;">Target Tembus NSRDI - ID</label>
-                    <input type="number" wire:model="target_id" class="mod-search-input" style="width: 100%;">
-                </div>
-                <button wire:click="updateTargets" class="mod-btn mod-btn-primary">Save Targets</button>
-            </div>
-        @endif
-    </div>
+                <button type="submit" class="mod-btn-primary" wire:loading.attr="disabled" wire:target="updateTargets">
+                    <span wire:loading.remove wire:target="updateTargets">Simpan Target</span>
+                    <span wire:loading wire:target="updateTargets"><span class="cbm-spinner"></span> Menyimpan...</span>
+                </button>
+            </form>
+        </div>
+    @endif
 </div>

@@ -5,15 +5,17 @@ namespace App\Livewire\Modules\CmlLog;
 use App\Exports\CmlExport;
 use App\Imports\CmlImport;
 use App\Livewire\Traits\WithAdvancedFilter;
+use App\Livewire\Traits\WithLogTable;
 use App\Models\CmlLog;
 use App\Notifications\SystemNotification;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithAdvancedFilter, WithFileUploads;
+    use WithAdvancedFilter, WithFileUploads, WithLogTable, WithPagination;
 
     public $file;
 
@@ -45,11 +47,11 @@ class Index extends Component
 
     public function exportExcel()
     {
-        $search = property_exists($this, 'search') ? $this->search : '';
-        $dateFilter = property_exists($this, 'dateFilter') ? $this->dateFilter : '';
-        $activeTab = property_exists($this, 'activeTab') ? $this->activeTab : '';
-
-        return Excel::download(new CmlExport($search, $dateFilter, $activeTab), 'CmlExport-'.date('Y-m-d').'.xlsx');
+        // Export exactly what the filters on screen select
+        return Excel::download(
+            new CmlExport($this->search, $this->dateStart, '', $this->dateEnd, $this->filterStation),
+            'CmlExport-'.date('Y-m-d').'.xlsx'
+        );
     }
 
     public function render()
@@ -60,7 +62,7 @@ class Index extends Component
         $query = $this->scopeAdvancedFilter($query, $searchFields);
 
         return view('livewire.modules.cml-log.index', [
-            'logs' => $query->with('dailyJobAssignment')->get(),
+            'logs' => $query->paginate($this->perPage),
         ])->layout('components.layouts.app', ['title' => 'CML Logs']);
     }
 }

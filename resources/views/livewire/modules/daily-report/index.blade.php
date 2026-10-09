@@ -6,60 +6,46 @@
             <div class="mod-title">Daily Report</div>
             <div class="mod-subtitle">Pusat penampungan laporan harian, bulanan, dan tahunan untuk semua modul.</div>
         </div>
-        <div class="mod-actions" style="display: flex; gap: 0.5rem; align-items: center;">
-            <input type="file" id="rawImport" accept=".xlsx,.xls" class="hidden" style="display: none;">
-            <label for="rawImport" id="rawImportLabel" class="mod-btn-outline" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1.25rem; height: 1.25rem;"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
-                Pilih File & Import
-            </label>
-
-            <script>
-            document.getElementById('rawImport').addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const label = document.getElementById('rawImportLabel');
-                const originalText = label.innerHTML;
-                label.innerHTML = 'Memproses... Mohon tunggu...';
-                label.style.opacity = '0.5';
-                label.style.pointerEvents = 'none';
-
-                try {
-                    const res = await fetch("{{ route('daily-report.import-raw') }}", {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                            'X-File-Name': encodeURIComponent(file.name),
-                            'Content-Type': 'application/octet-stream',
-                            'Accept': 'application/json',
-                        },
-                        body: file,
-                    });
-
-                    let json;
-                    try {
-                        json = await res.json();
-                    } catch (err) {
-                        json = { message: 'Gagal membaca response dari server (HTTP ' + res.status + ')' };
+        <div class="mod-actions">
+            <div x-data="{
+                    busy: false,
+                    async upload(e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        this.busy = true;
+                        const toast = (icon, message) => window.Swal && Swal.fire({ toast: true, position: 'top-end', icon, title: message, showConfirmButton: false, timer: 5000, timerProgressBar: true });
+                        try {
+                            const res = await fetch('{{ route('daily-report.import-raw') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                    'X-File-Name': encodeURIComponent(file.name),
+                                    'Content-Type': 'application/octet-stream',
+                                    'Accept': 'application/json',
+                                },
+                                body: file,
+                            });
+                            let json = {};
+                            try { json = await res.json(); } catch (err) { json = { message: 'Gagal membaca response server (HTTP ' + res.status + ')' }; }
+                            if (res.ok) { toast('success', json.message ?? 'Import berhasil.'); $wire.$refresh(); }
+                            else { toast('error', json.message || ('Error HTTP ' + res.status)); }
+                        } catch (err) {
+                            toast('error', 'Gagal menghubungi server: ' + err.message);
+                        } finally {
+                            this.busy = false;
+                            e.target.value = '';
+                        }
                     }
-
-                    if (res.ok) {
-                        alert(json.message ?? 'Proses berhasil diselesaikan!');
-                        location.reload();
-                    } else {
-                        alert('Error HTTP ' + res.status + ': ' + (json.message || 'Terjadi kesalahan sistem.'));
-                    }
-                } catch (err) {
-                    alert('Gagal menghubungi server: ' + err.message);
-                } finally {
-                    label.innerHTML = originalText;
-                    label.style.opacity = '1';
-                    label.style.pointerEvents = 'auto';
-                    e.target.value = '';
-                }
-            });
-            </script>
-
+                 }">
+                <input type="file" id="rawImport" accept=".xlsx,.xls" style="display:none;" @change="upload($event)" :disabled="busy">
+                <label for="rawImport" class="mod-btn-outline" :style="busy ? 'opacity:.6;pointer-events:none;' : 'cursor:pointer;'" style="margin:0;">
+                    <span style="display:inline-flex;align-items:center;gap:.4rem;">
+                        <svg x-show="!busy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:1.1rem;height:1.1rem;"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                        <span x-show="busy" class="cbm-spinner" x-cloak></span>
+                        <span x-text="busy ? 'Memproses, mohon tunggu...' : 'Pilih File & Import'"></span>
+                    </span>
+                </label>
+            </div>
             <button wire:click="exportExcel" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="exportExcel" style="display:inline-flex;align-items:center;justify-content:center;gap:.4rem;">
                 <span wire:loading.remove wire:target="exportExcel">
                     <span style="display:inline-flex;align-items:center;gap:.4rem;">
@@ -76,25 +62,9 @@
             </button>
         </div>
     </div>
-
-    @if (session()->has('message'))
-        <div class="alert alert-success" style="padding: 1rem; margin-bottom: 1rem; background: #d4edda; color: #155724; border-radius: 4px;">
-            {{ session('message') }}
-        </div>
-    @endif
-    @if (session()->has('error'))
-        <div class="alert alert-danger" style="padding: 1rem; margin-bottom: 1rem; background: #f8d7da; color: #721c24; border-radius: 4px;">
-            {{ session('error') }}
-        </div>
-    @endif
+    <x-flash />
     @if ($errors->any())
-        <div class="alert alert-danger" style="padding: 1rem; margin-bottom: 1rem; background: #f8d7da; color: #721c24; border-radius: 4px;">
-            <ul style="margin: 0;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+        <div class="cbm-flash cbm-flash-error" role="alert" style="margin-bottom:1rem;">{{ $errors->first() }}</div>
     @endif
 
     {{-- Main Card --}}
@@ -112,17 +82,23 @@
             <button type="button" wire:click="setTab('summary')" class="cbm-tab {{ $activeTab === 'summary' ? 'active' : '' }}">Summary Pivot</button>
         </div>
 
-        {{-- Toolbar --}}
-        <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="display: flex; gap: 0.625rem; align-items: center;">
-                <div style="position: relative; display: flex; align-items: center;">
-                    <svg style="position: absolute; left: 0.625rem; width: 1.125rem; height: 1.125rem; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari data..." style="padding-left: 2.1875rem;">
-                </div>
-                <input wire:model.live="dateFilter" type="date" class="mod-search-input">
-            </div>
-            <span class="mod-record-count">{{ collect($logs)->count() }} records</span>
+        <div class="mod-hint" style="margin:1rem 1.25rem 0;background:var(--cbm-nav-hover);color:var(--cbm-text-muted);border-color:var(--cbm-card-border);">
+            Arsip menampilkan data <strong>sebelum {{ \Carbon\Carbon::parse($cutoffDate)->locale('id')->isoFormat('D MMMM YYYY') }}</strong>; data hari aktif ada di modul masing-masing.
         </div>
+
+        @if(array_sum($held) > 0)
+            <div class="mod-hint mod-hint-warn" style="margin:1rem 1.25rem 0;">
+                <strong>{{ array_sum($held) }} log belum masuk arsip</strong>
+                ({{ collect($held)->filter()->map(fn ($n, $k) => $n.' '.strtoupper($k))->implode(', ') }}):
+                sudah lewat cutoff tetapi masih Open tanpa code reason + remarks. Lengkapi di modul WO / DMI / NSRDI, lalu otomatis masuk ke sini.
+            </div>
+        @endif
+
+        @if($activeTab === 'summary')
+            <x-log-toolbar mode="date" :active="(bool) $dateFilter" />
+        @else
+            <x-log-toolbar :logs="$logs" mode="date" :active="(bool) ($search || $dateFilter)" placeholder="Cari data..." />
+        @endif
 
         {{-- Dynamic Tables Content --}}
         <div class="mod-table-wrap">
@@ -417,7 +393,7 @@
                             @endphp
                             <tr>
                                 <td>{{ $idx++ }}</td>
-                                <td style="font-weight: bold;">{{ $sta }}</td>
+                                <td style="font-weight: bold;">{{ $sta === 'LAINNYA' ? 'Lainnya (di luar master)' : $sta }}</td>
                                 <td style="text-align: center;">{{ $data['WO'] ?: '-' }}</td>
                                 <td style="text-align: center;">{{ $data['DMI'] ?: '-' }}</td>
                                 <td style="text-align: center;">{{ $data['NSRDI'] ?: '-' }}</td>
@@ -452,6 +428,10 @@
                 @endif
             </table>
         </div>
+
+        @if($activeTab !== 'summary' && method_exists($logs, 'hasPages') && $logs->hasPages())
+            <div class="mod-pagination">{{ $logs->links('pagination::tailwind') }}</div>
+        @endif
 
     </div>
 

@@ -2,8 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\RoleHelper;
 use App\Models\DailyJobAssignment;
 use App\Models\SyncSetting;
+use App\Models\User;
+use App\Notifications\SystemNotification;
 use App\Services\GoogleSheetsSyncService;
 use Illuminate\Console\Command;
 
@@ -49,6 +52,8 @@ class SyncDailyDja extends Command
 
         $this->info("Syncing DJA for spreadsheet: {$spreadsheetId}");
 
+        $wasFailing = SyncSetting::for(SyncSetting::Dja)->last_status === 'failed';
+
         $result = $syncService->syncDja($spreadsheetId);
 
         if ($result['success']) {
@@ -58,6 +63,15 @@ class SyncDailyDja extends Command
         }
 
         $this->error($result['message']);
+
+        // Tell the admins once per failure streak (not every 15 minutes) so a broken sync is noticed
+        if (! $wasFailing) {
+            User::whereHas('roles', fn ($q) => $q->where('name', RoleHelper::SUPER_ADMIN))->where('status', 'active')->get()->each->notify(new SystemNotification([
+                'type' => 'error',
+                'title' => 'Sync DJA gagal',
+                'message' => $result['message'],
+            ]));
+        }
 
         return self::FAILURE;
     }

@@ -123,9 +123,7 @@
                             <td>{{ $log->hold_reason_category ?? '' }}</td>
                             <td>{{ $log->hold_remarks ?? '' }}</td>
                             <td style="text-align:right;">
-                                <button wire:click="openStatusModal({{ $log->id }})" class="mod-btn-outline" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">
-                                    Update Status
-                                </button>
+                                <x-log-status-actions :log="$log" />
                             </td>
                         </tr>
                     @empty
@@ -146,95 +144,8 @@
         </div>
     </div>
 
-    {{-- ═══════ Update Status Modal ═══════ --}}
-    @if($isModalOpen)
-    <div class="cbm-modal-overlay"
-         x-data x-init
-         x-on:keydown.escape.window="$wire.set('isModalOpen', false)"
-         style="display:flex;"
-         x-show="true"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-    >
-        <div class="cbm-modal-panel" style="max-width:27.5rem;" @click.stop>
-            <div class="cbm-modal-header">
-                <div>
-                    <div class="cbm-modal-title">Update Status NSRDI</div>
-                    <div class="cbm-modal-subtitle">Perbarui status penyelesaian item ini</div>
-                </div>
-                <button class="cbm-modal-close" wire:click="$set('isModalOpen', false)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="cbm-modal-body">
-                <div class="cbm-form-group">
-                    <label class="cbm-form-label">Status Pekerjaan</label>
-                    <div class="cbm-select-wrap">
-                        <select wire:model.live="status" class="cbm-form-select {{ $status === 'Open' ? 'cbm-status-open' : 'cbm-status-closed' }}">
-                            <option value="Open">Open</option>
-                            <option value="Closed">Closed</option>
-                        </select>
-                    </div>
-                </div>
-
-                @if($status === 'Open')
-                <div class="cbm-hold-section"
-                     x-data x-show="true"
-                     x-transition:enter="transition ease-out duration-200"
-                     x-transition:enter-start="opacity-0 -translate-y-2"
-                     x-transition:enter-end="opacity-100 translate-y-0">
-                    <div class="cbm-hold-label">Alasan Open / Hold Reason</div>
-                    <div class="cbm-form-group">
-                        <label class="cbm-form-label">Code Reason</label>
-                        <div class="cbm-select-wrap">
-                            <select wire:model="hold_reason_category" class="cbm-form-select">
-                                <option value="">Pilih Code...</option>
-                                <option value="AUTHOR">AUTHOR</option>
-                                <option value="DEFFECT">DEFFECT</option>
-                                <option value="GSE">GSE</option>
-                                <option value="IRR">IRR</option>
-                                <option value="LT">LT</option>
-                                <option value="MP">MP</option>
-                                <option value="NS">NS</option>
-                                <option value="NT">NT</option>
-                                <option value="OCT">OCT</option>
-                                <option value="TC">TC</option>
-                                <option value="WT">WT</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="cbm-form-group" style="margin-bottom:0;">
-                        <label class="cbm-form-label">Reason Open (Remarks)</label>
-                        <textarea wire:model="hold_remarks" class="cbm-form-textarea" placeholder="Ketikan penjelasan secara manual..."></textarea>
-                    </div>
-                </div>
-                @endif
-            </div>
-
-            <div class="cbm-modal-footer">
-                <button wire:click="$set('isModalOpen', false)" class="mod-btn-outline">Batal</button>
-                <button wire:click="updateStatus" class="mod-btn-primary" wire:loading.attr="disabled" wire:target="updateStatus">
-                    <span wire:loading.remove wire:target="updateStatus">
-                        <span style="display:inline-flex;align-items:center;gap:.4rem;">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:.875rem;height:.875rem;"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
-                            Simpan Perubahan
-                        </span>
-                    </span>
-                    <span wire:loading wire:target="updateStatus">
-                        <span style="display:inline-flex;align-items:center;gap:.4rem;">
-                            <span class="cbm-spinner"></span> Menyimpan...
-                        </span>
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
-    @endif
+    {{-- ═══════ Status Open modal ═══════ --}}
+    <x-log-status-modal :show="$isModalOpen" :codes="$this::REASON_CODES" />
 
     {{-- ═══════ Import Modal ═══════ --}}
     @if($isImportModalOpen)

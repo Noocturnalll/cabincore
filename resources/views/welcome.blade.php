@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cabin Core — Cabin Maintenance System</title>
-    <meta name="description" content="Platform terpadu untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara real-time di seluruh stasiun.">
+    <meta name="description" content="Platform terpadu untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara real-time di seluruh station.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -451,7 +451,7 @@
                 </h1>
 
                 <p class="hero-desc">
-                    Platform terpadu untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara <strong style="color: var(--text);">real-time</strong> di seluruh stasiun.
+                    Platform terpadu untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara <strong style="color: var(--text);">real-time</strong> di seluruh station.
                 </p>
 
                 <div class="hero-cta">
@@ -519,7 +519,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="#14b8a6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <div class="feature-title">CML Log</div>
-                    <div class="feature-desc">Pencatatan Cabin Maintenance Log (CML) dengan filter tanggal, ekspor data, dan laporan per stasiun secara otomatis.</div>
+                    <div class="feature-desc">Pencatatan Cabin Maintenance Log (CML) dengan filter tanggal, ekspor data, dan laporan per station secara otomatis.</div>
                 </div>
 
                 <div class="feature-card">

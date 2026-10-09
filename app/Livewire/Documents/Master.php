@@ -2,32 +2,56 @@
 
 namespace App\Livewire\Documents;
 
+use App\Helpers\RoleHelper;
+use App\Livewire\Traits\WithLogTable;
 use App\Models\Document;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class Master extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WithLogTable, WithPagination;
 
-    public $documents;
-    
+    public $search = '';
+
+    public $categoryFilter = '';
+
+    // dipakai oleh WithLogTable::setTab()
+    public $activeTab = '';
+
     // Form attributes
     public $documentId;
+
     public $title;
+
     public $category = 'regulasi';
+
     public $file;
+
     public $isModalOpen = false;
+
+    public function updatedCategoryFilter()
+    {
+        $this->resetPage();
+    }
+
+    /** The sidebar hides this page from non Super Admin, the actions must be guarded on the server too. */
+    private function authorizeManage(): void
+    {
+        abort_unless(auth()->user()?->hasRole(RoleHelper::SUPER_ADMIN), 403, 'Hanya Super Admin yang dapat mengelola dokumen.');
+    }
 
     public function mount()
     {
-        $this->loadDocuments();
+        $this->authorizeManage();
     }
 
-    public function loadDocuments()
+    public function hydrate()
     {
-        $this->documents = Document::orderBy('created_at', 'desc')->get();
+        $this->authorizeManage();
     }
 
     public function create()
@@ -43,61 +67,79 @@ class Master extends Component
         $this->documentId = $document->id;
         $this->title = $document->title;
         $this->category = $document->category;
-        
+
         $this->isModalOpen = true;
+    }
+
+    protected function rules(): array
+    {
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'category' => ['required', Rule::in(array_keys(Document::CATEGORIES))],
+            'file' => [
+                $this->documentId ? 'nullable' : 'required',
+                'file',
+                'max:'.Document::MAX_KB,
+                'extensions:'.implode(',', Document::ALLOWED_EXTENSIONS),
+            ],
+        ];
+    }
+
+    protected function validationAttributes(): array
+    {
+        return ['title' => 'judul', 'category' => 'kategori', 'file' => 'file'];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'file.extensions' => 'Format file harus: '.strtoupper(implode(', ', Document::ALLOWED_EXTENSIONS)).'.',
+            'file.max' => 'Ukuran file maksimal '.(Document::MAX_KB / 1024).' MB.',
+        ];
     }
 
     public function save()
     {
-        $this->validate([
-            'title' => 'required|string|max:255',
-            'category' => 'required|string',
-            'file' => $this->documentId ? 'nullable|file|max:51200' : 'required|file|max:51200', // 50MB max
-        ]);
+        $this->authorizeManage();
+        $this->title = trim((string) $this->title);
+        $this->validate();
 
-        $document = $this->documentId ? Document::findOrFail($this->documentId) : new Document();
+        $document = $this->documentId ? Document::findOrFail($this->documentId) : new Document;
         $document->title = $this->title;
         $document->category = $this->category;
+        $oldPath = $document->file_path;
 
         if ($this->file) {
-            // Delete old file if exists
-            if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-                Storage::disk('public')->delete($document->file_path);
-            }
-            
-            $path = $this->file->store('documents', 'public');
-            $document->file_path = $path;
-            
-            // Calculate size and extension
+            // Store the new file first so a failed upload never leaves the record without a file
+            $document->file_path = $this->file->store('documents', 'public');
+
             $size = $this->file->getSize();
-            if ($size < 1024 * 1024) {
-                $sizeFormatted = round($size / 1024, 1) . ' KB';
-            } else {
-                $sizeFormatted = round($size / (1024 * 1024), 1) . ' MB';
-            }
-            $document->file_size = $sizeFormatted;
-            
-            $ext = strtolower($this->file->getClientOriginalExtension());
-            $document->file_extension = $ext;
+            $document->file_size = $size < 1024 * 1024
+                ? round($size / 1024, 1).' KB'
+                : round($size / (1024 * 1024), 1).' MB';
+            $document->file_extension = strtolower($this->file->getClientOriginalExtension());
         }
 
         $document->save();
 
+        if ($this->file && $oldPath && $oldPath !== $document->file_path) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
         $this->closeModal();
-        $this->loadDocuments();
-        
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Dokumen berhasil disimpan.']);
     }
 
     public function delete($id)
     {
+        $this->authorizeManage();
+
         $document = Document::findOrFail($id);
-        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+        if ($document->file_path) {
             Storage::disk('public')->delete($document->file_path);
         }
         $document->delete();
-        
-        $this->loadDocuments();
+
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Dokumen berhasil dihapus.']);
     }
 
@@ -107,6 +149,7 @@ class Master extends Component
         $this->title = '';
         $this->category = 'regulasi';
         $this->file = null;
+        $this->resetValidation();
     }
 
     public function closeModal()
@@ -117,6 +160,18 @@ class Master extends Component
 
     public function render()
     {
-        return view('livewire.documents.master')->layout('components.layouts.app', ['title' => 'Master Data Dokumen']);
+        $documents = Document::query()
+            ->when($this->search !== '', fn ($q) => $q->where('title', 'like', '%'.$this->search.'%'))
+            ->when($this->categoryFilter !== '', fn ($q) => $q->where('category', $this->categoryFilter))
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->paginate($this->perPage);
+
+        return view('livewire.documents.master', [
+            'documents' => $documents,
+            'categories' => Document::CATEGORIES,
+            'allowed' => strtoupper(implode(', ', Document::ALLOWED_EXTENSIONS)),
+            'maxMb' => Document::MAX_KB / 1024,
+        ])->layout('components.layouts.app', ['title' => 'Master Data Dokumen']);
     }
 }

@@ -276,7 +276,7 @@
                 <div class="cl-hero">
                     <div class="cl-pill"><span class="cl-pill-dot"></span>Cabin Maintenance System</div>
                     <h1 class="cl-h1">Kelola Semua<br>Operasional <span class="cl-h1-g">cabin</span><br>dalam Satu Layar</h1>
-                    <p class="cl-hero-p">Platform terintegrasi untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara real-time di seluruh stasiun.</p>
+                    <p class="cl-hero-p">Platform terintegrasi untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara real-time di seluruh station.</p>
                     <div class="cl-stats">
                         <div><div class="cl-sn">24/7</div><div class="cl-sl">Monitoring</div></div>
                         <div class="cl-sd"></div>
@@ -313,7 +313,7 @@
 
                 <form wire:submit="login" class="cl-form" novalidate>
 
-                    {{-- NIK --}}
+                    {{-- ID --}}
                     <div class="cl-fld">
                         <label for="nik" class="cl-lbl">ID Karyawan</label>
                         <div class="cl-iw" id="clNik">

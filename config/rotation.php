@@ -2,9 +2,9 @@
 
 /*
  | Konfigurasi import rotasi pesawat.
- | PENTING: jam di file Excel adalah JAM LOKAL stasiun. Daftar zona waktu di bawah
+ | PENTING: jam di file Excel adalah JAM LOKAL station. Daftar zona waktu di bawah
  | dipakai untuk menghitung durasi & posisi bar yang benar (mis. MDC->TTE beda 1 jam).
- | Stasiun yang belum terdaftar dianggap WIB dan akan muncul di peringatan import.
+ | Station yang belum terdaftar dianggap WIB dan akan muncul di peringatan import.
  | Mohon verifikasi daftar ini sesuai operasional Anda.
  */
 return [

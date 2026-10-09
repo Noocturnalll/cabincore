@@ -10,6 +10,7 @@ class DmiLog extends Model
     use HasFactory;
 
     protected $fillable = [
+        'man_power', 'start_at', 'end_at', 'man_hour', 'leader_import_id',
         'dja_id',
         'hold_reason_category',
         'hold_remarks',

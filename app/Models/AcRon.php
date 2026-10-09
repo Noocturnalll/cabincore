@@ -10,4 +10,11 @@ class AcRon extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'ron_date' => 'date',
+        ];
+    }
 }

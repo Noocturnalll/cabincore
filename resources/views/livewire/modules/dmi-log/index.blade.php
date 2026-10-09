@@ -33,16 +33,13 @@
             <button type="button" wire:click="setTab('planned')" class="cbm-tab {{ $activeTab === 'planned' ? 'active' : '' }}">DJA (Planned)</button>
             <button type="button" wire:click="setTab('unplanned')" class="cbm-tab {{ $activeTab === 'unplanned' ? 'active' : '' }}">Unplanned</button>
         </div>
-        <div class="mod-toolbar">
-            <div class="mod-search-wrap" style="display: flex; gap: 0.625rem; align-items: center;">
-                <div style="position: relative; display: flex; align-items: center;">
-                    <svg style="position: absolute; left: 0.625rem; width: 1.125rem; height: 1.125rem; color: #9ca3af;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                    <input wire:model.live="search" class="mod-search-input" type="text" placeholder="Cari registrasi, status..." style="padding-left: 2.1875rem;">
-                </div>
-                <input wire:model.live="dateFilter" type="date" class="mod-search-input">
+        <x-log-toolbar :logs="$logs" mode="date" :active="(bool) ($search || $dateFilter)" />
+        @if($carryOver > 0)
+            <div class="mod-hint mod-hint-warn" style="margin:1rem 1.25rem 0;">
+                {{ $carryOver }} log dari hari sebelumnya masih tampil di sini karena belum Closed dan belum punya code reason + remarks. Setelah dilengkapi, otomatis masuk Daily Report.
             </div>
-            <span class="mod-record-count">{{ $logs->count() }} records</span>
-        </div>
+        @endif
+
         <div class="mod-table-wrap">
             <table class="mod-table" style="white-space: nowrap;">
                 <thead>
@@ -102,9 +99,7 @@
                             </td>
                             <td><x-text-popup :text="$log->hold_remarks ?? $log->remarks ?? ''" /></td>
                             <td style="text-align:right;">
-                                <button wire:click="openStatusModal({{ $log->id }})" class="mod-btn-outline" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">
-                                    Update Status
-                                </button>
+                                <x-log-status-actions :log="$log" />
                             </td>
                         </tr>
                     @empty
@@ -114,8 +109,8 @@
                                     <div class="mod-empty-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"/></svg>
                                     </div>
-                                    <div class="mod-empty-title">Belum ada data DMI</div>
-                                    <div class="mod-empty-sub">Klik "Import DMI" untuk mengunggah data.</div>
+                                    <div class="mod-empty-title">{{ ($search || $dateFilter) ? 'Tidak ada data yang cocok' : 'Belum ada data DMI' }}</div>
+                                    <div class="mod-empty-sub">{{ ($search || $dateFilter) ? 'Ubah kata kunci atau tanggal, atau reset filter.' : 'Klik "Import DMI" untuk mengunggah data.' }}</div>
                                 </div>
                             </td>
                         </tr>
@@ -123,78 +118,13 @@
                 </tbody>
             </table>
         </div>
+        @if($logs->hasPages())
+            <div class="mod-pagination">{{ $logs->links('pagination::tailwind') }}</div>
+        @endif
     </div>
 
-    {{-- ═══════ Update Status Modal ═══════ --}}
-    @if($isModalOpen)
-    <div class="cbm-modal-overlay"
-         x-data x-init
-         x-on:keydown.escape.window="$wire.set('isModalOpen', false)"
-         style="display:flex;"
-         x-show="true"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-    >
-        <div class="cbm-modal-panel" style="max-width:27.5rem;" @click.stop>
-            <div class="cbm-modal-header">
-                <div>
-                    <div class="cbm-modal-title">Update Status DMI</div>
-                    <div class="cbm-modal-subtitle">Perbarui status penyelesaian item ini</div>
-                </div>
-                <button class="cbm-modal-close" wire:click="$set('isModalOpen', false)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="cbm-modal-body">
-                <div class="cbm-form-group">
-                    <label class="cbm-form-label">Status Pekerjaan</label>
-                    <div class="cbm-select-wrap">
-                        <select wire:model.live="status" class="cbm-form-select {{ $status === 'Open' ? 'cbm-status-open' : 'cbm-status-closed' }}">
-                            <option value="Open">Open</option>
-                            <option value="Closed">Closed</option>
-                        </select>
-                    </div>
-                </div>
-
-                @if($status === 'Open')
-                <div class="cbm-hold-section"
-                     x-data x-show="true"
-                     x-transition:enter="transition ease-out duration-200"
-                     x-transition:enter-start="opacity-0 -translate-y-2"
-                     x-transition:enter-end="opacity-100 translate-y-0">
-                    <div class="cbm-hold-label">Alasan Open / Hold Reason</div>
-                    <div class="cbm-form-group" style="margin-bottom:0;">
-                        <label class="cbm-form-label">Remarks</label>
-                        <textarea wire:model="hold_remarks" class="cbm-form-textarea" placeholder="Ketikan penjelasan secara manual..."></textarea>
-                    </div>
-                </div>
-                @endif
-            </div>
-
-            <div class="cbm-modal-footer">
-                <button wire:click="$set('isModalOpen', false)" class="mod-btn-outline">Batal</button>
-                <button wire:click="updateStatus" class="mod-btn-primary" wire:loading.attr="disabled" wire:target="updateStatus">
-                    <span wire:loading.remove wire:target="updateStatus">
-                        <span style="display:inline-flex;align-items:center;gap:.4rem;">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:.875rem;height:.875rem;"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
-                            Simpan Perubahan
-                        </span>
-                    </span>
-                    <span wire:loading wire:target="updateStatus">
-                        <span style="display:inline-flex;align-items:center;gap:.4rem;">
-                            <span class="cbm-spinner"></span> Menyimpan...
-                        </span>
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
-    @endif
+    {{-- ═══════ Status Open modal ═══════ --}}
+    <x-log-status-modal :show="$isModalOpen" :codes="$this::REASON_CODES" />
 
     {{-- ═══════ Import Modal ═══════ --}}
     @if($isImportModalOpen)

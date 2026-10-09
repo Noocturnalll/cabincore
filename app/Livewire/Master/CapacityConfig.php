@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\Airport;
 use App\Models\CapacityStation;
 use App\Models\CapacityTarget;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class CapacityConfig extends Component
@@ -60,7 +61,13 @@ class CapacityConfig extends Component
 
     public function setTab($tab)
     {
-        $this->activeTab = $tab;
+        $this->activeTab = in_array($tab, ['stations', 'targets'], true) ? $tab : 'stations';
+    }
+
+    public function closeModal()
+    {
+        $this->isModalOpen = false;
+        $this->resetInputFields();
     }
 
     public function createStation()
@@ -89,14 +96,23 @@ class CapacityConfig extends Component
     {
         CapacityStation::findOrFail($id)->delete();
         $this->loadData();
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Stasiun berhasil dihapus.']);
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Station berhasil dihapus.']);
     }
 
     public function saveStation()
     {
         $this->validate([
-            'kh_region' => 'required',
-            'station_code' => 'required',
+            'order_no' => 'nullable|integer|min:0',
+            'kh_region' => 'required|string|max:50',
+            'group_type' => 'nullable|string|max:50',
+            'station_code' => ['required', 'string', 'max:10', Rule::unique('capacity_stations', 'station_code')->ignore($this->station_id)],
+            'code_store' => 'nullable|string|max:50',
+            'working_hours' => 'nullable|string|max:50',
+            'tech_day' => 'nullable|integer|min:0',
+            'tech_night' => 'nullable|integer|min:0',
+        ], [], [
+            'kh_region' => 'KH region', 'station_code' => 'station', 'order_no' => 'order no',
+            'tech_day' => 'teknisi day', 'tech_night' => 'teknisi night',
         ]);
 
         CapacityStation::updateOrCreate(
@@ -108,15 +124,15 @@ class CapacityConfig extends Component
                 'station_code' => $this->station_code,
                 'code_store' => $this->code_store,
                 'working_hours' => $this->working_hours,
-                'tech_day' => $this->tech_day,
-                'tech_night' => $this->tech_night,
+                'tech_day' => $this->tech_day === '' ? null : $this->tech_day,
+                'tech_night' => $this->tech_night === '' ? null : $this->tech_night,
             ]
         );
 
         $this->isModalOpen = false;
         $this->resetInputFields();
         $this->loadData();
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Stasiun berhasil disimpan.']);
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Station berhasil disimpan.']);
     }
 
     public function resetInputFields()
@@ -130,10 +146,17 @@ class CapacityConfig extends Component
         $this->working_hours = '';
         $this->tech_day = null;
         $this->tech_night = null;
+        $this->resetValidation();
     }
 
     public function updateTargets()
     {
+        $this->validate([
+            'target_jt' => 'required|integer|min:0|max:9999',
+            'target_iu' => 'required|integer|min:0|max:9999',
+            'target_id' => 'required|integer|min:0|max:9999',
+        ], [], ['target_jt' => 'target JT', 'target_iu' => 'target IU', 'target_id' => 'target ID']);
+
         CapacityTarget::updateOrCreate(['aoc' => 'JT'], ['target_nsrdi' => $this->target_jt]);
         CapacityTarget::updateOrCreate(['aoc' => 'IU'], ['target_nsrdi' => $this->target_iu]);
         CapacityTarget::updateOrCreate(['aoc' => 'ID'], ['target_nsrdi' => $this->target_id]);
@@ -145,7 +168,7 @@ class CapacityConfig extends Component
     public function render()
     {
         return view('livewire.master.capacity-config', [
-            'airports' => Airport::orderBy('kode')->get(),
+            'airports' => Airport::where('status', 'Aktif')->orderBy('kode')->get(),
         ])->layout('components.layouts.app', ['title' => 'Master Capacity']);
     }
 }

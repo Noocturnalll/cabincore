@@ -416,6 +416,7 @@
     ═══════════════════════════════════════════════════ */
     .cbm-main {
         flex: 1;
+        min-width: 0;   /* lets wide tables scroll inside their card instead of stretching the whole page on phones */
         margin-left: var(--cbm-sidebar-w);
         display: flex;
         flex-direction: column;
@@ -847,6 +848,60 @@
 
     /* ── Pagination ── */
     .mod-pagination { padding: .875rem 1.25rem; border-top: 1px solid var(--cbm-divider); }
+
+    /* ── Summary stat cards (shared) ── */
+    .mod-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .875rem; margin-bottom: 1rem; }
+    .mod-stat { background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: 1rem; padding: .875rem 1.125rem; box-shadow: var(--cbm-card-shadow); }
+    .mod-stat-label { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--cbm-text-muted); }
+    .mod-stat-value { font-size: 1.5rem; font-weight: 800; color: var(--cbm-text); line-height: 1.2; margin-top: .15rem; letter-spacing: -.015em; }
+    .mod-stat-sub { font-size: .72rem; color: var(--cbm-text-muted); margin-top: .1rem; font-weight: 500; }
+    /* ── Form helpers ── */
+    .mod-field-error { display: block; margin-top: .25rem; color: #f87171; font-size: .75rem; font-weight: 600; }
+    .mod-readonly { padding: .625rem .875rem; border-radius: .75rem; background: var(--cbm-nav-hover); border: 1px solid var(--cbm-input-border); color: var(--cbm-text); font-weight: 800; }
+    .mod-hint { padding: .625rem .875rem; border-radius: .75rem; font-size: .8125rem; font-weight: 600; margin-bottom: 1rem; border: 1px solid transparent; }
+    .mod-hint-ok { background: rgba(52,211,153,.1); color: #10b981; border-color: rgba(52,211,153,.3); }
+    .mod-hint-warn { background: rgba(251,191,36,.1); color: #d97706; border-color: rgba(251,191,36,.3); }
+    .mod-hint-inline { font-size: .75rem; color: var(--cbm-text-muted); margin-top: .25rem; }
+
+    /* ── Extra status badges (IMS) ── */
+    .mod-badge-progress, .mod-badge-inactive {
+        display: inline-flex; align-items: center; gap: .3rem;
+        padding: .25rem .7rem; border-radius: 62.4375rem; font-size: .7rem; font-weight: 800; white-space: nowrap;
+    }
+    .mod-badge-progress { background: rgba(251,191,36,.14); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+    .mod-badge-inactive { background: rgba(148,163,184,.14); color: var(--cbm-text-muted); border: 1px solid rgba(148,163,184,.3); }
+    .cbm-light .mod-badge-progress { background: rgba(217,119,6,.1); color: #b45309; border-color: rgba(217,119,6,.3); }
+    .mod-badge-progress .mod-badge-dot { background: currentColor; }
+    /* ── Segmented switch + tab counters ── */
+    .cbm-seg { display: inline-flex; gap: .25rem; padding: .25rem; margin-bottom: 1.25rem; background: var(--cbm-card-bg); border: 1px solid var(--cbm-card-border); border-radius: .875rem; }
+    .cbm-seg-btn { padding: .5rem 1.125rem; font-size: .8125rem; font-weight: 700; color: var(--cbm-text-muted); border: 1px solid transparent; border-radius: .625rem; background: transparent; cursor: pointer; font-family: inherit; transition: all .2s ease; }
+    .cbm-seg-btn:hover { color: var(--cbm-text); background: rgba(148,163,184,.1); }
+    .cbm-seg-btn.active { background: var(--cbm-nav-active); color: var(--cbm-nav-active-t); border-color: var(--cbm-card-border); }
+    .cbm-tab-count { display: inline-block; margin-left: .35rem; padding: .05rem .45rem; font-size: .65rem; font-weight: 800; border-radius: 62.4375rem; background: var(--cbm-input-bg); border: 1px solid var(--cbm-input-border); color: var(--cbm-text-muted); }
+    /* ── Log toolbar (shared by WO / DMI / NSRDI / CML) ── */
+    .mod-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .625rem; min-width: 0; flex: 1 1 24rem; }
+    .mod-meta { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+    .mod-field { position: relative; display: flex; align-items: center; }
+    .mod-field-search { flex: 1 1 14rem; max-width: 22rem; }
+    .mod-field-search svg { position: absolute; left: .75rem; width: 1rem; height: 1rem; color: var(--cbm-text-sub); pointer-events: none; }
+    .mod-field-search .mod-search-input { width: 100%; padding-right: 2rem; }
+    .mod-clear-btn { position: absolute; right: .5rem; background: none; border: 0; color: var(--cbm-text-muted); font-size: 1.125rem; line-height: 1; cursor: pointer; padding: .125rem .375rem; border-radius: .5rem; }
+    .mod-clear-btn:hover { color: var(--cbm-text); background: var(--cbm-nav-hover); }
+    .mod-field-labelled, .mod-perpage { flex-direction: column; align-items: flex-start; gap: .2rem; }
+    .mod-field-labelled > span, .mod-perpage > span { font-size: .625rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--cbm-text-muted); }
+    .mod-input-plain { padding-left: .875rem; width: auto; min-width: 8.5rem; }
+    .mod-btn-sm { padding: .4rem .75rem; font-size: .75rem; align-self: flex-end; }
+    .mod-table-wrap { max-height: 70vh; overflow: auto; }
+    .mod-table thead th { position: sticky; top: 0; z-index: 2; background: var(--cbm-card-bg); box-shadow: inset 0 -2px 0 var(--cbm-divider); }
+    .cbm-light .mod-table thead th { background: #f1f5f9; }
+    @media (max-width: 640px) { .mod-field-search { max-width: none; flex-basis: 100%; } .mod-input-plain { min-width: 0; } }
+
+    /* Charts must shrink with their card (a canvas is 300px wide until Chart.js measures it), and tab rows scroll instead of widening the page */
+    canvas { max-width: 100%; }
+    .cbm-chart-container { min-width: 0; max-width: 100%; overflow: hidden; }
+    .cbm-period-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .cbm-period-tabs::-webkit-scrollbar { display: none; }
+    .cbm-period-btn { flex: 0 0 auto; }
 
     /* ── Tabs ── */
     .cbm-tabs {

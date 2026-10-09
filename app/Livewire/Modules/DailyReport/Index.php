@@ -4,12 +4,14 @@ namespace App\Livewire\Modules\DailyReport;
 
 use App\Exports\DailyReportExport;
 use App\Imports\DailyReportImport;
+use App\Livewire\Traits\WithLogTable;
 use App\Models\Airport;
 use App\Models\CmlLog;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
 use App\Notifications\SystemNotification;
+use App\Services\Dja\DailyReportArchiver;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -17,7 +19,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithFileUploads, WithPagination;
+    use WithFileUploads, WithLogTable, WithPagination;
 
     public $activeTab = 'dja-wo';
 
@@ -42,11 +44,6 @@ class Index extends Component
             $this->dispatch('notify', ['icon' => 'error', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]);
             auth()->user()->notify(new SystemNotification(['type' => 'error', 'title' => 'Sistem', 'message' => 'Terjadi kesalahan saat mengimport data: '.$e->getMessage()]));
         }
-    }
-
-    public function setTab($tab)
-    {
-        $this->activeTab = $tab;
     }
 
     public function exportExcel()
@@ -83,7 +80,7 @@ class Index extends Component
                         $q->whereDate('date', $this->dateFilter);
                     });
                 }
-                $logs = $query->latest()->get();
+                $logs = $query->latest()->paginate($this->perPage);
                 break;
             case 'unplanned-wo':
                 $query = WoLog::whereNull('dja_id')->where('is_submitted', true)->whereDate('date', '<', $activeDate);
@@ -100,7 +97,7 @@ class Index extends Component
                 if ($this->dateFilter) {
                     $query->whereDate('date', $this->dateFilter);
                 }
-                $logs = $query->orderBy('date', 'desc')->get();
+                $logs = $query->orderBy('date', 'desc')->orderByDesc('id')->paginate($this->perPage);
                 break;
             case 'dja-dmi':
                 $query = DmiLog::whereNotNull('dja_id')->where('is_submitted', true)->whereHas('dailyJobAssignment', function ($q) use ($activeDate) {
@@ -120,7 +117,7 @@ class Index extends Component
                         $q->whereDate('date', $this->dateFilter);
                     });
                 }
-                $logs = $query->latest()->get();
+                $logs = $query->latest()->paginate($this->perPage);
                 break;
             case 'unplanned-dmi':
                 $query = DmiLog::whereNull('dja_id')->where('is_submitted', true)->whereDate('date', '<', $activeDate);
@@ -136,7 +133,7 @@ class Index extends Component
                 if ($this->dateFilter) {
                     $query->whereDate('date', $this->dateFilter);
                 }
-                $logs = $query->orderBy('date', 'desc')->get();
+                $logs = $query->orderBy('date', 'desc')->orderByDesc('id')->paginate($this->perPage);
                 break;
             case 'dja-nsrdi':
                 // Data dari modul DJA (dja_id terisi) ATAU hasil import sheet DJA (import_source = 'dja').
@@ -168,7 +165,7 @@ class Index extends Component
                         });
                     });
                 }
-                $logs = $query->orderByRaw('COALESCE(plan_date, created_at) DESC')->orderBy('id')->get();
+                $logs = $query->orderByRaw('COALESCE(plan_date, created_at) DESC')->orderBy('id')->paginate($this->perPage);
                 break;
             case 'unplanned-nsrdi':
                 // Tanggal unplanned = plan_date (hasil import) atau report_date (data manual lama).
@@ -190,7 +187,7 @@ class Index extends Component
                 if ($this->dateFilter) {
                     $query->whereRaw('DATE(COALESCE(plan_date, report_date)) = ?', [$this->dateFilter]);
                 }
-                $logs = $query->orderByRaw('COALESCE(plan_date, report_date) DESC')->orderBy('id')->get();
+                $logs = $query->orderByRaw('COALESCE(plan_date, report_date) DESC')->orderBy('id')->paginate($this->perPage);
                 break;
             case 'cml':
                 $query = CmlLog::whereDate('date', '<', $activeDate);
@@ -207,7 +204,7 @@ class Index extends Component
                 if ($this->dateFilter) {
                     $query->whereDate('date', $this->dateFilter);
                 }
-                $logs = $query->orderBy('date', 'desc')->get();
+                $logs = $query->orderBy('date', 'desc')->orderByDesc('id')->paginate($this->perPage);
                 break;
             case 'summary':
                 // Base filter logic matching other tabs
@@ -267,6 +264,7 @@ class Index extends Component
                 $cmls = $cmlQuery->get();
 
                 $summaryData = [];
+                $other = ['WO' => 0, 'DMI' => 0, 'NSRDI' => 0, 'CML' => 0, 'TOTAL' => 0];
                 // Initialize with Master Data Airports
                 $airports = Airport::where('status', 'Aktif')->orderBy('kode')->pluck('kode');
                 foreach ($airports as $airportCode) {
@@ -278,6 +276,9 @@ class Index extends Component
                     if (isset($summaryData[$sta])) {
                         $summaryData[$sta]['WO']++;
                         $summaryData[$sta]['TOTAL']++;
+                    } else {
+                        $other['WO']++;
+                        $other['TOTAL']++;
                     }
                 }
                 foreach ($dmis as $dmi) {
@@ -285,6 +286,9 @@ class Index extends Component
                     if (isset($summaryData[$sta])) {
                         $summaryData[$sta]['DMI']++;
                         $summaryData[$sta]['TOTAL']++;
+                    } else {
+                        $other['DMI']++;
+                        $other['TOTAL']++;
                     }
                 }
                 foreach ($nsrdis as $nsrdi) {
@@ -292,6 +296,9 @@ class Index extends Component
                     if (isset($summaryData[$sta])) {
                         $summaryData[$sta]['NSRDI']++;
                         $summaryData[$sta]['TOTAL']++;
+                    } else {
+                        $other['NSRDI']++;
+                        $other['TOTAL']++;
                     }
                 }
                 foreach ($cmls as $cml) {
@@ -299,6 +306,9 @@ class Index extends Component
                     if (isset($summaryData[$sta])) {
                         $summaryData[$sta]['CML']++;
                         $summaryData[$sta]['TOTAL']++;
+                    } else {
+                        $other['CML']++;
+                        $other['TOTAL']++;
                     }
                 }
 
@@ -307,12 +317,18 @@ class Index extends Component
                     return $b['TOTAL'] <=> $a['TOTAL'];
                 });
 
+                if ($other['TOTAL'] > 0) {
+                    $summaryData['LAINNYA'] = $other; // stations missing from the airport master
+                }
+
                 $logs = $summaryData;
                 break;
         }
 
         return view('livewire.modules.daily-report.index', [
             'logs' => $logs,
+            'cutoffDate' => $activeDate,
+            'held' => app(DailyReportArchiver::class)->held(),
         ])->layout('components.layouts.app', ['title' => 'Daily Report']);
     }
 }

@@ -4,10 +4,10 @@ namespace App\Livewire\Modules\NsrdiNoSpare;
 
 use App\Exports\NsrdiExport;
 use App\Imports\NsrdiImport;
-use App\Models\DailyJobAssignment;
+use App\Livewire\Traits\ManagesLogStatus;
 use App\Models\NsrdiLog;
 use App\Notifications\SystemNotification;
-use App\Services\GoogleSheetsSyncService;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -15,23 +15,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithFileUploads, WithPagination;
+    use ManagesLogStatus, WithFileUploads, WithPagination;
 
     public $activeTab = 'nospare';
-
-    public $isModalOpen = false;
 
     public $isImportModalOpen = false;
 
     public $file;
-
-    public $selectedLogId = null;
-
-    public $status = 'Open';
-
-    public $hold_reason_category = '';
-
-    public $hold_remarks = '';
 
     public $search = '';
 
@@ -59,42 +49,20 @@ class Index extends Component
         $this->activeTab = 'nospare';
     }
 
-    public function openStatusModal($id)
+    protected function statusLogModel(): string
     {
-        $this->selectedLogId = $id;
-        $log = NsrdiLog::find($id);
-        if ($log) {
-            $this->status = $log->status === 'Closed' ? 'Closed' : 'Open';
-            $this->hold_reason_category = $log->hold_reason_category;
-            $this->hold_remarks = $log->hold_remarks;
-            $this->isModalOpen = true;
-        }
+        return NsrdiLog::class;
     }
 
-    public function updateStatus(GoogleSheetsSyncService $syncService)
+    protected function statusSheetTab(): string
     {
-        $this->validate([
-            'status' => 'required|in:Open,Closed',
-            'hold_reason_category' => 'required_if:status,Open',
-        ]);
+        return 'DJA NSRD';
+    }
 
-        $log = NsrdiLog::find($this->selectedLogId);
-        if ($log) {
-            $log->status = $this->status;
-            $log->hold_reason_category = $this->status === 'Open' ? $this->hold_reason_category : null;
-            $log->hold_remarks = $this->status === 'Open' ? $this->hold_remarks : null;
-            $log->save();
-
-            if ($log->dja_id) {
-                $dja = DailyJobAssignment::find($log->dja_id);
-                if ($dja && $dja->source_spreadsheet_id) {
-                    $syncService->pushSync($dja->source_spreadsheet_id, 'DJA NSRD', $dja->task_id, $this->status, $this->hold_remarks);
-                }
-            }
-        }
-
-        $this->isModalOpen = false;
-        session()->flash('success', 'Status updated successfully.');
+    protected function statusSideEffects(Model $log, string $status): array
+    {
+        // Capacity Management counts NSRDI by close date, so closing must stamp it (and re-opening clears it)
+        return ['close_date' => $status === 'Closed' ? $this->operationalDate() : null];
     }
 
     public function exportExcel()

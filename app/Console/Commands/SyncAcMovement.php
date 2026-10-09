@@ -2,7 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\RoleHelper;
 use App\Models\SyncSetting;
+use App\Models\User;
+use App\Notifications\SystemNotification;
 use App\Services\AcMovementSyncService;
 use Illuminate\Console\Command;
 
@@ -45,6 +48,8 @@ class SyncAcMovement extends Command
             return self::SUCCESS;
         }
 
+        $wasFailing = SyncSetting::for(SyncSetting::AcMovement)->last_status === 'failed';
+
         $result = $syncService->pullSync($spreadsheetId);
 
         if ($result['success']) {
@@ -54,6 +59,15 @@ class SyncAcMovement extends Command
         }
 
         $this->error($result['message']);
+
+        // Tell the admins once per failure streak so a broken mirror is noticed
+        if (! $wasFailing) {
+            User::whereHas('roles', fn ($q) => $q->where('name', RoleHelper::SUPER_ADMIN))->where('status', 'active')->get()->each->notify(new SystemNotification([
+                'type' => 'error',
+                'title' => 'Sync AC Movement gagal',
+                'message' => $result['message'],
+            ]));
+        }
 
         return self::FAILURE;
     }

@@ -3,6 +3,9 @@
 namespace App\Livewire\Master;
 
 use App\Models\Aircraft as AircraftModel;
+use App\Models\Aoc;
+use App\Services\Audit\AircraftTypeNormalizer;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -20,6 +23,8 @@ class Aircraft extends Component
 
     public $maskapai;
 
+    public $wg = '';
+
     public $status = 'Aktif';
 
     public $isEditMode = false;
@@ -29,6 +34,31 @@ class Aircraft extends Component
     public function updatingSearch()
     {
         $this->resetPage();
+    }
+
+    /** Airlines come from the AOC master; "Lainnya" stays for charters, and an old value on a row stays valid. */
+    public function airlineOptions(): array
+    {
+        return Aoc::where('is_active', true)->orderBy('sort_order')->pluck('name')
+            ->merge(AircraftModel::query()->distinct()->pluck('maskapai'))->push('Lainnya')->filter()->unique()->values()->all();
+    }
+
+    /** The form fields plus what follows from them: the airline's AOC and the fleet / variant of the type. */
+    private function payload(): array
+    {
+        $norm = (new AircraftTypeNormalizer)->normalize($this->tipe);
+
+        return [
+            'registration' => $this->registration,
+            'tipe' => $this->tipe,
+            'type_raw' => $this->tipe,
+            'fleet' => $norm['fleet'],
+            'variant' => $norm['variant'],
+            'maskapai' => $this->maskapai,
+            'aoc_id' => Aoc::where('name', $this->maskapai)->value('id'),
+            'wg' => trim((string) $this->wg) !== '' ? strtoupper(trim($this->wg)) : null,
+            'status' => $this->status,
+        ];
     }
 
     public function create()
@@ -45,6 +75,7 @@ class Aircraft extends Component
         $this->registration = $aircraft->registration;
         $this->tipe = $aircraft->tipe;
         $this->maskapai = $aircraft->maskapai;
+        $this->wg = (string) $aircraft->wg;
         $this->status = $aircraft->status;
 
         $this->isOpen = true;
@@ -53,19 +84,16 @@ class Aircraft extends Component
 
     public function store()
     {
+        $this->registration = strtoupper(trim((string) $this->registration));
         $this->validate([
-            'registration' => 'required|string|max:20|unique:aircraft,registration',
+            'registration' => 'required|string|max:20|unique:aircrafts,registration',
             'tipe' => 'required|string|max:100',
-            'maskapai' => 'required|string|max:100',
-            'status' => 'required|string',
+            'maskapai' => ['required', 'string', Rule::in($this->airlineOptions())],
+            'status' => 'required|in:Aktif,Tidak Aktif',
+            'wg' => ['nullable', 'string', 'max:10'],
         ]);
 
-        AircraftModel::create([
-            'registration' => $this->registration,
-            'tipe' => $this->tipe,
-            'maskapai' => $this->maskapai,
-            'status' => $this->status,
-        ]);
+        AircraftModel::create($this->payload());
 
         $this->isOpen = false;
         $this->resetInputFields();
@@ -74,20 +102,17 @@ class Aircraft extends Component
 
     public function update()
     {
+        $this->registration = strtoupper(trim((string) $this->registration));
         $this->validate([
-            'registration' => 'required|string|max:20|unique:aircraft,registration,'.$this->aircraft_id,
+            'registration' => 'required|string|max:20|unique:aircrafts,registration,'.$this->aircraft_id,
             'tipe' => 'required|string|max:100',
-            'maskapai' => 'required|string|max:100',
-            'status' => 'required|string',
+            'maskapai' => ['required', 'string', Rule::in($this->airlineOptions())],
+            'status' => 'required|in:Aktif,Tidak Aktif',
+            'wg' => ['nullable', 'string', 'max:10'],
         ]);
 
         $aircraft = AircraftModel::findOrFail($this->aircraft_id);
-        $aircraft->update([
-            'registration' => $this->registration,
-            'tipe' => $this->tipe,
-            'maskapai' => $this->maskapai,
-            'status' => $this->status,
-        ]);
+        $aircraft->update($this->payload());
 
         $this->isOpen = false;
         $this->resetInputFields();
@@ -112,19 +137,23 @@ class Aircraft extends Component
         $this->registration = '';
         $this->tipe = '';
         $this->maskapai = '';
+        $this->wg = '';
         $this->status = 'Aktif';
+        $this->resetValidation();
     }
 
     public function render()
     {
-        $aircrafts = AircraftModel::where('registration', 'like', '%'.$this->search.'%')
-            ->orWhere('tipe', 'like', '%'.$this->search.'%')
-            ->orWhere('maskapai', 'like', '%'.$this->search.'%')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        $aircrafts = AircraftModel::query()
+            ->when($this->search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->where('registration', 'like', '%'.$this->search.'%')
+                ->orWhere('tipe', 'like', '%'.$this->search.'%')
+                ->orWhere('maskapai', 'like', '%'.$this->search.'%')))
+            ->orderBy('registration')
+            ->paginate(15);
 
         return view('livewire.master.aircraft', [
             'aircrafts' => $aircrafts,
-        ])->layout('components.layouts.app');
+        ])->layout('components.layouts.app', ['title' => 'Master Pesawat']);
     }
 }

@@ -6,29 +6,15 @@
             <p class="mod-subtitle">Ajukan permintaan pengeluaran barang dari picklist dan pantau statusnya.</p>
         </div>
     </div>
+    <x-flash />
 
-    @if (session()->has('success'))
-        <div style="background: #ecfdf5; color: #065f46; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #10b981;">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if (session()->has('error'))
-        <div style="background: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #ef4444;">
-            {{ session('error') }}
-        </div>
-    @endif
-
-    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--cbm-border); padding-bottom: 0;">
-        <button type="button" wire:click="$set('activeTab', 'picklist')" style="padding: 0.75rem 1.5rem; font-weight: 600; border-bottom: 2px solid {{ $activeTab == 'picklist' ? 'var(--cbm-blue)' : 'transparent' }}; color: {{ $activeTab == 'picklist' ? 'var(--cbm-text)' : 'var(--cbm-text-muted)' }};">
-            Picklist ({{ count($picklist) }})
-        </button>
-        <button type="button" wire:click="$set('activeTab', 'history')" style="padding: 0.75rem 1.5rem; font-weight: 600; border-bottom: 2px solid {{ $activeTab == 'history' ? 'var(--cbm-blue)' : 'transparent' }}; color: {{ $activeTab == 'history' ? 'var(--cbm-text)' : 'var(--cbm-text-muted)' }};">
-            Riwayat Permintaan Saya
-        </button>
+    <div class="cbm-tabs" style="margin-bottom:1rem;padding-top:0;">
+        <button type="button" wire:click="$set('activeTab', 'picklist')" class="cbm-tab {{ $activeTab == 'picklist' ? 'active' : '' }}">Picklist ({{ count($picklist) }})</button>
+        <button type="button" wire:click="$set('activeTab', 'history')" class="cbm-tab {{ $activeTab == 'history' ? 'active' : '' }}">Riwayat Permintaan Saya</button>
     </div>
 
     @if($activeTab == 'picklist')
-    <div wire:key="tab-picklist" class="mod-card mod-card-accent-orange" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; background: transparent; border: none; box-shadow: none; padding: 0;">
+    <div wire:key="tab-picklist" class="mod-card mod-card-accent-orange" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 1.5rem; background: transparent; border: none; box-shadow: none; padding: 0;">
         
         <!-- Left: Items -->
         <div class="mod-card" style="padding: 1.5rem;">
@@ -144,9 +130,9 @@
                         <th style="text-align: right;">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody x-data="{ openId: null }">
                     @forelse($history as $trx)
-                        <tr>
+                        <tr wire:key="hist-{{ $trx->id }}">
                             <td class="mod-aircraft-name">{{ $trx->code }}</td>
                             <td>{{ $trx->requested_at->format('d M Y H:i') }}</td>
                             <td>
@@ -164,10 +150,23 @@
                                     <span class="mod-badge-inactive">{{ ucfirst($trx->status) }}</span>
                                 @endif
                             </td>
-                            <td style="text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem;">
-                                <button class="mod-action-btn">Detail</button>
+                            <td style="text-align:right;"><div style="display:flex;justify-content:flex-end;gap:.5rem;">
+                                <button type="button" class="mod-action-btn" @click="openId = openId === {{ $trx->id }} ? null : {{ $trx->id }}"><span x-text="openId === {{ $trx->id }} ? 'Tutup' : 'Detail'"></span></button>
                                 @if(in_array($trx->status, ['draft', 'pending_approval']))
-                                <button wire:click="cancelRequest({{ $trx->id }})" class="mod-action-btn" style="color: red; border-color: red;" onclick="confirm('Yakin ingin membatalkan pengajuan ini?') || event.stopImmediatePropagation()">Batal</button>
+                                <button wire:click="cancelRequest({{ $trx->id }})" class="mod-action-btn" style="color: red; border-color: red;" wire:confirm="Yakin ingin membatalkan pengajuan ini?">Batal</button>
+                                @endif
+                            </div></td>
+                        </tr>
+                        <tr x-show="openId === {{ $trx->id }}" x-cloak wire:key="hist-detail-{{ $trx->id }}">
+                            <td colspan="5" style="background:var(--cbm-nav-hover);">
+                                <div style="font-size:.8125rem;margin-bottom:.5rem;">{{ $trx->purpose_description }}</div>
+                                <div style="display:flex;flex-direction:column;gap:.25rem;">
+                                    @foreach($trx->items as $line)
+                                        <div style="font-size:.8125rem;"><strong>{{ $line->qty }}&times;</strong> {{ $line->item->name ?? '-' }} <span style="color:var(--cbm-text-muted);">PN {{ $line->item->part_number ?? '-' }}</span></div>
+                                    @endforeach
+                                </div>
+                                @if($trx->status === 'rejected' && $trx->rejected_reason)
+                                    <div class="mod-hint mod-hint-warn" style="margin:.75rem 0 0;">Ditolak: {{ $trx->rejected_reason }}</div>
                                 @endif
                             </td>
                         </tr>

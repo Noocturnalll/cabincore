@@ -15,6 +15,15 @@ class EnsurePasswordIsChanged
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // A disabled account loses access immediately, not only at the next login
+        if ($request->user() && $request->user()->status === 'inactive') {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors(['email' => 'Akun Anda dinonaktifkan. Hubungi administrator.']);
+        }
+
         if ($request->user() && $request->user()->is_default_password) {
             // Prevent redirect loops by checking if the user is already on the password change route
             if (! $request->routeIs('force-password-reset', 'logout')) {

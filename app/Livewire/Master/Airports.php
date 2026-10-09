@@ -3,11 +3,21 @@
 namespace App\Livewire\Master;
 
 use App\Models\Airport;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Airports extends Component
 {
+    use WithPagination;
+
+    public const STATUSES = ['Aktif', 'Tidak Aktif'];
+
     public $search = '';
+
+    public $statusFilter = '';
 
     public $airport_id;
 
@@ -23,6 +33,18 @@ class Airports extends Component
 
     public $isOpen = false;
 
+    public $deleteId = null;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
     public function create()
     {
         $this->resetInputFields();
@@ -32,6 +54,7 @@ class Airports extends Component
 
     public function edit($id)
     {
+        $this->resetInputFields();
         $airport = Airport::findOrFail($id);
         $this->airport_id = $id;
         $this->kode = $airport->kode;
@@ -43,53 +66,89 @@ class Airports extends Component
         $this->isEditMode = true;
     }
 
+    protected function rules(): array
+    {
+        return [
+            'kode' => ['required', 'string', 'max:10', Rule::unique('airports', 'kode')->ignore($this->airport_id)],
+            'nama' => ['required', 'string', 'max:100'],
+            'kota' => ['required', 'string', 'max:100'],
+            'status' => ['required', Rule::in(self::STATUSES)],
+        ];
+    }
+
+    protected function validationAttributes(): array
+    {
+        return ['kode' => 'kode IATA', 'nama' => 'nama bandara', 'kota' => 'kota'];
+    }
+
+    /** Tables/columns that store a station code as text, plus every table with an airport_id FK. */
+    private function usageOf(Airport $airport): array
+    {
+        $checks = [
+            'users' => 'station', 'capacity_stations' => 'station_code', 'daily_job_assignments' => 'station',
+            'aircraft_cleanings' => 'station', 'wo_logs' => 'act_station', 'dmi_logs' => 'act_station',
+            'nsrdi_logs' => 'act_station', 'cml_logs' => 'station',
+        ];
+        $labels = [
+            'users' => 'pengguna', 'capacity_stations' => 'konfigurasi capacity', 'daily_job_assignments' => 'tugas DJA',
+            'aircraft_cleanings' => 'data cleaning', 'wo_logs' => 'log WO', 'dmi_logs' => 'log DMI',
+            'nsrdi_logs' => 'log NSRDI', 'cml_logs' => 'log CML',
+        ];
+
+        $used = [];
+        foreach ($checks as $table => $column) {
+            if (Schema::hasTable($table) && Schema::hasColumn($table, $column)
+                && DB::table($table)->where($column, $airport->kode)->exists()) {
+                $used[] = $labels[$table];
+            }
+        }
+
+        return $used;
+    }
+
     public function store()
     {
-        $this->validate([
-            'kode' => 'required|string|max:10|unique:airports,kode',
-            'nama' => 'required|string|max:100',
-            'kota' => 'required|string|max:100',
-            'status' => 'required|string',
-        ]);
+        $this->kode = strtoupper(trim((string) $this->kode));
+        $this->validate();
 
-        Airport::create([
-            'kode' => $this->kode,
-            'nama' => $this->nama,
-            'kota' => $this->kota,
-            'status' => $this->status,
-        ]);
+        Airport::create($this->only(['kode', 'nama', 'kota', 'status']));
 
-        $this->isOpen = false;
-        $this->resetInputFields();
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Airport berhasil ditambahkan.']);
+        $this->close();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Bandara berhasil ditambahkan.']);
     }
 
     public function update()
     {
-        $this->validate([
-            'kode' => 'required|string|max:10|unique:airports,kode,'.$this->airport_id,
-            'nama' => 'required|string|max:100',
-            'kota' => 'required|string|max:100',
-            'status' => 'required|string',
-        ]);
+        $this->kode = strtoupper(trim((string) $this->kode));
+        $this->validate();
 
         $airport = Airport::findOrFail($this->airport_id);
-        $airport->update([
-            'kode' => $this->kode,
-            'nama' => $this->nama,
-            'kota' => $this->kota,
-            'status' => $this->status,
-        ]);
 
-        $this->isOpen = false;
-        $this->resetInputFields();
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Airport berhasil diperbarui.']);
+        // The code is stored as plain text in many tables: renaming it would orphan that data
+        if ($airport->kode !== $this->kode && ($used = $this->usageOf($airport))) {
+            $this->addError('kode', 'Kode tidak dapat diubah karena sudah dipakai di: '.implode(', ', $used).'.');
+
+            return;
+        }
+
+        $airport->update($this->only(['kode', 'nama', 'kota', 'status']));
+
+        $this->close();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Bandara berhasil diperbarui.']);
     }
 
     public function delete($id)
     {
-        Airport::findOrFail($id)->delete();
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Airport berhasil dihapus.']);
+        $airport = Airport::findOrFail($id);
+
+        if ($used = $this->usageOf($airport)) {
+            $this->dispatch('notify', ['icon' => 'error', 'message' => "{$airport->kode} masih dipakai di: ".implode(', ', $used).'. Nonaktifkan saja.', 'timer' => 6000]);
+
+            return;
+        }
+
+        $airport->delete();
+        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Bandara berhasil dihapus.']);
     }
 
     public function close()
@@ -105,18 +164,23 @@ class Airports extends Component
         $this->nama = '';
         $this->kota = '';
         $this->status = 'Aktif';
+        $this->resetValidation();
     }
 
     public function render()
     {
-        $airports = Airport::where('kode', 'like', '%'.$this->search.'%')
-            ->orWhere('nama', 'like', '%'.$this->search.'%')
-            ->orWhere('kota', 'like', '%'.$this->search.'%')
-            ->orderBy('id', 'desc')
-            ->get();
+        $airports = Airport::query()
+            ->when($this->search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->where('kode', 'like', '%'.$this->search.'%')
+                ->orWhere('nama', 'like', '%'.$this->search.'%')
+                ->orWhere('kota', 'like', '%'.$this->search.'%')))
+            ->when($this->statusFilter !== '', fn ($q) => $q->where('status', $this->statusFilter))
+            ->orderBy('kode')
+            ->paginate(15);
 
         return view('livewire.master.airports', [
             'airports' => $airports,
-        ])->layout('components.layouts.app');
+            'totals' => ['all' => Airport::count(), 'active' => Airport::where('status', 'Aktif')->count()],
+        ])->layout('components.layouts.app', ['title' => 'Master Bandara']);
     }
 }

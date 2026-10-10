@@ -54,6 +54,36 @@ client.on('message_create', async msg => {
 
 client.initialize();
 
+// Status check endpoint
+app.get('/status', (req, res) => {
+    return res.status(200).json({
+        ready: isClientReady,
+        message: isClientReady ? 'WhatsApp client is connected.' : 'WhatsApp client is connecting or disconnected.'
+    });
+});
+
+// API Endpoint to get all WhatsApp groups
+app.get('/groups', async (req, res) => {
+    if (!isClientReady) {
+        return res.status(503).json({ status: 'error', message: 'WhatsApp client is not ready yet.', groups: [] });
+    }
+
+    try {
+        const chats = await client.getChats();
+        const groups = chats
+            .filter(chat => chat.isGroup)
+            .map(chat => ({
+                id: chat.id._serialized,
+                name: chat.name,
+                unreadCount: chat.unreadCount || 0
+            }));
+        return res.status(200).json({ status: 'success', groups });
+    } catch (error) {
+        console.error('Failed to get groups:', error);
+        return res.status(500).json({ status: 'error', message: 'Failed to fetch groups.', error: error.message, groups: [] });
+    }
+});
+
 // API Endpoint for Laravel to send messages
 app.post('/send-message', async (req, res) => {
     if (!isClientReady) {
@@ -67,18 +97,21 @@ app.post('/send-message', async (req, res) => {
     }
 
     try {
-        // Format number: remove +, replace leading 0 with 62
-        let formattedNumber = number.toString().replace(/[^0-9]/g, '');
-        if (formattedNumber.startsWith('0')) {
-            formattedNumber = '62' + formattedNumber.substring(1);
-        }
-        
-        // Add @c.us suffix if it's not a group
-        if (!formattedNumber.includes('@')) {
-            formattedNumber = `${formattedNumber}@c.us`;
+        let targetId = number.toString().trim();
+
+        // Check if it's already a full JID (contains @g.us for groups or @c.us for individuals)
+        if (targetId.includes('@')) {
+            // Use targetId as is
+        } else {
+            // Format phone number
+            let formattedNumber = targetId.replace(/[^0-9]/g, '');
+            if (formattedNumber.startsWith('0')) {
+                formattedNumber = '62' + formattedNumber.substring(1);
+            }
+            targetId = `${formattedNumber}@c.us`;
         }
 
-        await client.sendMessage(formattedNumber, message);
+        await client.sendMessage(targetId, message);
         return res.status(200).json({ status: 'success', message: 'Message sent successfully.' });
     } catch (error) {
         console.error('Failed to send message:', error);

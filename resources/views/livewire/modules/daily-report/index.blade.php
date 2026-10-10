@@ -467,61 +467,141 @@
          wire:click.self="$set('showCodModal', false)"
          style="display:flex; z-index:9999;"
     >
-        <div class="cbm-modal-panel" @click.stop style="max-width:46rem; width:100%;">
-            <div class="cbm-modal-header">
+        <div class="cbm-modal-panel" @click.stop style="max-width:54rem; width:100%; max-height:92vh; display:flex; flex-direction:column; overflow:hidden;">
+            <div class="cbm-modal-header" style="flex-shrink:0;">
                 <div>
                     <div class="cbm-modal-title" style="display:flex;align-items:center;gap:.5rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1.25rem;height:1.25rem;color:var(--cbm-primary);" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1.35rem;height:1.35rem;color:var(--cbm-primary);" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                         </svg>
                         <span>Laporan Sementara Cabin On-Duty (COD)</span>
                     </div>
-                    <div class="cbm-modal-subtitle">Format pesan interim produksi harian (DJA R01/WO, DMI, Finding, NSRDI) siap kirim ke WhatsApp / Telegram.</div>
+                    <div class="cbm-modal-subtitle">Format pesan produksi harian dari DJA. Pilih grup WhatsApp atau Telegram tujuan lalu kirim langsung dari UI.</div>
                 </div>
                 <button class="cbm-modal-close" wire:click="$set('showCodModal', false)">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <div class="cbm-modal-body" style="padding-top:1rem;padding-bottom:.5rem;">
+            <div class="cbm-modal-body" style="padding-top:.75rem; padding-bottom:.5rem; overflow-y:auto; flex:1;">
                 {{-- Date Selector Bar --}}
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.75rem;flex-wrap:wrap;background:rgba(255,255,255,0.02);padding:.6rem .8rem;border-radius:.5rem;border:1px solid var(--cbm-card-border);">
-                    <div style="display:flex;align-items:center;gap:.5rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;gap:.75rem;flex-wrap:wrap;background:rgba(255,255,255,0.02);padding:.5rem .75rem;border-radius:.5rem;border:1px solid var(--cbm-card-border);">
+                    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                         <span style="font-size:.85rem;color:var(--cbm-text-muted);font-weight:600;">Tanggal:</span>
                         <input type="date" wire:model.live="codReportDate" wire:change="generateCodReport" class="mod-input" style="padding:.25rem .5rem;font-size:.85rem;border-radius:4px;">
+                        <span style="font-size:.75rem;color:var(--cbm-text-muted);">(Cutoff 18:00 WIB, otomatis D-1 pada shift pagi)</span>
                     </div>
-                    <button type="button" wire:click="generateCodReport" class="mod-btn-outline" style="padding:.25rem .65rem;font-size:.8rem;">
-                        Refresh Data
-                    </button>
+                    <div style="display:flex;gap:.5rem;">
+                        <button type="button" @click="copyText()" class="mod-btn-outline" style="padding:.25rem .65rem;font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                            </svg>
+                            <span x-text="copied ? 'Tersalin!' : 'Salin Teks'"></span>
+                        </button>
+                        <button type="button" wire:click="generateCodReport" class="mod-btn-outline" style="padding:.25rem .65rem;font-size:.8rem;">
+                            Refresh Data
+                        </button>
+                    </div>
                 </div>
 
                 {{-- Textarea Container --}}
-                <div style="position:relative;">
+                <div style="position:relative; margin-bottom:1rem;">
                     <textarea id="codReportTextarea" readonly
-                              rows="18"
-                              style="width:100%;font-family:'Courier New',Courier,monospace;font-size:.85rem;line-height:1.45;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:.85rem;resize:vertical;white-space:pre;"
+                              rows="12"
+                              style="width:100%;font-family:'Courier New',Courier,monospace;font-size:.85rem;line-height:1.45;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:.75rem;resize:vertical;white-space:pre;"
                     >{{ $codReportText }}</textarea>
+                </div>
+
+                {{-- Delivery Destination Section --}}
+                <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:1rem; align-items:start;">
+                    
+                    {{-- 1. WhatsApp Delivery Box --}}
+                    <div style="background:rgba(37,211,102,0.03); border:1px solid rgba(37,211,102,0.2); border-radius:8px; padding:.85rem;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.6rem;">
+                            <div style="display:flex; align-items:center; gap:.4rem; font-weight:700; color:#25D366; font-size:.9rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width:1.2rem;height:1.2rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                <span>Pilih Grup WhatsApp</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:.4rem;">
+                                <button type="button" wire:click="toggleSelectAllWaGroups" class="mod-btn-outline" style="padding:.2rem .45rem; font-size:.72rem;">
+                                    {{ count($selectedWaGroups) === count($waGroups) && count($waGroups) > 0 ? 'Batal Semua' : 'Pilih Semua' }}
+                                </button>
+                                <button type="button" wire:click="loadWhatsAppGroups" wire:loading.attr="disabled" class="mod-btn-outline" style="padding:.2rem .45rem; font-size:.72rem;" title="Tarik daftar grup langsung dari akun WhatsApp">
+                                    <span wire:loading.remove wire:target="loadWhatsAppGroups">🔄 Sync Grup</span>
+                                    <span wire:loading wire:target="loadWhatsAppGroups">Memuat...</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Groups Checklist --}}
+                        <div style="max-height:140px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:.4rem; background:rgba(0,0,0,0.2); margin-bottom:.5rem;">
+                            @forelse($waGroups as $g)
+                                <label style="display:flex; align-items:center; gap:.5rem; padding:.35rem .5rem; border-radius:4px; cursor:pointer; font-size:.82rem; border-bottom:1px solid rgba(255,255,255,0.03);">
+                                    <input type="checkbox" value="{{ $g['id'] }}" wire:model.live="selectedWaGroups" style="accent-color:#25D366; cursor:pointer;">
+                                    <span style="font-weight:600; color:var(--cbm-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $g['name'] }}">{{ $g['name'] }}</span>
+                                    <span style="font-size:.7rem; color:var(--cbm-text-muted); font-family:monospace; margin-left:auto; opacity:.7;">{{ Str::limit($g['id'], 18) }}</span>
+                                </label>
+                            @empty
+                                <div style="text-align:center; padding:.8rem; color:var(--cbm-text-muted); font-size:.8rem;">
+                                    Belum ada grup termuat. Klik <strong>Sync Grup</strong> atau ketik nomor di bawah.
+                                </div>
+                            @endforelse
+                        </div>
+
+                        {{-- Add Manual Target --}}
+                        <div style="display:flex; gap:.4rem; margin-bottom:.6rem;">
+                            <input type="text" wire:model="manualWaTarget" placeholder="Nomor (0812...) atau Group ID" class="mod-input" style="flex:1; padding:.25rem .5rem; font-size:.8rem;" wire:keydown.enter.prevent="addManualWaTarget">
+                            <button type="button" wire:click="addManualWaTarget" class="mod-btn-outline" style="padding:.25rem .6rem; font-size:.75rem;">
+                                + Tambah
+                            </button>
+                        </div>
+
+                        {{-- Send Button --}}
+                        <button type="button" wire:click="sendCodReportToSelectedGroups" wire:loading.attr="disabled" wire:target="sendCodReportToSelectedGroups" class="mod-btn-primary" style="width:100%; justify-content:center; background:#25D366; border-color:#25D366; color:#000; font-weight:700; display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .85rem;">
+                            <span wire:loading.remove wire:target="sendCodReportToSelectedGroups" style="display:inline-flex; align-items:center; gap:.4rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width:1.15rem;height:1.15rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                <span>Kirim ke {{ count($selectedWaGroups) }} Grup Terpilih</span>
+                            </span>
+                            <span wire:loading wire:target="sendCodReportToSelectedGroups">
+                                Mengirim ke WhatsApp...
+                            </span>
+                        </button>
+                    </div>
+
+                    {{-- 2. Telegram Delivery & Bot Box --}}
+                    <div style="background:rgba(34,158,217,0.03); border:1px solid rgba(34,158,217,0.2); border-radius:8px; padding:.85rem; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:.4rem; font-weight:700; color:#229ED9; font-size:.9rem; margin-bottom:.6rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width:1.2rem;height:1.2rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.197 1.006.128.828.942z"/></svg>
+                                <span>Kirim / Setting Telegram</span>
+                            </div>
+
+                            <div style="margin-bottom:.6rem;">
+                                <label style="font-size:.78rem; color:var(--cbm-text-muted); display:block; margin-bottom:.25rem;">Target Chat ID (Grup / Channel):</label>
+                                <input type="text" wire:model="telegramChatId" placeholder="-100xxxxxxxxxx" class="mod-input" style="width:100%; padding:.3rem .55rem; font-size:.82rem;">
+                            </div>
+
+                            <button type="button" wire:click="sendCodReportViaTelegram" wire:loading.attr="disabled" wire:target="sendCodReportViaTelegram" class="mod-btn-primary" style="width:100%; justify-content:center; background:#229ED9; border-color:#229ED9; color:#fff; font-weight:700; display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .85rem; margin-bottom:.75rem;">
+                                <span wire:loading.remove wire:target="sendCodReportViaTelegram" style="display:inline-flex; align-items:center; gap:.4rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1.15rem;height:1.15rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.197 1.006.128.828.942z"/></svg>
+                                    <span>Kirim ke Telegram</span>
+                                </span>
+                                <span wire:loading wire:target="sendCodReportViaTelegram">
+                                    Mengirim ke Telegram...
+                                </span>
+                            </button>
+                        </div>
+
+                        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:6px; padding:.5rem .65rem; font-size:.75rem; color:var(--cbm-text-muted); line-height:1.4;">
+                            💡 <strong>Mode Bot Telegram:</strong> Anggota tim juga bisa langsung ketik <code>/cod</code> atau <code>/status</code> di Telegram untuk meminta laporan ini secara otomatis kapan saja.
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <div class="cbm-modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
-                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-                    <button type="button" @click="copyText()" class="mod-btn-outline" style="display:inline-flex;align-items:center;gap:.35rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1.1rem;height:1.1rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
-                        </svg>
-                        <span x-text="copied ? 'Tersalin!' : 'Salin Teks (Copy)'"></span>
-                    </button>
-                    <button type="button" wire:click="sendCodReportViaWhatsApp" wire:loading.attr="disabled" class="mod-btn-outline" style="display:inline-flex;align-items:center;gap:.35rem;color:#25D366;border-color:rgba(37,211,102,0.3);">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1.1rem;height:1.1rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                        <span>Kirim WA</span>
-                    </button>
-                    <button type="button" wire:click="sendCodReportViaTelegram" wire:loading.attr="disabled" class="mod-btn-outline" style="display:inline-flex;align-items:center;gap:.35rem;color:#229ED9;border-color:rgba(34,158,217,0.3);">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1.1rem;height:1.1rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.197 1.006.128.828.942z"/></svg>
-                        <span>Kirim Telegram</span>
-                    </button>
-                </div>
-                <button type="button" wire:click="$set('showCodModal', false)" class="mod-btn-primary">
+            <div class="cbm-modal-footer" style="flex-shrink:0; display:flex; justify-content:flex-end;">
+                <button type="button" wire:click="$set('showCodModal', false)" class="mod-btn-outline" style="padding:.4rem 1.2rem;">
                     Tutup
                 </button>
             </div>

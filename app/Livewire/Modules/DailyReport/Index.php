@@ -38,40 +38,153 @@ class Index extends Component
 
     public $codReportText = '';
 
+    public $waGroups = [];
+
+    public $selectedWaGroups = [];
+
+    public $manualWaTarget = '';
+
+    public $telegramChatId = '';
+
+    public function mount()
+    {
+        $this->telegramChatId = (string) config('services.telegram.chat_id', '');
+        $defaultGroup = config('services.whatsapp.report_group');
+        if ($defaultGroup) {
+            $this->waGroups[] = [
+                'id' => $defaultGroup,
+                'name' => 'Default WAG COD (.env)',
+            ];
+            $this->selectedWaGroups[] = $defaultGroup;
+        }
+    }
+
     public function generateCodReport(?string $targetDate = null)
     {
         $codService = app(CodReportService::class);
         $this->codReportDate = $targetDate ?: ($this->codReportDate ?: ($this->dateFilter ?: CodReportService::getDefaultOperationalDate()));
         $this->codReportText = $codService->generateReportText($this->codReportDate);
         $this->showCodModal = true;
+
+        // Auto-fetch WhatsApp groups if list is still default
+        if (count($this->waGroups) <= 1) {
+            $waService = app(WhatsAppService::class);
+            $fetched = $waService->getGroups();
+            if (! empty($fetched)) {
+                $existingIds = collect($this->waGroups)->pluck('id')->all();
+                foreach ($fetched as $g) {
+                    if (! in_array($g['id'], $existingIds, true)) {
+                        $this->waGroups[] = $g;
+                    }
+                }
+            }
+        }
     }
 
-    public function sendCodReportViaWhatsApp()
+    public function loadWhatsAppGroups()
     {
         $waService = app(WhatsAppService::class);
-        $number = config('services.whatsapp.report_group');
-        if (! $number) {
-            $this->dispatch('notify', ['icon' => 'warning', 'message' => 'WHATSAPP_REPORT_GROUP belum diatur di .env']);
+        $groups = $waService->getGroups();
+
+        if (! empty($groups)) {
+            $existingIds = collect($this->waGroups)->pluck('id')->all();
+            foreach ($groups as $g) {
+                if (! in_array($g['id'], $existingIds, true)) {
+                    $this->waGroups[] = $g;
+                }
+            }
+            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Berhasil memuat '.count($groups).' grup dari WhatsApp!']);
+        } else {
+            $status = $waService->getStatus();
+            if (! $status['ready']) {
+                $this->dispatch('notify', ['icon' => 'warning', 'message' => 'WhatsApp bot belum terhubung: '.$status['message']]);
+            } else {
+                $this->dispatch('notify', ['icon' => 'info', 'message' => 'Tidak ada grup baru yang ditemukan di akun WhatsApp.']);
+            }
+        }
+    }
+
+    public function addManualWaTarget()
+    {
+        $target = trim($this->manualWaTarget);
+        if (! $target) {
+            return;
+        }
+
+        $existing = collect($this->waGroups)->firstWhere('id', $target);
+        if (! $existing) {
+            $this->waGroups[] = [
+                'id' => $target,
+                'name' => 'Target: '.$target,
+            ];
+        }
+
+        if (! in_array($target, $this->selectedWaGroups, true)) {
+            $this->selectedWaGroups[] = $target;
+        }
+
+        $this->manualWaTarget = '';
+        $this->dispatch('notify', ['icon' => 'success', 'message' => "Target '{$target}' ditambahkan ke pilihan!"]);
+    }
+
+    public function toggleSelectAllWaGroups()
+    {
+        $allIds = collect($this->waGroups)->pluck('id')->all();
+        if (count($this->selectedWaGroups) === count($allIds)) {
+            $this->selectedWaGroups = [];
+        } else {
+            $this->selectedWaGroups = $allIds;
+        }
+    }
+
+    public function sendCodReportToSelectedGroups()
+    {
+        if (empty($this->selectedWaGroups)) {
+            $this->dispatch('notify', ['icon' => 'warning', 'message' => 'Silakan pilih minimal 1 grup WhatsApp tujuan!']);
 
             return;
         }
 
-        $sent = $waService->sendMessage($number, $this->codReportText);
-        if ($sent) {
-            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Laporan COD berhasil dikirim ke WhatsApp!']);
+        $waService = app(WhatsAppService::class);
+        $success = 0;
+        $failed = 0;
+
+        foreach ($this->selectedWaGroups as $targetId) {
+            $sent = $waService->sendMessage($targetId, $this->codReportText);
+            if ($sent) {
+                $success++;
+            } else {
+                $failed++;
+            }
+        }
+
+        if ($success > 0 && $failed === 0) {
+            $this->dispatch('notify', [
+                'icon' => 'success',
+                'message' => "Laporan COD berhasil dikirim ke {$success} grup WhatsApp!",
+            ]);
+        } elseif ($success > 0 && $failed > 0) {
+            $this->dispatch('notify', [
+                'icon' => 'warning',
+                'message' => "Terkirim ke {$success} grup, gagal pada {$failed} grup.",
+            ]);
         } else {
-            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal mengirim ke WhatsApp. Pastikan whatsapp-service aktif.']);
+            $this->dispatch('notify', [
+                'icon' => 'error',
+                'message' => 'Gagal mengirim laporan ke WhatsApp. Pastikan whatsapp-service aktif dan terhubung.',
+            ]);
         }
     }
 
     public function sendCodReportViaTelegram()
     {
         $teleService = app(TelegramService::class);
-        $sent = $teleService->sendMessage(null, $this->codReportText);
+        $chatId = $this->telegramChatId ?: config('services.telegram.chat_id');
+        $sent = $teleService->sendMessage($chatId, $this->codReportText);
         if ($sent) {
             $this->dispatch('notify', ['icon' => 'success', 'message' => 'Laporan COD berhasil dikirim ke Telegram!']);
         } else {
-            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal mengirim ke Telegram. Pastikan TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_ID terisi.']);
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal mengirim ke Telegram. Pastikan TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_ID terisi di .env']);
         }
     }
 

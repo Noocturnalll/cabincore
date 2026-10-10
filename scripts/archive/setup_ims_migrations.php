@@ -589,8 +589,8 @@ PHP,
 
 $baseTime = time();
 foreach ($migrations as $name => $content) {
-    $filename = date('Y_m_d_His', $baseTime) . "_$name.php";
-    file_put_contents(__DIR__ . "/database/migrations/$filename", $content);
+    $filename = date('Y_m_d_His', $baseTime)."_$name.php";
+    file_put_contents(__DIR__."/database/migrations/$filename", $content);
     $baseTime++; // increment 1 second to ensure order
 }
 

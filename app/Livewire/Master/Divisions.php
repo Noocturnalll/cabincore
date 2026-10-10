@@ -3,6 +3,7 @@
 namespace App\Livewire\Master;
 
 use App\Models\Division;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -83,15 +84,17 @@ class Divisions extends Component
     public function delete($id)
     {
         $division = Division::findOrFail($id);
+        $userCount = $division->users()->count();
 
-        if ($division->users()->count() > 0) {
-            $this->dispatch('notify', ['icon' => 'error', 'message' => "Gagal menghapus: Divisi ini masih digunakan oleh {$division->users()->count()} pengguna.", 'timer' => 6000]);
-
-            return;
+        if ($userCount > 0) {
+            User::where('division_id', $division->id)->update(['division_id' => null]);
         }
 
         $division->delete();
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Divisi berhasil dihapus.']);
+        $msg = $userCount > 0
+            ? "Divisi {$division->name} dihapus ({$userCount} pengguna dilepas dari divisi)."
+            : "Divisi {$division->name} berhasil dihapus.";
+        $this->dispatch('notify', ['icon' => 'success', 'message' => $msg]);
     }
 
     public function close()

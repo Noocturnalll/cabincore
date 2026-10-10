@@ -5,56 +5,64 @@ $masters = [
         'table' => 'ims_categories',
         'fields' => ['code', 'name', 'ata_chapter', 'is_active'],
         'labels' => ['Kode', 'Kategori', 'ATA Chapter', 'Status'],
-        'types'  => ['text', 'text', 'text', 'boolean'],
-        'title'  => 'Kategori Barang',
-        'route'  => 'categories'
+        'types' => ['text', 'text', 'text', 'boolean'],
+        'title' => 'Kategori Barang',
+        'route' => 'categories',
     ],
     'Unit' => [
         'table' => 'ims_units',
         'fields' => ['code', 'name', 'is_active'],
         'labels' => ['Kode', 'Satuan', 'Status'],
-        'types'  => ['text', 'text', 'boolean'],
-        'title'  => 'Satuan (UOM)',
-        'route'  => 'units'
+        'types' => ['text', 'text', 'boolean'],
+        'title' => 'Satuan (UOM)',
+        'route' => 'units',
     ],
     'Location' => [
         'table' => 'ims_locations',
         'fields' => ['code', 'name', 'type', 'is_active'],
         'labels' => ['Kode', 'Lokasi', 'Tipe', 'Status'],
-        'types'  => ['text', 'text', 'select', 'boolean'],
-        'title'  => 'Lokasi & Rak',
-        'route'  => 'locations'
+        'types' => ['text', 'text', 'select', 'boolean'],
+        'title' => 'Lokasi & Rak',
+        'route' => 'locations',
     ],
     'Supplier' => [
         'table' => 'ims_suppliers',
         'fields' => ['code', 'name', 'contact_person', 'phone', 'is_active'],
         'labels' => ['Kode', 'Supplier', 'Kontak', 'Telepon', 'Status'],
-        'types'  => ['text', 'text', 'text', 'text', 'boolean'],
-        'title'  => 'Data Supplier',
-        'route'  => 'suppliers'
+        'types' => ['text', 'text', 'text', 'text', 'boolean'],
+        'title' => 'Data Supplier',
+        'route' => 'suppliers',
     ],
     'AircraftType' => [
         'table' => 'ims_aircraft_types',
         'fields' => ['code', 'manufacturer', 'model', 'is_active'],
         'labels' => ['Kode', 'Pabrikan', 'Model', 'Status'],
-        'types'  => ['text', 'text', 'text', 'boolean'],
-        'title'  => 'Tipe Pesawat',
-        'route'  => 'aircraft-types'
-    ]
+        'types' => ['text', 'text', 'text', 'boolean'],
+        'title' => 'Tipe Pesawat',
+        'route' => 'aircraft-types',
+    ],
 ];
 
-$dirClass = __DIR__ . '/app/Livewire/Modules/Ims/Master';
-$dirView = __DIR__ . '/resources/views/livewire/modules/ims/master';
+$dirClass = __DIR__.'/app/Livewire/Modules/Ims/Master';
+$dirView = __DIR__.'/resources/views/livewire/modules/ims/master';
 
-if (!is_dir($dirClass)) mkdir($dirClass, 0777, true);
-if (!is_dir($dirView)) mkdir($dirView, 0777, true);
+if (! is_dir($dirClass)) {
+    mkdir($dirClass, 0777, true);
+}
+if (! is_dir($dirView)) {
+    mkdir($dirView, 0777, true);
+}
 
 foreach ($masters as $model => $config) {
     // Generate Component Class
-    $className = $model . 's'; // e.g. Categories
-    if ($model == 'Category') $className = 'Categories';
-    if ($model == 'AircraftType') $className = 'AircraftTypes';
-    
+    $className = $model.'s'; // e.g. Categories
+    if ($model == 'Category') {
+        $className = 'Categories';
+    }
+    if ($model == 'AircraftType') {
+        $className = 'AircraftTypes';
+    }
+
     $rules = [];
     $properties = [];
     $resetData = [];
@@ -64,10 +72,10 @@ foreach ($masters as $model => $config) {
         } else {
             $rules[] = "'form.is_active' => 'boolean'";
         }
-        $properties[] = "        '{$field}' => " . ($field == 'is_active' ? 'true' : "''") . ",";
-        $resetData[] = "\$this->form['{$field}'] = " . ($field == 'is_active' ? 'true' : "''") . ";";
+        $properties[] = "        '{$field}' => ".($field == 'is_active' ? 'true' : "''").',';
+        $resetData[] = "\$this->form['{$field}'] = ".($field == 'is_active' ? 'true' : "''").';';
     }
-    
+
     if ($model == 'Location') {
         $rules[2] = "'form.type' => 'required|in:warehouse,rack,shelf,repair_area,quarantine'";
     }
@@ -75,7 +83,7 @@ foreach ($masters as $model => $config) {
     $rulesStr = implode(",\n        ", $rules);
     $propsStr = implode("\n", $properties);
     $resetStr = implode("\n        ", $resetData);
-    
+
     $classCode = <<<PHP
 <?php
 
@@ -168,21 +176,21 @@ class {$className} extends Component
 }
 PHP;
 
-    file_put_contents($dirClass . '/' . $className . '.php', $classCode);
+    file_put_contents($dirClass.'/'.$className.'.php', $classCode);
 
     // Generate View
     $viewName = strtolower($className);
-    
-    $thStr = "";
-    $tdStr = "";
-    $formStr = "";
-    
+
+    $thStr = '';
+    $tdStr = '';
+    $formStr = '';
+
     foreach ($config['fields'] as $index => $field) {
         $label = $config['labels'][$index];
         $type = $config['types'][$index];
-        
+
         $thStr .= "<th>{$label}</th>\n                        ";
-        
+
         if ($field == 'is_active') {
             $tdStr .= "<td>\n                                @if(\$record->is_active)\n                                    <span class=\"mod-badge-closed\">Aktif</span>\n                                @else\n                                    <span class=\"mod-badge-inactive\">Nonaktif</span>\n                                @endif\n                            </td>\n                            ";
         } else {
@@ -190,7 +198,7 @@ PHP;
         }
 
         if ($field == 'is_active') {
-            $formStr .= <<<HTML
+            $formStr .= <<<'HTML'
                 <div style="margin-bottom: 1rem;">
                     <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
                         <input type="checkbox" wire:model="form.is_active" style="width: 1rem; height: 1rem;">
@@ -200,7 +208,7 @@ PHP;
 
 HTML;
         } elseif ($field == 'type' && $model == 'Location') {
-            $formStr .= <<<HTML
+            $formStr .= <<<'HTML'
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">Tipe Lokasi</label>
                     <select wire:model="form.type" class="mod-search-input" style="width: 100%;">
@@ -211,7 +219,7 @@ HTML;
                         <option value="repair_area">Repair Area</option>
                         <option value="quarantine">Quarantine</option>
                     </select>
-                    @error('form.type') <span style="color: red; font-size: 0.75rem;">{{ \$message }}</span> @enderror
+                    @error('form.type') <span style="color: red; font-size: 0.75rem;">{{ $message }}</span> @enderror
                 </div>
 
 HTML;
@@ -317,8 +325,8 @@ HTML;
     @endif
 </div>
 HTML;
-    
-    file_put_contents($dirView . '/' . $viewName . '.blade.php', $viewCode);
+
+    file_put_contents($dirView.'/'.$viewName.'.blade.php', $viewCode);
 }
 
 echo "All 5 master CRUD components generated successfully.\n";

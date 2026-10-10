@@ -3,6 +3,7 @@
 namespace App\Livewire\Master;
 
 use App\Models\Position;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -83,15 +84,17 @@ class Positions extends Component
     public function delete($id)
     {
         $position = Position::findOrFail($id);
+        $userCount = $position->users()->count();
 
-        if ($position->users()->count() > 0) {
-            $this->dispatch('notify', ['icon' => 'error', 'message' => "Gagal menghapus: Jabatan ini masih digunakan oleh {$position->users()->count()} pengguna.", 'timer' => 6000]);
-
-            return;
+        if ($userCount > 0) {
+            User::where('position_id', $position->id)->update(['position_id' => null]);
         }
 
         $position->delete();
-        $this->dispatch('notify', ['icon' => 'success', 'message' => 'Jabatan berhasil dihapus.']);
+        $msg = $userCount > 0
+            ? "Jabatan {$position->name} dihapus ({$userCount} pengguna dilepas dari jabatan)."
+            : "Jabatan {$position->name} berhasil dihapus.";
+        $this->dispatch('notify', ['icon' => 'success', 'message' => $msg]);
     }
 
     public function close()

@@ -30,4 +30,11 @@ class CmlLog extends Model
     {
         return $this->belongsTo(DailyJobAssignment::class, 'dja_id');
     }
+
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+        ];
+    }
 }

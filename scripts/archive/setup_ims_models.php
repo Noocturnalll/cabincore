@@ -22,8 +22,8 @@ $models = [
     'DocumentSequence' => "protected \$table = 'ims_document_sequences';\n    protected \$guarded = [];",
 ];
 
-if (!is_dir(__DIR__ . '/app/Models/Ims')) {
-    mkdir(__DIR__ . '/app/Models/Ims', 0777, true);
+if (! is_dir(__DIR__.'/app/Models/Ims')) {
+    mkdir(__DIR__.'/app/Models/Ims', 0777, true);
 }
 
 foreach ($models as $name => $body) {
@@ -45,11 +45,11 @@ PHP;
 
     // Remove SoftDeletes from pivot/immutable tables
     if (in_array($name, ['Stock', 'StockMovement', 'TransactionItem', 'RepairLog', 'Attachment', 'DocumentSequence'])) {
-        $content = str_replace("use Illuminate\Database\Eloquent\SoftDeletes;\n\n", "", $content);
-        $content = str_replace("use SoftDeletes;\n    \n    ", "", $content);
+        $content = str_replace("use Illuminate\Database\Eloquent\SoftDeletes;\n\n", '', $content);
+        $content = str_replace("use SoftDeletes;\n    \n    ", '', $content);
     }
-    
-    file_put_contents(__DIR__ . "/app/Models/Ims/{$name}.php", $content);
+
+    file_put_contents(__DIR__."/app/Models/Ims/{$name}.php", $content);
 }
 
 echo "All models created successfully.\n";

@@ -40,4 +40,13 @@ class WoLog extends Model
     {
         return $this->belongsTo(DailyJobAssignment::class, 'dja_id');
     }
+
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+            'is_submitted' => 'boolean',
+            'man_hour' => 'decimal:2',
+        ];
+    }
 }

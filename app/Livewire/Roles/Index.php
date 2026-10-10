@@ -119,12 +119,14 @@ class Index extends Component
         $role = Role::withCount('users')->findOrFail($id);
 
         if ($role->name === RoleHelper::SUPER_ADMIN) {
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Role Super Admin dilindungi dan tidak dapat dihapus.']);
             session()->flash('error', 'Role Super Admin dilindungi dan tidak dapat dihapus.');
 
             return;
         }
 
         if ($role->users_count > 0) {
+            $this->dispatch('notify', ['icon' => 'error', 'message' => "Role '{$role->name}' masih digunakan oleh {$role->users_count} pengguna. Pindahkan pengguna terlebih dahulu."]);
             session()->flash('error', "Role '{$role->name}' masih digunakan oleh {$role->users_count} pengguna. Pindahkan pengguna terlebih dahulu.");
 
             return;
@@ -134,7 +136,8 @@ class Index extends Component
         $role->delete();
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        session()->flash('message', "Role '{$name}' berhasil dihapus.");
+        $this->dispatch('notify', ['icon' => 'success', 'message' => "Role '{$name}' berhasil dihapus."]);
+        session()->flash('success', "Role '{$name}' berhasil dihapus.");
     }
 
     public function openPermissionsMatrix(int $roleId): void

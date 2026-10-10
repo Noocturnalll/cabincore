@@ -45,4 +45,16 @@ class NsrdiLog extends Model
     {
         return $this->belongsTo(DailyJobAssignment::class, 'dja_id');
     }
+
+    protected function casts(): array
+    {
+        return [
+            'refresh_date' => 'date',
+            'report_date' => 'date',
+            'due_date' => 'date',
+            'plan_date' => 'date',
+            'close_date' => 'date',
+            'is_submitted' => 'boolean',
+        ];
+    }
 }

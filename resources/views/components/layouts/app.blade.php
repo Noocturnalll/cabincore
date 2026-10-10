@@ -81,6 +81,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
     @livewireStyles
+    @stack('styles')
 
     <style>
     .cbm-file-input::-webkit-file-upload-button {

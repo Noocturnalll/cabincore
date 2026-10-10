@@ -70,23 +70,19 @@ class Index extends Component
         $this->search = '';
     }
 
-    /** Keep rows whose registration (or other listed fields) contain the search text. */
-    private function filterRows($rows, array $fields)
+    /** Filter database query directly using SQL where clauses. */
+    private function applySearch($query, array $fields)
     {
-        $needle = mb_strtolower(trim($this->search));
+        $needle = trim($this->search);
         if ($needle === '') {
-            return $rows;
+            return $query;
         }
 
-        return $rows->filter(function ($row) use ($fields, $needle) {
+        return $query->where(function ($q) use ($fields, $needle) {
             foreach ($fields as $field) {
-                if (str_contains(mb_strtolower((string) $row->{$field}), $needle)) {
-                    return true;
-                }
+                $q->orWhere($field, 'like', "%{$needle}%");
             }
-
-            return false;
-        })->values();
+        });
     }
 
     public function render()
@@ -96,14 +92,14 @@ class Index extends Component
             ->get(['id', 'aircraft_registration', 'nsrdi_number', 'description'])
             ->groupBy('aircraft_registration');
 
-        $terminal1 = TerminalMovement::where('terminal_name', 'TERMINAL 1')->orderBy('no_seq')->get();
-        $terminal2 = TerminalMovement::where('terminal_name', 'TERMINAL 2')->orderBy('no_seq')->get();
-        $acRon = AcRon::orderBy('no_seq')->get();
-        $acStandby = AcStandby::orderBy('no_seq')->get();
-
         $terminalFields = ['registration', 'flight_no_in', 'flight_no_out', 'plan_ps'];
         $ronFields = ['reg_flt', 'ex_flt', 'flt_no', 'stand', 'route', 'remarks'];
         $standbyFields = ['reg_flt', 'airline_category', 'parking', 'remarks'];
+
+        $terminal1Query = $this->applySearch(TerminalMovement::where('terminal_name', 'TERMINAL 1'), $terminalFields);
+        $terminal2Query = $this->applySearch(TerminalMovement::where('terminal_name', 'TERMINAL 2'), $terminalFields);
+        $ronQuery = $this->applySearch(AcRon::query(), $ronFields);
+        $standbyQuery = $this->applySearch(AcStandby::query(), $standbyFields);
 
         return view('livewire.modules.ac-movement.index', [
             'syncSetting' => $setting = SyncSetting::for(SyncSetting::AcMovement),
@@ -114,15 +110,15 @@ class Index extends Component
                     && (! $setting->last_synced_at || $setting->last_synced_at->diffInMinutes(now(), true) > config('dja.ac_movement_stale_after_minutes', 10)),
             ],
             'counts' => [
-                'terminal1' => $terminal1->count(),
-                'terminal2' => $terminal2->count(),
-                'ron' => $acRon->count(),
-                'standby' => $acStandby->count(),
+                'terminal1' => TerminalMovement::where('terminal_name', 'TERMINAL 1')->count(),
+                'terminal2' => TerminalMovement::where('terminal_name', 'TERMINAL 2')->count(),
+                'ron' => AcRon::count(),
+                'standby' => AcStandby::count(),
             ],
-            'terminal1' => $this->filterRows($terminal1, $terminalFields),
-            'terminal2' => $this->filterRows($terminal2, $terminalFields),
-            'acRon' => $this->filterRows($acRon, $ronFields),
-            'acStandby' => $this->filterRows($acStandby, $standbyFields),
+            'terminal1' => $terminal1Query->orderBy('no_seq')->get(),
+            'terminal2' => $terminal2Query->orderBy('no_seq')->get(),
+            'acRon' => $ronQuery->orderBy('no_seq')->get(),
+            'acStandby' => $standbyQuery->orderBy('no_seq')->get(),
             'openNsrdis' => $openNsrdis,
         ])->layout('components.layouts.app', ['title' => 'AC Movement & RON']);
     }

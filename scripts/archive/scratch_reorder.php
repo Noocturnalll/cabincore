@@ -1,4 +1,5 @@
 <?php
+
 $lines = file('resources/views/components/layouts/partials/sidebar.blade.php');
 $blocks = [
     'A' => array_slice($lines, 0, 25),
@@ -15,8 +16,8 @@ $blocks = [
     'L' => array_slice($lines, 369), // 370-end
 ];
 $total = 0;
-foreach($blocks as $k => $b) { 
-    $total += count($b); 
+foreach ($blocks as $k => $b) {
+    $total += count($b);
 }
 if ($total == count($lines)) {
     // Write new order
@@ -35,7 +36,7 @@ if ($total == count($lines)) {
         $blocks['L']  // Analitik & Sistem
     );
     file_put_contents('resources/views/components/layouts/partials/sidebar.blade.php', implode('', $newLines));
-    echo "Success: ".count($newLines)." lines written.";
+    echo 'Success: '.count($newLines).' lines written.';
 } else {
     echo "Error: Total $total does not match original ".count($lines);
 }

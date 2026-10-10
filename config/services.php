@@ -44,4 +44,8 @@ return [
         'token' => env('SHEETS_SYNC_TOKEN'),
     ],
 
+    'whatsapp' => [
+        'report_group' => env('WHATSAPP_REPORT_GROUP', '081234567890'),
+    ],
+
 ];

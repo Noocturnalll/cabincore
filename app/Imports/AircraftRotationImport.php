@@ -5,16 +5,66 @@ namespace App\Imports;
 use App\Models\AircraftRotation;
 use App\Models\RotationImport;
 use App\Models\RotationLeg;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 
 class AircraftRotationImport implements ToCollection
 {
+    /**
+     * Map IATA station codes to UTC offsets based on config.
+     */
+    protected function getTzMap(): array
+    {
+        $map = [];
+        $tzConfig = config('rotation.timezones', []);
+        foreach ($tzConfig as $tz => $airports) {
+            foreach ($airports as $code) {
+                $map[strtoupper((string) $code)] = (int) $tz;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * Normalize a possible time value to HH:MM format.
+     */
+    protected function normalizeTime(mixed $val): ?string
+    {
+        if ($val === null || $val === '') {
+            return null;
+        }
+
+        // If numeric decimal from Excel time (fraction of a day, e.g. 0.41666 = 10:00)
+        if (is_numeric($val) && (float) $val < 1 && (float) $val >= 0) {
+            return gmdate('H:i', (int) round((float) $val * 86400));
+        }
+
+        $str = trim((string) $val);
+
+        // Matches 08:30 or 8:30
+        if (preg_match('/^(\d{1,2})[:.](\d{2})$/', $str, $matches)) {
+            return sprintf('%02d:%02d', (int) $matches[1], (int) $matches[2]);
+        }
+
+        // Matches 0830
+        if (preg_match('/^(\d{2})(\d{2})$/', $str, $matches)) {
+            $h = (int) $matches[1];
+            $m = (int) $matches[2];
+            if ($h < 24 && $m < 60) {
+                return sprintf('%02d:%02d', $h, $m);
+            }
+        }
+
+        return null;
+    }
+
     public function collection(Collection $rows): void
     {
-        // 1. Create the import record
-        $dateStr = now()->startOfDay()->toDateTimeString(); // 2026-10-01 00:00:00
+        // 1. Create or retrieve the import record
+        $dateStr = now()->startOfDay()->toDateTimeString();
 
         $import = RotationImport::where('operation_date', $dateStr)->first();
         if ($import) {
@@ -23,7 +73,6 @@ class AircraftRotationImport implements ToCollection
                 'stats' => [],
                 'warnings' => [],
             ]);
-            // Bersihkan data lama untuk tanggal ini agar tidak numpuk
             $import->aircraft()->delete();
         } else {
             $import = RotationImport::create([
@@ -39,10 +88,12 @@ class AircraftRotationImport implements ToCollection
         $firstCol = $config['first_col'] ?? 5; // Column E (0-indexed = 4)
         $lastCol = $config['last_col'] ?? 39;  // Column AM (0-indexed = 38)
         $countCol = $config['count_col'] ?? 40; // Column AN (0-indexed = 39)
+        $tzMap = $this->getTzMap();
+
+        $opBaseDate = Carbon::parse($import->operation_date ?? now()->toDateString())->startOfDay();
 
         // Parse each row
         foreach ($rows as $index => $row) {
-            // Skip headers
             if ($index < 2) {
                 continue;
             }
@@ -50,7 +101,6 @@ class AircraftRotationImport implements ToCollection
             $reg = $row[0] ?? ($row[1] ?? '');
             $regStr = trim((string) $reg);
 
-            // Jika bukan 3 huruf (seperti LJG, LHI), skip.
             if (empty($regStr) || strlen($regStr) !== 3 || ! preg_match('/^[A-Z]{3}$/', $regStr)) {
                 continue;
             }
@@ -69,30 +119,89 @@ class AircraftRotationImport implements ToCollection
                 ]
             );
 
-            // Parse legs (simulator based on 4-column blocks)
+            // Parse legs (4-column blocks)
+            $legSeq = 1;
             for ($i = $firstCol - 1; $i <= $lastCol - 1; $i += 4) {
                 $flightRaw = $row[$i] ?? null;
                 $flightNo = preg_replace('/[^0-9]/', '', (string) $flightRaw);
 
-                // Jika tidak ada angka (misalnya 'TKG'), anggap bukan flight
                 if (empty($flightNo)) {
                     continue;
                 }
 
+                $c1 = $row[$i + 1] ?? null;
+                $c2 = $row[$i + 2] ?? null;
+                $c3 = $row[$i + 3] ?? null;
+
+                // Detect stations vs times
+                $origin = 'CGK';
+                $dest = 'SUB';
+                $depLocal = null;
+                $arrLocal = null;
+
+                $cells = [$c1, $c2, $c3];
+                $stationsFound = [];
+                $timesFound = [];
+
+                foreach ($cells as $cell) {
+                    $cStr = strtoupper(trim((string) $cell));
+                    if (preg_match('/^[A-Z]{3}$/', $cStr)) {
+                        $stationsFound[] = $cStr;
+                    } elseif ($t = $this->normalizeTime($cell)) {
+                        $timesFound[] = $t;
+                    }
+                }
+
+                if (count($stationsFound) >= 2) {
+                    $origin = $stationsFound[0];
+                    $dest = $stationsFound[1];
+                } elseif (count($stationsFound) === 1) {
+                    $origin = $stationsFound[0];
+                }
+
+                if (count($timesFound) >= 2) {
+                    $depLocal = $timesFound[0];
+                    $arrLocal = $timesFound[1];
+                } elseif (count($timesFound) === 1) {
+                    $depLocal = $timesFound[0];
+                }
+
+                // If no times detected, compute sequential schedule based on leg sequence
+                if (! $depLocal) {
+                    $startHour = 6 + (($legSeq - 1) * 3);
+                    $depLocal = sprintf('%02d:00', min(22, $startHour));
+                }
+                if (! $arrLocal) {
+                    $depCarbon = Carbon::createFromFormat('H:i', $depLocal);
+                    $arrLocal = $depCarbon->addHours(2)->format('H:i');
+                }
+
+                $depTz = $tzMap[$origin] ?? 7;
+                $arrTz = $tzMap[$dest] ?? 7;
+
+                $depDateTime = $opBaseDate->copy()->setTimeFromTimeString($depLocal.':00');
+                $arrDateTime = $opBaseDate->copy()->setTimeFromTimeString($arrLocal.':00');
+                if ($arrDateTime->lt($depDateTime)) {
+                    $arrDateTime->addDay();
+                }
+
+                $depTs = $depDateTime->timestamp - ($depTz * 3600);
+                $arrTs = $arrDateTime->timestamp - ($arrTz * 3600);
+
                 try {
                     RotationLeg::create([
                         'aircraft_rotation_id' => $rotation->id,
-                        'seq' => (($i - ($firstCol - 1)) / 4) + 1,
+                        'seq' => $legSeq++,
                         'flight_raw' => $flightRaw,
                         'flight_no' => $flightNo,
-                        'origin' => substr((string) ($row[$i + 1] ?? 'CGK'), 0, 3),
-                        'destination' => substr((string) ($row[$i + 2] ?? 'SUB'), 0, 3),
-                        'dep_ts' => now()->timestamp,
-                        'arr_ts' => now()->addHours(2)->timestamp,
-                        'dep_local' => '10:00',
-                        'arr_local' => '12:00',
-                        'dep_tz' => 7,
-                        'arr_tz' => 7,
+                        'origin' => substr($origin, 0, 3),
+                        'destination' => substr($dest, 0, 3),
+                        'dep_ts' => $depTs,
+                        'arr_ts' => $arrTs,
+                        'dep_local' => $depLocal,
+                        'arr_local' => $arrLocal,
+                        'dep_tz' => $depTz,
+                        'arr_tz' => $arrTz,
                     ]);
                 } catch (\Exception $e) {
                     Log::error('Gagal simpan leg: '.$e->getMessage());

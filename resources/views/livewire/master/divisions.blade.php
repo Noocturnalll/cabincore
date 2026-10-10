@@ -34,7 +34,7 @@
                             <td style="text-align:right;">
                                 <div style="display:flex;justify-content:flex-end;gap:.5rem;">
                                     <button type="button" wire:click="edit({{ $division->id }})" class="mod-action-btn">Edit</button>
-                                    <button type="button" wire:click="delete({{ $division->id }})" wire:confirm="Hapus divisi {{ $division->name }}?" class="mod-action-btn" style="color:#ef4444;border-color:rgba(239,68,68,.35);" @disabled($division->users_count > 0) title="{{ $division->users_count > 0 ? 'Masih dipakai pengguna' : 'Hapus' }}">Hapus</button>
+                                    <button type="button" wire:click="delete({{ $division->id }})" wire:confirm="Hapus divisi {{ $division->name }}?{{ $division->users_count > 0 ? ' (' . $division->users_count . ' pengguna terkait akan dilepas dari divisi ini)' : '' }}" class="mod-action-btn" style="color:#ef4444;border-color:rgba(239,68,68,.35);" title="Hapus divisi">Hapus</button>
                                 </div>
                             </td>
                         </tr>

@@ -35,7 +35,7 @@ class SendDailyReportCommand extends Command
 
         $message .= 'Semangat bertugas! ✈️';
 
-        $number = $this->argument('number') ?? env('WHATSAPP_REPORT_GROUP', '081234567890');
+        $number = $this->argument('number') ?? config('services.whatsapp.report_group', '081234567890');
 
         $this->info("Sending report to {$number}...");
 

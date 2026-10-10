@@ -56,7 +56,7 @@ class AcMovementSyncService
 
         foreach ($tabs as $wanted => $actualTitle) {
             try {
-                $rows = $this->reader->values($spreadsheetId, $actualTitle);
+                $rows = $this->fetchWithRetry($spreadsheetId, $actualTitle);
 
                 // A completely empty response (no header either) is far more likely an API hiccup than the planner
                 // wiping the tab. Keep what we have instead of mirroring "nothing" over live data.
@@ -155,8 +155,15 @@ class AcMovementSyncService
 
         DB::transaction(function () use ($terminal, $records) {
             TerminalMovement::where('terminal_name', $terminal)->delete();
-            foreach ($records as $record) {
-                TerminalMovement::create($record);
+            if (! empty($records)) {
+                $now = now();
+                $rows = array_map(function ($r) use ($now) {
+                    $r['created_at'] = $now;
+                    $r['updated_at'] = $now;
+
+                    return $r;
+                }, $records);
+                TerminalMovement::insert($rows);
             }
         });
 
@@ -203,8 +210,15 @@ class AcMovementSyncService
 
         DB::transaction(function () use ($records) {
             AcRon::query()->delete();
-            foreach ($records as $record) {
-                AcRon::create($record);
+            if (! empty($records)) {
+                $now = now();
+                $rows = array_map(function ($r) use ($now) {
+                    $r['created_at'] = $now;
+                    $r['updated_at'] = $now;
+
+                    return $r;
+                }, $records);
+                AcRon::insert($rows);
             }
         });
 
@@ -257,8 +271,15 @@ class AcMovementSyncService
 
         DB::transaction(function () use ($records) {
             AcStandby::query()->delete();
-            foreach ($records as $record) {
-                AcStandby::create($record);
+            if (! empty($records)) {
+                $now = now();
+                $rows = array_map(function ($r) use ($now) {
+                    $r['created_at'] = $now;
+                    $r['updated_at'] = $now;
+
+                    return $r;
+                }, $records);
+                AcStandby::insert($rows);
             }
         });
 
@@ -305,5 +326,28 @@ class AcMovementSyncService
         $decoded = json_decode($e->getMessage(), true);
 
         return mb_substr($decoded['error']['message'] ?? $e->getMessage(), 0, 200);
+    }
+
+    /**
+     * Fetch values with retry backoff for rate limits / quota exceeded.
+     */
+    protected function fetchWithRetry(string $spreadsheetId, string $actualTitle): array
+    {
+        $attempts = 0;
+        while (true) {
+            try {
+                return $this->reader->values($spreadsheetId, $actualTitle);
+            } catch (\Throwable $e) {
+                $msg = strtolower($e->getMessage());
+                $isQuota = str_contains($msg, 'quota') || str_contains($msg, '429');
+                if ($isQuota && $attempts < 2) {
+                    $attempts++;
+                    usleep(100000 * $attempts);
+
+                    continue;
+                }
+                throw $e;
+            }
+        }
     }
 }

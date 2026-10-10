@@ -93,46 +93,97 @@ class Dashboard extends Component
         $activeCarbon = now()->hour >= 18 ? now() : now()->subDays(1);
         $targetDate = $activeCarbon->format('Y-m-d');
 
-        // ─── 1. DJA (Planned = dja_id IS NOT NULL) ──────────────────────────
-        // WO: filter by wo_logs.date
-        $wo_dja_total = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->whereNotNull('dja_id')->count();
-        $wo_dja_open = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->whereNotNull('dja_id')->where('status', 'Open')->count();
-        $wo_dja_closed = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->whereNotNull('dja_id')->where('status', 'Closed')->count();
+        // ─── 1. WO (Planned & Unplanned) ────────────────────────────────────
+        $woAgg = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')
+            ->whereBetween('date', [$from, $to])
+            ->selectRaw("
+                SUM(CASE WHEN dja_id IS NOT NULL THEN 1 ELSE 0 END) as dja_total,
+                SUM(CASE WHEN dja_id IS NOT NULL AND status = 'Open' THEN 1 ELSE 0 END) as dja_open,
+                SUM(CASE WHEN dja_id IS NOT NULL AND status = 'Closed' THEN 1 ELSE 0 END) as dja_closed,
+                SUM(CASE WHEN dja_id IS NULL THEN 1 ELSE 0 END) as unplanned_total,
+                SUM(CASE WHEN dja_id IS NULL AND status = 'Open' THEN 1 ELSE 0 END) as unplanned_open,
+                SUM(CASE WHEN dja_id IS NULL AND status = 'Closed' THEN 1 ELSE 0 END) as unplanned_closed
+            ")->first();
 
-        // DMI: filter by dmi_logs.date
-        $dmi_dja_total = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->whereBetween('date', [$from, $to])->whereNotNull('dja_id')->count();
-        $dmi_dja_open = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->whereBetween('date', [$from, $to])->whereNotNull('dja_id')->where('status', 'Open')->count();
-        $dmi_dja_closed = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->whereBetween('date', [$from, $to])->whereNotNull('dja_id')->where('status', 'Closed')->count();
+        $wo_dja_total = (int) ($woAgg->dja_total ?? 0);
+        $wo_dja_open = (int) ($woAgg->dja_open ?? 0);
+        $wo_dja_closed = (int) ($woAgg->dja_closed ?? 0);
+        $wo_unplanned_total = (int) ($woAgg->unplanned_total ?? 0);
+        $wo_unplanned_open = (int) ($woAgg->unplanned_open ?? 0);
+        $wo_unplanned_closed = (int) ($woAgg->unplanned_closed ?? 0);
 
-        // NSRDI (planned) uses plan_date
-        $nsrdi_dja_total = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->whereBetween('plan_date', [$from, $to])->whereNotNull('dja_id')->count();
-        $nsrdi_dja_open = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->whereBetween('plan_date', [$from, $to])->whereNotNull('dja_id')->where('status', 'Open')->count();
-        $nsrdi_dja_closed = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->whereBetween('plan_date', [$from, $to])->whereNotNull('dja_id')->where('status', 'Closed')->count();
+        // ─── 2. DMI (Planned & Unplanned) ───────────────────────────────────
+        $dmiAgg = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')
+            ->whereBetween('date', [$from, $to])
+            ->selectRaw("
+                SUM(CASE WHEN dja_id IS NOT NULL THEN 1 ELSE 0 END) as dja_total,
+                SUM(CASE WHEN dja_id IS NOT NULL AND status = 'Open' THEN 1 ELSE 0 END) as dja_open,
+                SUM(CASE WHEN dja_id IS NOT NULL AND status = 'Closed' THEN 1 ELSE 0 END) as dja_closed,
+                SUM(CASE WHEN dja_id IS NULL THEN 1 ELSE 0 END) as unplanned_total,
+                SUM(CASE WHEN dja_id IS NULL AND status = 'Open' THEN 1 ELSE 0 END) as unplanned_open,
+                SUM(CASE WHEN dja_id IS NULL AND status = 'Closed' THEN 1 ELSE 0 END) as unplanned_closed
+            ")->first();
 
-        // ─── 2. Unplanned (dja_id IS NULL) ──────────────────────────────────
-        $wo_unplanned_total = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->whereNull('dja_id')->count();
-        $wo_unplanned_closed = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->whereNull('dja_id')->where('status', 'Closed')->count();
-        $wo_unplanned_open = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->whereNull('dja_id')->where('status', 'Open')->count();
+        $dmi_dja_total = (int) ($dmiAgg->dja_total ?? 0);
+        $dmi_dja_open = (int) ($dmiAgg->dja_open ?? 0);
+        $dmi_dja_closed = (int) ($dmiAgg->dja_closed ?? 0);
+        $dmi_unplanned_total = (int) ($dmiAgg->unplanned_total ?? 0);
+        $dmi_unplanned_open = (int) ($dmiAgg->unplanned_open ?? 0);
+        $dmi_unplanned_closed = (int) ($dmiAgg->unplanned_closed ?? 0);
 
-        $dmi_unplanned_total = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->whereBetween('date', [$from, $to])->whereNull('dja_id')->count();
-        $dmi_unplanned_closed = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->whereBetween('date', [$from, $to])->whereNull('dja_id')->where('status', 'Closed')->count();
-        $dmi_unplanned_open = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->whereBetween('date', [$from, $to])->whereNull('dja_id')->where('status', 'Open')->count();
+        // ─── 3. NSRDI Planned (plan_date) & Unplanned (report_date) ─────────
+        $nsrdiDjaAgg = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
+            ->whereBetween('plan_date', [$from, $to])
+            ->whereNotNull('dja_id')
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_count,
+                SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count
+            ")->first();
 
-        // NSRDI (unplanned) uses report_date
-        $nsrdi_unplanned_total = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->whereBetween('report_date', [$from, $to])->whereNull('dja_id')->count();
-        $nsrdi_unplanned_closed = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->whereBetween('report_date', [$from, $to])->whereNull('dja_id')->where('status', 'Closed')->count();
-        $nsrdi_unplanned_open = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->whereBetween('report_date', [$from, $to])->whereNull('dja_id')->where('status', 'Open')->count();
+        $nsrdi_dja_total = (int) ($nsrdiDjaAgg->total ?? 0);
+        $nsrdi_dja_open = (int) ($nsrdiDjaAgg->open_count ?? 0);
+        $nsrdi_dja_closed = (int) ($nsrdiDjaAgg->closed_count ?? 0);
 
-        // ─── 3. CML ─────────────────────────────────────────────────────────
-        $cml_total = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')->whereBetween('date', [$from, $to])->count();
-        $cml_closed = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')->whereBetween('date', [$from, $to])->where('status', 'Closed')->count();
-        $cml_open = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')->whereBetween('date', [$from, $to])->where('status', 'Open')->count();
+        $nsrdiUnplannedAgg = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
+            ->whereBetween('report_date', [$from, $to])
+            ->whereNull('dja_id')
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_count,
+                SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count
+            ")->first();
 
-        // ─── 4. ICT Findings ────────────────────────────────────────────────
+        $nsrdi_unplanned_total = (int) ($nsrdiUnplannedAgg->total ?? 0);
+        $nsrdi_unplanned_open = (int) ($nsrdiUnplannedAgg->open_count ?? 0);
+        $nsrdi_unplanned_closed = (int) ($nsrdiUnplannedAgg->closed_count ?? 0);
+
+        // ─── 4. CML ─────────────────────────────────────────────────────────
+        $cmlAgg = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')
+            ->whereBetween('date', [$from, $to])
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_count,
+                SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count
+            ")->first();
+
+        $cml_total = (int) ($cmlAgg->total ?? 0);
+        $cml_open = (int) ($cmlAgg->open_count ?? 0);
+        $cml_closed = (int) ($cmlAgg->closed_count ?? 0);
+
+        // ─── 5. ICT Findings ────────────────────────────────────────────────
         $hasIct = $this->has('ict');
-        $ict_total = $hasIct ? DB::table('ict_findings')->whereBetween('date', [$from, $to])->count() : 0;
-        $ict_closed = $hasIct ? DB::table('ict_findings')->whereBetween('date', [$from, $to])->where('status', 'Closed')->count() : 0;
-        $ict_open = $hasIct ? DB::table('ict_findings')->whereBetween('date', [$from, $to])->where('status', 'Open')->count() : 0;
+        $ictAgg = $hasIct ? DB::table('ict_findings')
+            ->whereBetween('date', [$from, $to])
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) as open_count,
+                SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count
+            ")->first() : null;
+
+        $ict_total = (int) ($ictAgg->total ?? 0);
+        $ict_open = (int) ($ictAgg->open_count ?? 0);
+        $ict_closed = (int) ($ictAgg->closed_count ?? 0);
 
         // ICT breakdown by operator (daily)
         $ict_breakdown_raw = DB::table('ict_findings')
@@ -363,26 +414,28 @@ class Dashboard extends Component
         $cmlTrend = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')
             ->where('status', 'Closed')
             ->whereBetween('date', [$startDateStr, $endDateStr])
-            ->select('date')
-            ->get();
+            ->select('date', DB::raw('COUNT(*) as total'))
+            ->groupBy('date')
+            ->pluck('total', 'date');
 
-        foreach ($cmlTrend as $row) {
-            $idx = $getDayIndex($row->date);
+        foreach ($cmlTrend as $dateVal => $count) {
+            $idx = $getDayIndex((string) $dateVal);
             if ($idx >= 0) {
-                $trendCmlClosed[$idx]++;
+                $trendCmlClosed[$idx] += (int) $count;
             }
         }
 
         // Aircraft Cleaning trend
         $acTrend = $this->applyStationFilter(DB::table('aircraft_cleanings'), 'aircraft_cleanings')
             ->whereBetween('date', [$startDateStr, $endDateStr])
-            ->select('date')
-            ->get();
+            ->select('date', DB::raw('COUNT(*) as total'))
+            ->groupBy('date')
+            ->pluck('total', 'date');
 
-        foreach ($acTrend as $row) {
-            $idx = $getDayIndex($row->date);
+        foreach ($acTrend as $dateVal => $count) {
+            $idx = $getDayIndex((string) $dateVal);
             if ($idx >= 0) {
-                $trendAcTotal[$idx]++;
+                $trendAcTotal[$idx] += (int) $count;
             }
         }
 
@@ -390,43 +443,49 @@ class Dashboard extends Component
         foreach (['wo_logs', 'dmi_logs'] as $t) {
             $logs = $this->applyStationFilter(DB::table($t), $t)
                 ->whereBetween('date', [$startDateStr, $endDateStr])
-                ->select('date as the_date', 'dja_id')
+                ->select(
+                    'date as the_date',
+                    DB::raw('SUM(CASE WHEN dja_id IS NOT NULL THEN 1 ELSE 0 END) as dja_count'),
+                    DB::raw('SUM(CASE WHEN dja_id IS NULL THEN 1 ELSE 0 END) as unplanned_count')
+                )
+                ->groupBy('the_date')
                 ->get();
 
             foreach ($logs as $row) {
-                $idx = $getDayIndex($row->the_date);
+                $idx = $getDayIndex((string) $row->the_date);
                 if ($idx >= 0) {
-                    if (! is_null($row->dja_id)) {
-                        $trendDja[$idx]++;
-                    } else {
-                        $trendUnplanned[$idx]++;
-                    }
+                    $trendDja[$idx] += (int) $row->dja_count;
+                    $trendUnplanned[$idx] += (int) $row->unplanned_count;
                 }
             }
         }
 
         // NSRDI trend: DJA uses plan_date; unplanned uses report_date
-        $nsrdiLogs = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
-            ->select('plan_date', 'report_date', 'dja_id')
-            ->where(function ($q) use ($startDateStr, $endDateStr) {
-                $q->whereBetween('plan_date', [$startDateStr, $endDateStr])
-                    ->orWhereBetween('report_date', [$startDateStr, $endDateStr]);
-            })
-            ->get();
+        $nsrdiDja = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
+            ->whereNotNull('dja_id')
+            ->whereBetween('plan_date', [$startDateStr, $endDateStr])
+            ->select('plan_date as the_date', DB::raw('COUNT(*) as total'))
+            ->groupBy('plan_date')
+            ->pluck('total', 'the_date');
 
-        foreach ($nsrdiLogs as $row) {
-            $dateVal = $row->dja_id ? $row->plan_date : $row->report_date;
-            if (! $dateVal) {
-                continue;
-            }
-            $dateStr = substr($dateVal, 0, 10);
-            $idx = $getDayIndex($dateStr);
+        foreach ($nsrdiDja as $dateVal => $count) {
+            $idx = $getDayIndex((string) $dateVal);
             if ($idx >= 0) {
-                if (! is_null($row->dja_id)) {
-                    $trendDja[$idx]++;
-                } else {
-                    $trendUnplanned[$idx]++;
-                }
+                $trendDja[$idx] += (int) $count;
+            }
+        }
+
+        $nsrdiUnplanned = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
+            ->whereNull('dja_id')
+            ->whereBetween('report_date', [$startDateStr, $endDateStr])
+            ->select('report_date as the_date', DB::raw('COUNT(*) as total'))
+            ->groupBy('report_date')
+            ->pluck('total', 'the_date');
+
+        foreach ($nsrdiUnplanned as $dateVal => $count) {
+            $idx = $getDayIndex((string) $dateVal);
+            if ($idx >= 0) {
+                $trendUnplanned[$idx] += (int) $count;
             }
         }
 
@@ -552,14 +611,14 @@ class Dashboard extends Component
         $recurringNs = [];
         $seenNs = [];
 
-        foreach ($activeNsrdisToday as $log) {
-            if (! $log->nsrdi_number || in_array($log->nsrdi_number, $seenNs)) {
-                continue;
-            }
+        $nsrdiNumbers = $activeNsrdisToday->pluck('nsrdi_number')->filter()->unique()->values()->all();
 
-            $pastNs = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
-                ->where('nsrdi_number', $log->nsrdi_number)
-                ->where('id', '<', $log->id)
+        $pastNsGrouped = collect();
+        if (! empty($nsrdiNumbers)) {
+            $maxId = $activeNsrdisToday->max('id');
+            $pastNsGrouped = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
+                ->whereIn('nsrdi_number', $nsrdiNumbers)
+                ->where('id', '<', $maxId)
                 ->where(function ($q) {
                     $q->where('hold_reason_category', 'like', '%NS%')
                         ->orWhere('code_open', 'like', '%NS%')
@@ -571,7 +630,17 @@ class Dashboard extends Component
                         ->orWhereBetween('report_date', [$thirtyDaysAgo, $targetDate]);
                 })
                 ->orderBy('id', 'desc')
-                ->first();
+                ->get()
+                ->groupBy('nsrdi_number');
+        }
+
+        foreach ($activeNsrdisToday as $log) {
+            if (! $log->nsrdi_number || in_array($log->nsrdi_number, $seenNs)) {
+                continue;
+            }
+
+            $candidates = $pastNsGrouped->get($log->nsrdi_number);
+            $pastNs = $candidates ? $candidates->firstWhere('id', '<', $log->id) : null;
 
             if ($pastNs) {
                 $log->past_ns_date = $pastNs->plan_date ?? $pastNs->report_date;
@@ -780,7 +849,7 @@ class Dashboard extends Component
             $rows = DB::table($table)
                 ->join('daily_job_assignments', "{$table}.dja_id", '=', 'daily_job_assignments.id')
                 ->selectRaw("daily_job_assignments.station as station, COUNT(*) as total, SUM(CASE WHEN {$table}.status = 'Closed' THEN 1 ELSE 0 END) as closed_count")
-                ->whereRaw("DATE({$table}.{$dateCol}) BETWEEN ? AND ?", [$monthStart, $endDate])
+                ->whereBetween("{$table}.{$dateCol}", [$monthStart, $endDate])
                 ->when($kpiStations, fn ($q) => $q->whereIn('daily_job_assignments.station', $kpiStations))
                 ->groupBy('daily_job_assignments.station')
                 ->get();
@@ -795,7 +864,7 @@ class Dashboard extends Component
 
         $acRows = $this->applyStationFilter(DB::table('aircraft_cleanings'), 'aircraft_cleanings')
             ->selectRaw("station, COUNT(*) as total, SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count")
-            ->whereRaw('DATE(date) BETWEEN ? AND ?', [$monthStart, $endDate])
+            ->whereBetween('date', [$monthStart, $endDate])
             ->groupBy('station')
             ->get();
 
@@ -850,13 +919,13 @@ class Dashboard extends Component
         foreach ($gaugeSources as $key => $table) {
             $row = $this->applyStationFilter(DB::table($table), $table)
                 ->selectRaw("COUNT(*) as total, SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) as closed_count")
-                ->whereRaw('DATE(date) BETWEEN ? AND ?', [$monthStart, $endDate])
+                ->whereBetween('date', [$monthStart, $endDate])
                 ->first();
             $gauges[$key] = $rate((int) $row->total, (int) $row->closed_count);
         }
         $gauges['Overall'] = $rate($monthTotals['total'], $monthTotals['closed']);
 
-        $manHoursMonth = (float) $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereRaw('DATE(date) BETWEEN ? AND ?', [$monthStart, $endDate])->sum('man_hour');
+        $manHoursMonth = (float) $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$monthStart, $endDate])->sum('man_hour');
         $busiestIdx = array_search(max($dailyTotal), $dailyTotal);
         $activeDays = count(array_filter($dailyTotal));
 

@@ -52,9 +52,9 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/profile', Index::class)->name('profile.index');
 
     // Master Data
-    Route::get('/master/airports', Airports::class)->middleware('role:Super Admin')->name('master.airports');
-    Route::get('/master/aircraft', Aircraft::class)->middleware('role:Super Admin')->name('master.aircraft');
-    Route::get('/master/categories', Categories::class)->middleware('role:Super Admin')->name('master.categories');
+    Route::get('/master/airports', Airports::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('master.airports');
+    Route::get('/master/aircraft', Aircraft::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('master.aircraft');
+    Route::get('/master/categories', Categories::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('master.categories');
 
     Route::middleware(['role:'.RoleHelper::SUPER_ADMIN])->group(function () {
         Route::get('/master/divisions', Divisions::class)->name('master.divisions');
@@ -140,13 +140,13 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
         return Storage::disk('public')->download($document->file_path, $document->downloadFilename());
     })->name('documents.download');
     Route::get('/notifications', App\Livewire\Notifications\Index::class)->name('notifications.index');
-    Route::get('/import/data-center', DataCenter::class)->name('import.data-center');
+    Route::get('/import/data-center', DataCenter::class)->middleware('permission:menu.production')->name('import.data-center');
     Route::get('/force-password-reset', ForcePasswordReset::class)->name('force-password-reset');
 
-    Route::post('/import/daily-report', [ImportController::class, 'dailyReport'])->name('import.daily-report');
-    Route::post('/import/aircraft-rotation', [ImportController::class, 'aircraftRotation'])->name('import.aircraft-rotation');
+    Route::post('/import/daily-report', [ImportController::class, 'dailyReport'])->middleware('permission:menu.production')->name('import.daily-report');
+    Route::post('/import/aircraft-rotation', [ImportController::class, 'aircraftRotation'])->middleware('permission:menu.capacity')->name('import.aircraft-rotation');
 });
 
 require __DIR__.'/auth.php';
 
-Route::post('/daily-report/import-raw', [ImportController::class, 'dailyReportRaw'])->name('daily-report.import-raw')->middleware('auth');
+Route::post('/daily-report/import-raw', [ImportController::class, 'dailyReportRaw'])->middleware(['auth', 'permission:menu.production'])->name('daily-report.import-raw');

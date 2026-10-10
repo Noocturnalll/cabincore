@@ -34,7 +34,7 @@
                             <td style="text-align:right;">
                                 <div style="display:flex;justify-content:flex-end;gap:.5rem;">
                                     <button type="button" wire:click="edit({{ $position->id }})" class="mod-action-btn">Edit</button>
-                                    <button type="button" wire:click="delete({{ $position->id }})" wire:confirm="Hapus jabatan {{ $position->name }}?" class="mod-action-btn" style="color:#ef4444;border-color:rgba(239,68,68,.35);" @disabled($position->users_count > 0) title="{{ $position->users_count > 0 ? 'Masih dipakai pengguna' : 'Hapus' }}">Hapus</button>
+                                    <button type="button" wire:click="delete({{ $position->id }})" wire:confirm="Hapus jabatan {{ $position->name }}?{{ $position->users_count > 0 ? ' (' . $position->users_count . ' pengguna terkait akan dilepas dari jabatan ini)' : '' }}" class="mod-action-btn" style="color:#ef4444;border-color:rgba(239,68,68,.35);" title="Hapus jabatan">Hapus</button>
                                 </div>
                             </td>
                         </tr>

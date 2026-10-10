@@ -11,7 +11,10 @@ use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
 use App\Notifications\SystemNotification;
+use App\Services\Dja\CodReportService;
 use App\Services\Dja\DailyReportArchiver;
+use App\Services\TelegramService;
+use App\Services\WhatsAppService;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -28,6 +31,49 @@ class Index extends Component
     public $search = '';
 
     public $dateFilter = '';
+
+    public $showCodModal = false;
+
+    public $codReportDate = '';
+
+    public $codReportText = '';
+
+    public function generateCodReport(?string $targetDate = null)
+    {
+        $codService = app(CodReportService::class);
+        $this->codReportDate = $targetDate ?: ($this->codReportDate ?: ($this->dateFilter ?: now()->format('Y-m-d')));
+        $this->codReportText = $codService->generateReportText($this->codReportDate);
+        $this->showCodModal = true;
+    }
+
+    public function sendCodReportViaWhatsApp()
+    {
+        $waService = app(WhatsAppService::class);
+        $number = config('services.whatsapp.report_group');
+        if (! $number) {
+            $this->dispatch('notify', ['icon' => 'warning', 'message' => 'WHATSAPP_REPORT_GROUP belum diatur di .env']);
+
+            return;
+        }
+
+        $sent = $waService->sendMessage($number, $this->codReportText);
+        if ($sent) {
+            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Laporan COD berhasil dikirim ke WhatsApp!']);
+        } else {
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal mengirim ke WhatsApp. Pastikan whatsapp-service aktif.']);
+        }
+    }
+
+    public function sendCodReportViaTelegram()
+    {
+        $teleService = app(TelegramService::class);
+        $sent = $teleService->sendMessage(null, $this->codReportText);
+        if ($sent) {
+            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Laporan COD berhasil dikirim ke Telegram!']);
+        } else {
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal mengirim ke Telegram. Pastikan TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_ID terisi.']);
+        }
+    }
 
     public function importExcel()
     {

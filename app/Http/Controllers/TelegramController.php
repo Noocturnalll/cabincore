@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Dja\CodReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -33,10 +34,10 @@ class TelegramController extends Controller
 
         // Process Commands
         if (str_starts_with($text, '/start')) {
-            $this->sendMessage($chatId, "Halo! Saya adalah CBM Assistant Bot 🤖\n\nGunakan perintah berikut:\n/status - Ringkasan operasional hari ini\n/nsrdi - Status NSRDI open\n/dmi - Status DMI open\n/cml - Status CML open\n/wo - Status Work Order\n/ping - Cek koneksi bot", $botToken);
+            $this->sendMessage($chatId, "Halo! Saya adalah CBM Assistant Bot 🤖\n\nGunakan perintah berikut:\n/status atau /cod - Laporan resmi Cabin On-Duty Production\n/nsrdi - Status NSRDI open\n/dmi - Status DMI open\n/cml - Status CML open\n/wo - Status Work Order\n/ping - Cek koneksi bot", $botToken);
         } elseif (str_starts_with($text, '/ping')) {
             $this->sendMessage($chatId, 'Pong! Bot sedang aktif dan berjalan lancar. ✅', $botToken);
-        } elseif (str_starts_with($text, '/status')) {
+        } elseif (str_starts_with($text, '/status') || str_starts_with($text, '/cod')) {
             $this->sendStatusReport($chatId, $botToken);
         } elseif (str_starts_with($text, '/nsrdi')) {
             $nsrdiOpen = DB::table('nsrdi_logs')->where('status', 'Open')->count();
@@ -60,18 +61,8 @@ class TelegramController extends Controller
 
     private function sendStatusReport($chatId, $botToken)
     {
-        $targetDate = now()->format('Y-m-d');
-        $woOpen = DB::table('wo_logs')->where('status', 'Open')->count();
-        $woClosed = DB::table('wo_logs')->whereDate('date', $targetDate)->where('status', 'Closed')->count();
-        $nsrdiOpen = DB::table('nsrdi_logs')->where('status', 'Open')->count();
-        $dmiOpen = DB::table('dmi_logs')->where('status', 'Open')->count();
-
-        $msg = "📊 *STATUS CBM HARI INI* ({$targetDate})\n\n";
-        $msg .= "▫️ WO Terbuka: {$woOpen}\n";
-        $msg .= "▫️ WO Selesai (Hari Ini): {$woClosed}\n";
-        $msg .= "▫️ NSRDI Open: {$nsrdiOpen}\n";
-        $msg .= "▫️ DMI Open: {$dmiOpen}\n\n";
-        $msg .= 'Ketik /nsrdi, /dmi, /cml, atau /wo untuk info spesifik.';
+        $codService = app(CodReportService::class);
+        $msg = $codService->generateReportText();
 
         $this->sendMessage($chatId, $msg, $botToken);
     }

@@ -59,6 +59,16 @@ class Index extends Component
         }
     }
 
+    public function setCodReportDate(string $preset): void
+    {
+        if ($preset === 'yesterday') {
+            $this->codReportDate = now()->subDay()->format('Y-m-d');
+        } elseif ($preset === 'today') {
+            $this->codReportDate = now()->format('Y-m-d');
+        }
+        $this->generateCodReport($this->codReportDate);
+    }
+
     public function generateCodReport(?string $targetDate = null)
     {
         $codService = app(CodReportService::class);

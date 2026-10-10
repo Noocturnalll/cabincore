@@ -400,17 +400,34 @@
         text-decoration: none;
         font-size: .875rem;
         font-weight: 600;
-        transition: background .15s, color .15s;
+        transition: background .15s ease, color .15s ease, transform .15s ease;
         position: relative;
         cursor: pointer;
     }
-    .cbm-nav-item svg { width: 1.125rem; height: 1.125rem; flex-shrink: 0; }
+    .cbm-nav-item svg {
+        width: 1.125rem;
+        height: 1.125rem;
+        flex-shrink: 0;
+        opacity: .82;
+        transition: transform .2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity .15s ease, color .15s ease;
+    }
     .cbm-nav-item:hover {
         background: var(--cbm-nav-hover);
         color: var(--cbm-text);
+        transform: translateX(2px);
+    }
+    .cbm-nav-item:hover svg {
+        opacity: 1;
+        transform: scale(1.12);
+        color: var(--cbm-blue, #2563eb);
     }
     .cbm-nav-item.cbm-active {
         background: var(--cbm-nav-active);
+        color: var(--cbm-nav-active-t);
+    }
+    .cbm-nav-item.cbm-active svg {
+        opacity: 1;
+        transform: scale(1.05);
         color: var(--cbm-nav-active-t);
     }
     .cbm-nav-item.cbm-active::before {

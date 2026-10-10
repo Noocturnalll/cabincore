@@ -107,10 +107,16 @@
                         Daily Report
                     </a>
                     @can('lgt.view')
-                    <a href="{{ route('modules.lgt') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.lgt') ? 'cbm-active' : '' }}">Long Ground Time</a>
+                    <a href="{{ route('modules.lgt') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.lgt') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" /></svg>
+                        Long Ground Time
+                    </a>
                     @endcan
                     @can('leader.import')
-                    <a href="{{ route('modules.leader-report') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.leader-report') ? 'cbm-active' : '' }}">Laporan Leader</a>
+                    <a href="{{ route('modules.leader-report') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.leader-report') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M8.25 6.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM15.75 9.75a3 3 0 116 0 3 3 0 01-6 0zM2.25 9.75a3 3 0 116 0 3 3 0 01-6 0zM6.31 15.117A6.745 6.745 0 0112 12a6.745 6.745 0 016.709 7.498.75.75 0 01-.372.568A12.696 12.696 0 0112 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 01-.372-.568 6.787 6.787 0 011.019-4.38z" clip-rule="evenodd" /></svg>
+                        Laporan Leader
+                    </a>
                     @endcan
                 </div>
             </div>
@@ -118,8 +124,14 @@
 
             @can('menu.painting')
             <div class="cbm-nav-section-label">Painting</div>
-            <a href="{{ route('modules.nsrdi') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.nsrdi') ? 'cbm-active' : '' }}">NSRDI Logs</a>
-            <a href="{{ route('modules.daily-report') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.daily-report') ? 'cbm-active' : '' }}">Daily Report</a>
+            <a href="{{ route('modules.nsrdi') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.nsrdi') ? 'cbm-active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625zM7.5 15a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 017.5 15zm.75 2.25a.75.75 0 000 1.5H12a.75.75 0 000-1.5H8.25z" clip-rule="evenodd" /></svg>
+                NSRDI Logs
+            </a>
+            <a href="{{ route('modules.daily-report') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.daily-report') ? 'cbm-active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0112 15.75c-2.73 0-5.36-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 017.5 5.455V5.25zm7.5 0v.09a49.488 49.488 0 00-6 0v-.09a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5zm-3 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /><path d="M3 18.4v-2.796a4.3 4.3 0 00.713.31A26.226 26.226 0 0012 17.25c2.892 0 5.68-.468 8.287-1.335.252-.084.49-.189.713-.311V18.4c0 1.452-1.047 2.728-2.523 2.923-2.12.282-4.282.427-6.477.427a49.19 49.19 0 01-6.477-.427C4.047 21.128 3 19.852 3 18.4z" /></svg>
+                Daily Report
+            </a>
             @endcan
             @can('menu.cleaning')
             <div class="cbm-nav-section-label">Aircraft Cleaning</div>
@@ -217,13 +229,34 @@
                             </svg>
                         </a>
                         <div x-show="openMaster" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
-                            <a href="{{ route('ims.master') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master') ? 'cbm-active' : '' }}">Dashboard Master</a>
-                            <a href="{{ route('ims.master.items') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.items') ? 'cbm-active' : '' }}">Data Barang</a>
-                            <a href="{{ route('ims.master.categories') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.categories') ? 'cbm-active' : '' }}">Kategori Barang</a>
-                            <a href="{{ route('ims.master.units') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.units') ? 'cbm-active' : '' }}">Satuan (UOM)</a>
-                            <a href="{{ route('ims.master.locations') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.locations') ? 'cbm-active' : '' }}">Lokasi & Rak</a>
-                            <a href="{{ route('ims.master.suppliers') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.suppliers') ? 'cbm-active' : '' }}">Data Supplier</a>
-                            <a href="{{ route('ims.master.aircraft-types') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.aircraft-types') ? 'cbm-active' : '' }}">Tipe Pesawat</a>
+                            <a href="{{ route('ims.master') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master') ? 'cbm-active' : '' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h2.25a3 3 0 013 3v2.25a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm9.75 0a3 3 0 013-3H18a3 3 0 013 3v2.25a3 3 0 01-3 3h-2.25a3 3 0 01-3-3V6zM3 15.75a3 3 0 013-3h2.25a3 3 0 013 3V18a3 3 0 01-3 3H6a3 3 0 01-3-3v-2.25zm9.75 0a3 3 0 013-3H18a3 3 0 013 3V18a3 3 0 01-3 3h-2.25a3 3 0 01-3-3v-2.25z" clip-rule="evenodd" /></svg>
+                                Dashboard Master
+                            </a>
+                            <a href="{{ route('ims.master.items') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.items') ? 'cbm-active' : '' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9.428a.75.75 0 00.378.652l8.25-4.813a.75.75 0 00.372-.652V7.93zM11.25 22.608v-9.428L2.25 7.93v9.887a.75.75 0 00.372.652l8.25 4.813a.75.75 0 00.378-.674z" /></svg>
+                                Data Barang
+                            </a>
+                            <a href="{{ route('ims.master.categories') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.categories') ? 'cbm-active' : '' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5.25 2.25a3 3 0 00-3 3v4.318a3 3 0 00.879 2.121l9.58 9.581c.92.92 2.39 1.186 3.548.428a24.11 24.11 0 005.86-5.86c.758-1.16.492-2.629-.428-3.548l-9.58-9.581a3 3 0 00-2.122-.879H5.25zM6.375 7.5a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z" clip-rule="evenodd" /></svg>
+                                Kategori Barang
+                            </a>
+                            <a href="{{ route('ims.master.units') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.units') ? 'cbm-active' : '' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm14.25 1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0V7.5zm0 4.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0V12zm0 4.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0v-1.5z" clip-rule="evenodd" /></svg>
+                                Satuan (UOM)
+                            </a>
+                            <a href="{{ route('ims.master.locations') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.locations') ? 'cbm-active' : '' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" /></svg>
+                                Lokasi &amp; Rak
+                            </a>
+                            <a href="{{ route('ims.master.suppliers') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.suppliers') ? 'cbm-active' : '' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.375 4.5C2.339 4.5 1.5 5.34 1.5 6.375V13.5h12V6.375c0-1.036-.84-1.875-1.875-1.875h-8.25zM13.5 15h-12v2.625c0 1.035.84 1.875 1.875 1.875h.375a3 3 0 116 0h3a.75.75 0 00.75-.75V15z" /><path d="M8.25 19.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0zM15.75 6.75a.75.75 0 00-.75.75v11.25c0 .087.015.17.042.248a3 3 0 015.958.464c.853-.175 1.5-.922 1.5-1.824V13.5a3.75 3.75 0 00-1.1-2.652l-2.008-2.007A3.75 3.75 0 0016.69 7.74H15.75zM19.5 19.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" /></svg>
+                                Data Supplier
+                            </a>
+                            <a href="{{ route('ims.master.aircraft-types') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master.aircraft-types') ? 'cbm-active' : '' }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
+                                Tipe Pesawat
+                            </a>
                         </div>
                     </div>
                     @endcan
@@ -255,7 +288,10 @@
                         NSRDI No Spare
                     </a>
                     @can('kpi.view')
-                    <a href="{{ route('reports.nsrdi-pivot') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.nsrdi-pivot') ? 'cbm-active' : '' }}">Pivot per AOC</a>
+                    <a href="{{ route('reports.nsrdi-pivot') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.nsrdi-pivot') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm14.25 1.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0V7.5zm0 4.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0V12zm0 4.5a.75.75 0 00-1.5 0v1.5a.75.75 0 001.5 0v-1.5z" clip-rule="evenodd" /></svg>
+                        Pivot per AOC
+                    </a>
                     @endcan
                 </div>
             </div>
@@ -338,11 +374,23 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clip-rule="evenodd" /></svg>
                 Summary
             </a>
-            <a href="{{ route('reports.kpi') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.kpi') ? 'cbm-active' : '' }}">KPI & Man Hours</a>
+            <a href="{{ route('reports.kpi') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.kpi') ? 'cbm-active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clip-rule="evenodd" /></svg>
+                KPI &amp; Man Hours
+            </a>
             @can('kpi.view')
-            <a href="{{ route('reports.document-accuracy') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.document-accuracy') ? 'cbm-active' : '' }}">KPI Document Accuracy</a>
-            <a href="{{ route('reports.lgt') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.lgt') ? 'cbm-active' : '' }}">LGT Monitoring</a>
-            <a href="{{ route('reports.manpower') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.manpower') ? 'cbm-active' : '' }}">Manpower Harian</a>
+            <a href="{{ route('reports.document-accuracy') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.document-accuracy') ? 'cbm-active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
+                KPI Document Accuracy
+            </a>
+            <a href="{{ route('reports.lgt') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.lgt') ? 'cbm-active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" /></svg>
+                LGT Monitoring
+            </a>
+            <a href="{{ route('reports.manpower') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.manpower') ? 'cbm-active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" /></svg>
+                Manpower Harian
+            </a>
             @endcan
             
             @hasrole(\App\Helpers\RoleHelper::MANAGER)

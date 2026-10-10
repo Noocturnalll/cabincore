@@ -26,6 +26,12 @@ class Index extends Component
     /** intake = filed by COD, waiting for ACC | waiting = Rak Repair 1 | process = Rak Repair 2 | completed = Rak Repair 3 */
     public $activeTab = 'intake';
 
+    public function mount()
+    {
+        $user = auth()->user();
+        abort_unless($user?->can('ims.repair.request') || $user?->can('ims.repair.manage') || $user?->can('ims.repair.back_stage'), 403, 'Anda tidak memiliki akses ke halaman repair.');
+    }
+
     public $search = '';
 
     /** receive | start | complete | return | null */

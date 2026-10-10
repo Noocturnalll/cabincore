@@ -10,6 +10,11 @@ use Livewire\WithPagination;
 
 class AircraftTypes extends Component
 {
+    public function mount()
+    {
+        abort_unless(auth()->user()?->can('ims.master.manage'), 403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
+
     use WithPagination;
 
     public $search = '';

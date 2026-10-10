@@ -59,9 +59,10 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::middleware(['role:'.RoleHelper::SUPER_ADMIN])->group(function () {
         Route::get('/master/divisions', Divisions::class)->name('master.divisions');
         Route::get('/master/positions', Positions::class)->name('master.positions');
-        Route::get('/master/capacity', CapacityConfig::class)->name('master.capacity-config');
-        Route::get('/master/ron', RonConfig::class)->name('master.ron-config');
     });
+
+    Route::get('/master/capacity', CapacityConfig::class)->middleware('role:'.RoleHelper::SUPER_ADMIN.'|'.RoleHelper::DEPUTY)->name('master.capacity-config');
+    Route::get('/master/ron', RonConfig::class)->middleware('role:'.RoleHelper::SUPER_ADMIN.'|'.RoleHelper::COD)->name('master.ron-config');
 
     // Operational
     Route::get('/verification/queue', Queue::class)->middleware('role:Super Admin|Admin CGK|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing')->name('verification.queue');
@@ -127,6 +128,7 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
 
     // Sistem & Keamanan
     Route::get('/users', App\Livewire\Users\Index::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('users.index');
+    Route::get('/roles', App\Livewire\Roles\Index::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('roles.index');
     Route::get('/audit', App\Livewire\AuditTrail\Index::class)->middleware('role:Super Admin|Manager')->name('audit.index');
 
     // Lainnya

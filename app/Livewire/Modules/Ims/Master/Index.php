@@ -6,6 +6,11 @@ use Livewire\Component;
 
 class Index extends Component
 {
+    public function mount()
+    {
+        abort_unless(auth()->user()?->can('ims.master.manage'), 403, 'Anda tidak memiliki akses ke halaman ini.');
+    }
+
     public function render()
     {
         return view('livewire.modules.ims.master.index')

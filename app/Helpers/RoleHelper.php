@@ -34,6 +34,26 @@ class RoleHelper
     /** Roles that work the COD desk */
     public const COD_DESK = [self::COD, self::ADMIN_COD];
 
+    /** Roles added from the RBAC diagram */
+    public const DEPUTY = 'Deputy';
+
+    public const ADMIN_ICT = 'Admin ICT';
+
+    public const ADMIN_HC = 'Admin HC';
+
+    public const ADMIN_DOCUMENT = 'Admin Document';
+
+    public const ADMIN_AIEC = 'Admin AIEC';
+
+    /** All diagram operational admin roles */
+    public const DIAGRAM_ADMINS = [
+        self::DEPUTY,
+        self::ADMIN_ICT,
+        self::ADMIN_HC,
+        self::ADMIN_DOCUMENT,
+        self::ADMIN_AIEC,
+    ];
+
     /** Old names, kept so existing code and data keep working: Cabin is CBM, AIC is AIEC, Irreg is part of CBM. */
     public const PIC_CABIN = self::PIC_CBM;
 

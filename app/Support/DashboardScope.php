@@ -33,6 +33,11 @@ class DashboardScope
             $user->hasRole(RoleHelper::PIC_AIEC) => new self(null, ['ac', 'ims', 'kpi'], self::ALL_PERIODS),
             $user->hasRole(RoleHelper::PIC_SUPPORTING) => new self(null, ['ims', 'ac', 'kpi'], self::ALL_PERIODS),
             $user->hasRole(RoleHelper::PIC_FINISHING) => new self(null, ['ims', 'kpi'], self::ALL_PERIODS),
+            $user->hasRole(RoleHelper::DEPUTY) => new self(null, ['dja', 'unplanned', 'cml', 'ict', 'ac', 'ims', 'nsrdi', 'kpi'], self::ALL_PERIODS),
+            $user->hasRole(RoleHelper::ADMIN_ICT) => new self(null, ['ict', 'kpi'], self::ALL_PERIODS),
+            $user->hasRole(RoleHelper::ADMIN_HC) => new self(null, ['kpi'], self::ALL_PERIODS),
+            $user->hasRole(RoleHelper::ADMIN_DOCUMENT) => new self(null, ['kpi'], self::ALL_PERIODS),
+            $user->hasRole(RoleHelper::ADMIN_AIEC) => new self(null, ['ac', 'ims', 'kpi'], self::ALL_PERIODS),
             default => new self($user->station ? [$user->station] : null, ['dja', 'unplanned', 'ac'], ['daily']),
         };
     }

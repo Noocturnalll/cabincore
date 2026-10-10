@@ -16,6 +16,11 @@ class Index extends Component
 
     public $activeTab = 'mutasi'; // mutasi, pivot_stock, pivot_trx
 
+    public function mount()
+    {
+        abort_unless(auth()->user()?->can('ims.report.view'), 403, 'Anda tidak memiliki akses ke halaman laporan.');
+    }
+
     // mutasi filters
     public $type = '';
 

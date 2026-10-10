@@ -36,6 +36,11 @@ class Index extends Component
 
     public $handover_note = '';
 
+    public function mount()
+    {
+        abort_unless(auth()->user()?->can('ims.approval.view'), 403, 'Anda tidak memiliki akses untuk melihat halaman ini.');
+    }
+
     public function updatingActiveTab()
     {
         $this->resetPage();
@@ -165,6 +170,11 @@ class Index extends Component
         ], [], ['picked_up_by_name' => 'nama penerima']);
 
         $transaction = Transaction::where('type', 'out')->where('status', 'approved')->whereNull('picked_up_at')->findOrFail($this->handoverId);
+
+        if ((int) $transaction->requested_by === (int) auth()->id()) {
+            throw new \DomainException('Anda tidak dapat menyerahkan barang untuk permintaan Anda sendiri.');
+        }
+
         $transaction->update([
             'picked_up_by_name' => trim($this->picked_up_by_name),
             'picked_up_at' => now(),

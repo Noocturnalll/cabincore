@@ -74,7 +74,7 @@ class CodFlowTest extends TestCase
     public function test_only_cod_and_the_store_can_file_a_faulty_part(): void
     {
         foreach ([RoleHelper::PIC_PAINTING, RoleHelper::PIC_AIEC, RoleHelper::PIC_FINISHING, RoleHelper::MANAGER] as $role) {
-            Livewire::actingAs($this->user($role))->test(RepairPage::class)->call('openReceive')->assertForbidden();
+            Livewire::actingAs($this->user($role))->test(RepairPage::class)->assertForbidden();
         }
         foreach (RoleHelper::COD_DESK as $role) {
             Livewire::actingAs($this->user($role))->test(RepairPage::class)->call('openReceive')->assertOk();

@@ -58,8 +58,9 @@ class Phase2Test extends TestCase
 
         $this->user = User::factory()->create();
         Permission::findOrCreate('ims.approval.act');
+        Permission::findOrCreate('ims.approval.view');
         $this->approver = User::factory()->create();
-        $this->approver->givePermissionTo('ims.approval.act');
+        $this->approver->givePermissionTo(['ims.approval.act', 'ims.approval.view']);
 
         $this->transaction = Transaction::create([
             'code' => 'OUT-TEST-001',
@@ -82,6 +83,7 @@ class Phase2Test extends TestCase
     public function test_user_without_permission_cannot_approve_or_reject()
     {
         $outsider = User::factory()->create();
+        $outsider->givePermissionTo('ims.approval.view');
 
         Livewire::actingAs($outsider)
             ->test(Index::class)
@@ -93,7 +95,7 @@ class Phase2Test extends TestCase
 
     public function test_a_requester_cannot_approve_their_own_request(): void
     {
-        $this->user->givePermissionTo('ims.approval.act');
+        $this->user->givePermissionTo(['ims.approval.act', 'ims.approval.view']);
 
         Livewire::actingAs($this->user)->test(Index::class)->call('approve', $this->transaction->id);
 

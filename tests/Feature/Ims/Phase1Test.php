@@ -2,17 +2,18 @@
 
 namespace Tests\Feature\Ims;
 
+use App\Livewire\Modules\Ims\Katalog\Index as KatalogIndex;
+use App\Livewire\Modules\Ims\Peminjaman\Index;
+use App\Models\Ims\Category;
 use App\Models\Ims\Item;
 use App\Models\Ims\Location;
-use App\Models\Ims\Category;
-use App\Models\Ims\Unit;
 use App\Models\Ims\Transaction;
+use App\Models\Ims\Unit;
 use App\Models\User;
 use App\Services\Ims\StockService;
-use Livewire\Livewire;
-use App\Livewire\Modules\Ims\Peminjaman\Index;
-use App\Livewire\Modules\Ims\Katalog\Index as KatalogIndex;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class Phase1Test extends TestCase
@@ -20,7 +21,9 @@ class Phase1Test extends TestCase
     use RefreshDatabase;
 
     protected $item;
+
     protected $location;
+
     protected $user;
 
     protected function setUp(): void
@@ -29,11 +32,11 @@ class Phase1Test extends TestCase
 
         $cat = Category::create(['code' => 'C1', 'name' => 'Cat 1']);
         $unit = Unit::create(['code' => 'PCS', 'name' => 'Pieces']);
-        
+
         $this->location = Location::create([
-            'code' => 'L1', 
-            'name' => 'Loc 1', 
-            'type' => 'warehouse'
+            'code' => 'L1',
+            'name' => 'Loc 1',
+            'type' => 'warehouse',
         ]);
 
         $this->item = Item::create([
@@ -42,7 +45,7 @@ class Phase1Test extends TestCase
             'description' => 'Test',
             'category_id' => $cat->id,
             'unit_id' => $unit->id,
-            'tracking_type' => 'quantity'
+            'tracking_type' => 'quantity',
         ]);
 
         // Add 10 stock
@@ -51,11 +54,14 @@ class Phase1Test extends TestCase
 
         // Dummy user
         $this->user = User::factory()->create();
+        Permission::findOrCreate('ims.catalog.view');
+        Permission::findOrCreate('ims.request.create');
+        $this->user->givePermissionTo(['ims.catalog.view', 'ims.request.create']);
     }
 
     public function test_katalog_shows_available_stock()
     {
-        Livewire::test(KatalogIndex::class)
+        Livewire::actingAs($this->user)->test(KatalogIndex::class)
             ->assertSee('PN-123')
             ->assertSee('10') // Available stock
             ->assertSee('Tersedia');
@@ -70,7 +76,7 @@ class Phase1Test extends TestCase
                 'part_number' => $this->item->part_number,
                 'qty' => 3,
                 'location_id' => $this->location->id,
-            ]
+            ],
         ]);
 
         Livewire::actingAs($this->user)
@@ -80,7 +86,9 @@ class Phase1Test extends TestCase
             ->call('submitRequest')
             ->assertHasNoErrors()
             ->tap(function () {
-                if (session()->has('error')) dump(session('error'));
+                if (session()->has('error')) {
+                    dump(session('error'));
+                }
             });
 
         $transaction = Transaction::where('type', 'out')->first();

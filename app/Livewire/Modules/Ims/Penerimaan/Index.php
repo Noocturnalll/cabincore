@@ -11,6 +11,11 @@ class Index extends Component
 {
     use WithItemPicker;
 
+    public function mount()
+    {
+        $this->authorizeStockAction('ims.stock.in');
+    }
+
     public $itemId;
 
     public $locationId;

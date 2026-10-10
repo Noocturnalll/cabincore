@@ -32,6 +32,7 @@ class Index extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()?->can('ims.request.create'), 403, 'Anda tidak memiliki akses untuk mengajukan permintaan.');
         $this->loadPicklist();
     }
 

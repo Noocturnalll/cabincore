@@ -50,21 +50,20 @@ class Phase3Test extends TestCase
         $this->shelf = Location::create(['code' => 'L1', 'name' => 'Rak A', 'type' => 'warehouse']);
         $this->item = Item::create(['part_number' => 'PN-1', 'name' => 'Oxygen Mask', 'description' => 'd', 'category_id' => $cat->id, 'unit_id' => $unit->id, 'tracking_type' => 'quantity']);
 
-        foreach (['ims.approval.act', 'ims.stock.handover', 'ims.repair.request', 'ims.repair.manage', 'ims.repair.back_stage'] as $perm) {
+        foreach (['ims.approval.act', 'ims.approval.view', 'ims.stock.handover', 'ims.repair.request', 'ims.repair.manage', 'ims.repair.back_stage'] as $perm) {
             Permission::findOrCreate($perm, 'web');
         }
         $this->requester = User::factory()->create(['is_default_password' => false, 'status' => 'active']);
+        $this->requester->givePermissionTo('ims.approval.view');
         $this->storekeeper = User::factory()->create(['is_default_password' => false, 'status' => 'active']);
-        $this->storekeeper->givePermissionTo(['ims.approval.act', 'ims.stock.handover', 'ims.repair.request', 'ims.repair.manage', 'ims.repair.back_stage']);
+        $this->storekeeper->givePermissionTo(['ims.approval.act', 'ims.approval.view', 'ims.stock.handover', 'ims.repair.request', 'ims.repair.manage', 'ims.repair.back_stage']);
     }
 
     // ── Repair rack ──────────────────────────────────────────────────────
 
     public function test_repair_actions_are_forbidden_without_the_permissions(): void
     {
-        $page = Livewire::actingAs($this->requester)->test(RepairPage::class);
-
-        $page->call('openReceive')->assertForbidden();
+        Livewire::actingAs($this->requester)->test(RepairPage::class)->assertForbidden();
         $this->assertSame(0, RepairWaiting::count());
     }
 

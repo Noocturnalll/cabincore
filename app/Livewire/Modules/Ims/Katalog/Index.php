@@ -51,6 +51,7 @@ class Index extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()?->can('ims.catalog.view'), 403, 'Anda tidak memiliki akses ke katalog barang.');
         $this->picklist = session()->get('ims_picklist', []);
     }
 

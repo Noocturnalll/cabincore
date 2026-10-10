@@ -38,12 +38,12 @@ class RegistryPermissionSeeder extends Seeder
     private const MENUS = [
         'menu.production' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_CBM, ...RoleHelper::COD_DESK],
         'menu.painting' => [RoleHelper::PIC_PAINTING],
-        'menu.cleaning' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_AIEC],
+        'menu.cleaning' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_AIEC, RoleHelper::ADMIN_AIEC],
         'menu.nsrdi' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_CBM, ...RoleHelper::COD_DESK, RoleHelper::PIC_PAINTING],
-        'menu.ict' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_CBM, ...RoleHelper::COD_DESK],
-        'menu.capacity' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_CBM, ...RoleHelper::COD_DESK, RoleHelper::PIC_AIEC],
+        'menu.ict' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_CBM, ...RoleHelper::COD_DESK, RoleHelper::ADMIN_ICT],
+        'menu.capacity' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::PIC_CBM, ...RoleHelper::COD_DESK, RoleHelper::PIC_AIEC, RoleHelper::DEPUTY],
         'menu.inventory' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, ...RoleHelper::COD_DESK, ...RoleHelper::ALL_PIC],
-        'menu.analytics' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, ...RoleHelper::COD_DESK, ...RoleHelper::ALL_PIC],
+        'menu.analytics' => [RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, ...RoleHelper::COD_DESK, ...RoleHelper::ALL_PIC, RoleHelper::DEPUTY, RoleHelper::ADMIN_HC],
     ];
 
     /** IMS: everybody can look at the catalogue and ask for parts; the Supporting PIC runs the store; the Manager approves and reports. */
@@ -98,6 +98,28 @@ class RegistryPermissionSeeder extends Seeder
         foreach (RoleHelper::COD_DESK as $cod) {
             $grants[$cod] = array_merge($grants[$cod], self::IMS_COD);
         }
+
+        // Added diagram roles (additive grants matching diagram domain)
+        $grants[RoleHelper::DEPUTY] = array_merge($common, [
+            'master.kpi_target.manage', 'master.shift.manage', 'kpi.view',
+        ], self::IMS_REQUESTER);
+
+        $grants[RoleHelper::ADMIN_ICT] = array_merge($masterView, [
+            'kpi.view',
+        ], self::IMS_REQUESTER);
+
+        $grants[RoleHelper::ADMIN_HC] = array_merge($masterView, [
+            'hr.view', 'hr.manage', 'hr.view_all', 'attendance.view', 'attendance.manage', 'compliance.view', 'kpi.view',
+            'master.attendance_status.manage', 'master.attendance_rule.manage', 'master.shift.manage',
+        ], $modulePerms);
+
+        $grants[RoleHelper::ADMIN_DOCUMENT] = array_merge($masterView, [
+            'sources.view', 'sources.sync', 'compliance.view', 'kpi.view',
+        ]);
+
+        $grants[RoleHelper::ADMIN_AIEC] = array_merge($common, [
+            'lgt.view', 'lgt.manage', 'kpi.view',
+        ], self::IMS_REQUESTER);
 
         foreach ($grants as $role => $perms) {
             $r = Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);

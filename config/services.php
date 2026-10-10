@@ -45,6 +45,7 @@ return [
     ],
 
     'whatsapp' => [
+        'url' => env('WHATSAPP_SERVICE_URL', 'http://127.0.0.1:3001/send-message'),
         'report_group' => env('WHATSAPP_REPORT_GROUP', '081234567890'),
     ],
 

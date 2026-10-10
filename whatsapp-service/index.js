@@ -33,6 +33,19 @@ client.on('disconnected', (reason) => {
     isClientReady = false;
 });
 
+client.on('message', async msg => {
+    try {
+        const text = (msg.body || '').trim().toLowerCase();
+        if (text === '!ping') {
+            await msg.reply('Pong! Bot WhatsApp CBM aktif dan berjalan lancar. ✅');
+        } else if (text === '!help' || text === '!menu') {
+            await msg.reply("Halo! Saya adalah CBM Assistant Bot di WhatsApp 🤖\n\nPerintah tersedia:\n!ping - Cek status bot\n!help - Bantuan perintah");
+        }
+    } catch (err) {
+        console.error('Error handling incoming message:', err);
+    }
+});
+
 client.initialize();
 
 // API Endpoint for Laravel to send messages

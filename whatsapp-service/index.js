@@ -33,16 +33,22 @@ client.on('disconnected', (reason) => {
     isClientReady = false;
 });
 
-client.on('message', async msg => {
+client.on('message_create', async msg => {
     try {
         const text = (msg.body || '').trim().toLowerCase();
+        
+        // Prevent loop if bot replies to itself
+        if (text.startsWith('pong!') || text.startsWith('halo!')) {
+            return;
+        }
+
         if (text === '!ping') {
             await msg.reply('Pong! Bot WhatsApp CBM aktif dan berjalan lancar. ✅');
         } else if (text === '!help' || text === '!menu') {
             await msg.reply("Halo! Saya adalah CBM Assistant Bot di WhatsApp 🤖\n\nPerintah tersedia:\n!ping - Cek status bot\n!help - Bantuan perintah");
         }
     } catch (err) {
-        console.error('Error handling incoming message:', err);
+        console.error('Error handling message:', err);
     }
 });
 

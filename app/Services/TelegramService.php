@@ -33,16 +33,31 @@ class TelegramService
         }
 
         try {
-            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+            $payload = [
                 'chat_id' => $targetChatId,
                 'text' => $message,
-                'parse_mode' => $parseMode,
-            ]);
+            ];
+            if ($parseMode) {
+                $payload['parse_mode'] = $parseMode;
+            }
+
+            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$botToken}/sendMessage", $payload);
 
             if ($response->successful()) {
                 Log::info("Telegram message successfully sent to chat {$targetChatId}");
 
                 return true;
+            }
+
+            // Fallback retry without parse_mode if Markdown parsing failed
+            if ($parseMode && $response->status() === 400) {
+                unset($payload['parse_mode']);
+                $retry = Http::timeout(10)->post("https://api.telegram.org/bot{$botToken}/sendMessage", $payload);
+                if ($retry->successful()) {
+                    Log::info("Telegram message sent via plain text fallback to chat {$targetChatId}");
+
+                    return true;
+                }
             }
 
             Log::error('Telegram API Error: '.$response->body());

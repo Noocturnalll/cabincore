@@ -41,7 +41,7 @@ class Index extends Component
     public function generateCodReport(?string $targetDate = null)
     {
         $codService = app(CodReportService::class);
-        $this->codReportDate = $targetDate ?: ($this->codReportDate ?: ($this->dateFilter ?: now()->format('Y-m-d')));
+        $this->codReportDate = $targetDate ?: ($this->codReportDate ?: ($this->dateFilter ?: CodReportService::getDefaultOperationalDate()));
         $this->codReportText = $codService->generateReportText($this->codReportDate);
         $this->showCodModal = true;
     }

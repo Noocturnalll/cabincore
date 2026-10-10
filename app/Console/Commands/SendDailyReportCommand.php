@@ -19,7 +19,9 @@ class SendDailyReportCommand extends Command
     public function handle(WhatsAppService $waService, TelegramService $telegramService, CodReportService $codService)
     {
         $input = $this->argument('date_or_number');
-        $targetDate = ($input && preg_match('/^\d{4}-\d{2}-\d{2}$/', $input)) ? $input : now()->format('Y-m-d');
+        $targetDate = ($input && preg_match('/^\d{4}-\d{2}-\d{2}$/', $input))
+            ? $input
+            : CodReportService::getDefaultOperationalDate();
         $channel = strtolower($this->option('channel') ?? 'all');
 
         $message = $codService->generateReportText($targetDate);

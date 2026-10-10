@@ -23,11 +23,21 @@ class CodReportService
     ];
 
     /**
+     * Get the operational reporting date based on shift cutoff (18:00 WIB).
+     * Before 18:00 (e.g. morning duty 09:00), the operational date is D-1 (yesterday).
+     * At or after 18:00, the operational date is the current calendar day.
+     */
+    public static function getDefaultOperationalDate(): string
+    {
+        return now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDay()->format('Y-m-d');
+    }
+
+    /**
      * Generate the complete Cabin On-Duty Production report string for a given date.
      */
     public function generateReportText(?string $targetDate = null): string
     {
-        $date = $targetDate ?: now()->format('Y-m-d');
+        $date = $targetDate ?: self::getDefaultOperationalDate();
         $dateFormatted = strtoupper(Carbon::parse($date)->format('j M Y'));
 
         $data = $this->getAggregatedData($date);

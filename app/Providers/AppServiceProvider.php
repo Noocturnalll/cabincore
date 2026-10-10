@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
         // One ingestor per request/command so the Excel import and the caller share the same counters
         $this->app->singleton(DjaIngestor::class);
 
-        if ($this->app->environment('local')) {
+        if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }

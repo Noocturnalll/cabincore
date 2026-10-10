@@ -35,8 +35,21 @@
 
     @if($syncSetting->spreadsheet_id)
         @if($freshness['failed'])
-            <div class="cbm-flash cbm-flash-error" role="alert" style="margin-bottom:1rem;">
-                <strong>Sync terakhir gagal</strong> ({{ $freshness['minutes'] !== null ? $freshness['minutes'].' menit lalu' : 'belum pernah berhasil' }}): {{ $syncSetting->last_message }}
+            <div class="cbm-flash cbm-flash-error" role="alert" style="margin-bottom:1rem; border-radius:.75rem; padding:.85rem 1rem; word-break:break-word;">
+                <div style="font-weight:700; display:flex; align-items:center; gap:.45rem; margin-bottom:.3rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1.2rem;height:1.2rem;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <span>Sync DJA Terakhir Gagal ({{ $freshness['minutes'] !== null ? $freshness['minutes'].' menit lalu' : 'belum pernah berhasil' }})</span>
+                </div>
+                <div style="font-size:.82rem; line-height:1.5;">
+                    @if(str_contains($syncSetting->last_message, '403') || str_contains($syncSetting->last_message, 'PERMISSION_DENIED') || str_contains($syncSetting->last_message, 'permission'))
+                        Izin akses ditolak (403): Google Sheet belum dibagikan ke email Service Account. Silakan buka Google Sheet Anda &rarr; Klik tombol <strong>Bagikan (Share)</strong> &rarr; Tambahkan email berikut sebagai <strong>Viewer / Pelihat</strong>:
+                        <div style="display:inline-flex; align-items:center; gap:.4rem; background:rgba(0,0,0,0.3); border-radius:4px; padding:.2rem .5rem; margin-top:.35rem; font-family:monospace; font-size:.78rem; word-break:break-all;">
+                            <span>{{ \App\Services\GoogleSheetsReader::getServiceAccountEmail() ?? 'cabin-on-duty@rock-cairn-508901-m1.iam.gserviceaccount.com' }}</span>
+                        </div>
+                    @else
+                        {{ Str::limit($syncSetting->last_message, 250) }}
+                    @endif
+                </div>
             </div>
         @elseif($freshness['stale'])
             <div class="mod-hint mod-hint-warn" role="alert">
@@ -185,43 +198,41 @@
             @endif
         </div>
     @else
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr));gap:1.25rem;align-items:start;">
-            {{-- Import Excel --}}
-            <div class="mod-card mod-card-accent-blue" style="padding:1.5rem;">
-                <h3 style="font-size:1rem;font-weight:800;color:var(--cbm-text);margin-bottom:.25rem;">Import dari Excel</h3>
-                <p style="font-size:.8125rem;color:var(--cbm-text-muted);margin-bottom:1.25rem;line-height:1.6;">
-                    Gunakan saat sinkronisasi Google Sheets belum tersedia. Header kolom: <code>date, aircraft_registration, task_id, description, station</code>.
-                    Import bersifat satu paket: jika ada baris yang gagal, tidak ada data yang tersimpan.
-                </p>
-                <form wire:submit="import">
-                    <div class="cbm-upload-zone">
-                        <input type="file" wire:model="file" accept=".xlsx,.xls,.csv">
-                        <div class="cbm-upload-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
-                        </div>
-                        <div class="cbm-upload-title">{{ $file ? $file->getClientOriginalName() : 'Klik untuk pilih file' }}</div>
-                        <div class="cbm-upload-sub">atau drag &amp; drop ke sini (maks. 10 MB)</div>
-                        <div class="cbm-upload-badge"><span>.xlsx</span><span>.xls</span><span>.csv</span></div>
-                        <div wire:loading wire:target="file" style="margin-top:.75rem;font-size:.8125rem;color:var(--cbm-text-muted);">Mengunggah file...</div>
-                    </div>
-                    @error('file') <span class="mod-field-error">{{ $message }}</span> @enderror
-                    <button type="submit" class="mod-btn-primary" style="width:100%;justify-content:center;margin-top:1rem;" wire:loading.attr="disabled" wire:target="file, import" @disabled(! $file)>
-                        <span wire:loading.remove wire:target="import">Import Data</span>
-                        <span wire:loading wire:target="import"><span class="cbm-spinner"></span> Mengimport...</span>
-                    </button>
-                </form>
-            </div>
-
-            {{-- Google Sheets --}}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1.25rem;align-items:start;">
+            {{-- Google Sheets (Primary) --}}
             <div class="mod-card mod-card-accent-green" style="padding:1.5rem;">
-                <h3 style="font-size:1rem;font-weight:800;color:var(--cbm-text);margin-bottom:.25rem;">Google Sheets Sync</h3>
-                <p style="font-size:.8125rem;color:var(--cbm-text-muted);margin-bottom:1.25rem;line-height:1.6;">
+                <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
+                    <div style="width:2rem;height:2rem;border-radius:.5rem;background:rgba(52,211,153,0.12);display:flex;align-items:center;justify-content:center;color:#34d399;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1.2rem;height:1.2rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                    </div>
+                    <h3 style="font-size:1.05rem;font-weight:800;color:var(--cbm-text);">Google Sheets Sync</h3>
+                </div>
+                <p style="font-size:.8125rem;color:var(--cbm-text-muted);margin-bottom:1rem;line-height:1.5;">
                     Tempel link sheet DJA hari ini lalu sinkronkan. Setelah itu sistem melakukan auto-sync berkala memakai link yang sama.
                 </p>
+
+                {{-- Service Account Permission Instruction Card --}}
+                <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.22);border-radius:.65rem;padding:.75rem .85rem;margin-bottom:1rem;" x-data="{ copied: false }">
+                    <div style="font-size:.78rem;font-weight:700;color:var(--cbm-blue);margin-bottom:.25rem;display:flex;align-items:center;gap:.35rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Izin Akses Google Sheet (Penting):
+                    </div>
+                    <div style="font-size:.75rem;color:var(--cbm-text-muted);line-height:1.45;">
+                        Agar sistem dapat membaca sheet, bagikan (Share) Google Sheet Anda ke email service account di bawah ini sebagai <strong>Viewer / Pelihat</strong>:
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.4rem;margin-top:.45rem;background:var(--cbm-input-bg);border:1px solid var(--cbm-input-border);border-radius:6px;padding:.3rem .55rem;">
+                        <span style="font-size:.74rem;color:var(--cbm-text);word-break:break-all;font-family:monospace;flex:1;">{{ \App\Services\GoogleSheetsReader::getServiceAccountEmail() ?? 'cabin-on-duty@rock-cairn-508901-m1.iam.gserviceaccount.com' }}</span>
+                        <button type="button" @click="navigator.clipboard.writeText('{{ \App\Services\GoogleSheetsReader::getServiceAccountEmail() ?? 'cabin-on-duty@rock-cairn-508901-m1.iam.gserviceaccount.com' }}'); copied = true; setTimeout(() => copied = false, 2000)" style="background:var(--cbm-nav-hover);border:1px solid var(--cbm-card-border);color:var(--cbm-blue);border-radius:4px;padding:.2rem .45rem;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+                            <span x-text="copied ? 'Tersalin!' : 'Salin Email'"></span>
+                        </button>
+                    </div>
+                </div>
+
                 <form wire:submit="syncNow" style="display:flex;flex-direction:column;gap:.625rem;">
+                    <label style="font-size:.75rem;font-weight:700;color:var(--cbm-text-muted);">Link Google Sheet DJA:</label>
                     <input type="text" wire:model="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." class="mod-search-input mod-input-plain" style="width:100%;text-align:left;" aria-label="Link Google Sheet">
                     @error('sheetUrl') <span class="mod-field-error">{{ $message }}</span> @enderror
-                    <button type="submit" class="mod-btn-primary" style="width:100%;justify-content:center;" wire:loading.attr="disabled" wire:target="syncNow">
+                    <button type="submit" class="mod-btn-primary" style="width:100%;justify-content:center;padding:.6rem 1rem;" wire:loading.attr="disabled" wire:target="syncNow">
                         <span wire:loading.remove wire:target="syncNow">Mulai Sinkronisasi</span>
                         <span wire:loading wire:target="syncNow"><span class="cbm-spinner"></span> Menyinkronkan...</span>
                     </button>
@@ -231,6 +242,36 @@
                     'syncSetting' => $syncSetting,
                     'hint' => 'Sheet DJA berganti tiap hari: tempel link sheet hari ini lalu klik sinkronisasi. Setelah itu sistem auto-sync tiap 15 menit.',
                 ])
+            </div>
+
+            {{-- Import Excel (Secondary / Fallback) --}}
+            <div class="mod-card mod-card-accent-blue" style="padding:1.5rem;">
+                <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
+                    <div style="width:2rem;height:2rem;border-radius:.5rem;background:rgba(59,130,246,0.12);display:flex;align-items:center;justify-content:center;color:#60a5fa;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1.2rem;height:1.2rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                    </div>
+                    <h3 style="font-size:1.05rem;font-weight:800;color:var(--cbm-text);">Import dari File Excel</h3>
+                </div>
+                <p style="font-size:.8125rem;color:var(--cbm-text-muted);margin-bottom:1rem;line-height:1.5;">
+                    Gunakan jika Google Sheets belum tersedia. Header kolom: <code>date, aircraft_registration, task_id, description, station</code>.
+                </p>
+                <form wire:submit="import">
+                    <div class="cbm-upload-zone" style="padding:1.5rem 1rem;">
+                        <input type="file" wire:model="file" accept=".xlsx,.xls,.csv">
+                        <div class="cbm-upload-icon" style="width:2.5rem;height:2.5rem;margin-bottom:.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1.25rem;height:1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                        </div>
+                        <div class="cbm-upload-title" style="font-size:.85rem;">{{ $file ? $file->getClientOriginalName() : 'Klik untuk pilih file Excel' }}</div>
+                        <div class="cbm-upload-sub" style="font-size:.75rem;">atau drag &amp; drop ke sini (maks. 10 MB)</div>
+                        <div class="cbm-upload-badge" style="margin-top:.4rem;"><span>.xlsx</span><span>.xls</span><span>.csv</span></div>
+                        <div wire:loading wire:target="file" style="margin-top:.5rem;font-size:.78rem;color:var(--cbm-text-muted);">Mengunggah file...</div>
+                    </div>
+                    @error('file') <span class="mod-field-error">{{ $message }}</span> @enderror
+                    <button type="submit" class="mod-btn-primary" style="width:100%;justify-content:center;margin-top:.85rem;padding:.6rem 1rem;" wire:loading.attr="disabled" wire:target="file, import" @disabled(! $file)>
+                        <span wire:loading.remove wire:target="import">Import File Excel</span>
+                        <span wire:loading wire:target="import"><span class="cbm-spinner"></span> Mengimport...</span>
+                    </button>
+                </form>
             </div>
         </div>
     @endif

@@ -148,7 +148,17 @@ class GoogleSheetsSyncService
         try {
             $tabs = $this->reader->resolveTabs(self::Tabs, $this->reader->tabTitles($spreadsheetId));
         } catch (\Throwable $e) {
-            $this->lastError = 'Spreadsheet tidak bisa dibuka. Pastikan sheet sudah di-share ke email service account. Detail: '.mb_substr($e->getMessage(), 0, 300);
+            $msg = $e->getMessage();
+            $email = GoogleSheetsReader::getServiceAccountEmail() ?? 'cabin-on-duty@rock-cairn-508901-m1.iam.gserviceaccount.com';
+
+            if (str_contains($msg, '403') || str_contains($msg, 'PERMISSION_DENIED') || str_contains($msg, 'does not have permission')) {
+                $this->lastError = "Izin ditolak (403): Google Sheet belum di-share ke email Service Account. Silakan buka Sheet Anda -> Klik Bagikan (Share) -> Tambahkan email: {$email} (Viewer).";
+            } elseif (str_contains($msg, '404') || str_contains($msg, 'NOT_FOUND')) {
+                $this->lastError = 'Spreadsheet tidak ditemukan (404). Pastikan URL atau ID Google Sheet sudah benar.';
+            } else {
+                $this->lastError = 'Spreadsheet tidak bisa dibuka. Pastikan sheet valid dan dapat diakses. Detail: '.mb_substr($msg, 0, 180);
+            }
+
             Log::error("DJA sync: cannot open spreadsheet {$spreadsheetId}: ".$e->getMessage());
 
             return false;

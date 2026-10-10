@@ -1007,11 +1007,26 @@
         .mod-header { gap: .875rem; }
         .mod-actions { gap: .375rem; }
         .mod-btn-outline, .mod-btn-primary { padding: .5rem .75rem; font-size: .75rem; }
-        .mod-toolbar { padding: .75rem 1rem; }
+        .mod-toolbar { padding: .75rem 1rem; flex-direction: column; align-items: stretch; gap: .75rem; }
+        .mod-filters { flex: 1 1 auto; width: 100%; align-items: stretch; gap: .5rem; }
+        .mod-field-search { max-width: none; flex: 1 1 100%; width: 100%; }
         .mod-search-input { width: 100%; }
-        .mod-toolbar { flex-direction: column; align-items: stretch; }
+        .mod-field-labelled { width: 100%; }
+        .mod-field-labelled .mod-input-plain,
+        .mod-field-labelled input[type="date"],
+        .mod-field-labelled select {
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box;
+        }
+        .mod-meta { width: 100%; justify-content: space-between; margin-top: .25rem; }
         .mod-table thead th { padding: .625rem .625rem; }
         .mod-table tbody td { padding: .625rem .625rem; }
+        .mod-stats { grid-template-columns: repeat(2, 1fr) !important; gap: .5rem !important; }
+        .mod-stat { padding: .65rem .75rem !important; border-radius: .75rem !important; }
+        .mod-stat-label { font-size: .6rem !important; }
+        .mod-stat-value { font-size: 1.25rem !important; }
+        .mod-stat-sub { font-size: .65rem !important; }
     }
     @media (max-width: 480px) {
         .mod-title { font-size: 1.25rem; }

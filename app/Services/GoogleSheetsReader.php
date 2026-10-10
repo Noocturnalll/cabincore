@@ -40,6 +40,22 @@ class GoogleSheetsReader
         return storage_path('app/google-credentials.json');
     }
 
+    public static function getServiceAccountEmail(): ?string
+    {
+        $path = self::credentialsPath();
+        if (! file_exists($path)) {
+            return null;
+        }
+
+        try {
+            $data = json_decode(file_get_contents($path), true);
+
+            return $data['client_email'] ?? null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     public function isReady(): bool
     {
         return $this->service !== null;

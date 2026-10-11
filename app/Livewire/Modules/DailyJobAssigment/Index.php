@@ -214,6 +214,7 @@ class Index extends Component
 
         if ($this->activeTab === 'data') {
             $rows = $this->dataQuery()
+                ->with(['woLogs', 'dmiLogs', 'nsrdiLogs', 'cmlLogs'])
                 ->withCount(['woLogs', 'dmiLogs', 'nsrdiLogs', 'cmlLogs'])
                 ->orderByDesc('date')
                 ->orderBy('station')

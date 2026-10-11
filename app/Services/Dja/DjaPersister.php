@@ -66,10 +66,12 @@ class DjaPersister
                 }
             }
 
+            $description = $mapped['description'] ?: ($dja->description ?: ($attrs['description'] ?? null));
+
             $dja->fill([
                 'aircraft_registration' => $mapped['ac_reg'] ?? $dja->aircraft_registration,
                 'job_type' => $mapped['job_type'],
-                'description' => $mapped['description'] ?? $dja->description,
+                'description' => $description,
                 'station' => $mapped['station'] ?: ($dja->station ?: config('dja.default_station')),
             ]);
             if ($spreadsheetId) {

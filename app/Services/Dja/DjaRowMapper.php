@@ -24,7 +24,15 @@ class DjaRowMapper
 
     private const AC_REG = [['AC REG', 'A/C REG', 'AIRCRAFT', 'REG', 'AIRCRAFT REGISTRATION'], null];
 
-    private const DESCRIPTION = [['DESCRIPTION', 'WO DESCRIPTION', 'TASK CARD DESCRIPTION', 'DESC'], null];
+    private const DESCRIPTION_ALIASES = [
+        'DESCRIPTION', 'WO DESCRIPTION', 'DMI DESCRIPTION', 'NSRDI DESCRIPTION',
+        'TASK CARD DESCRIPTION', 'TASK CARD DESC', 'TASK DESCRIPTION', 'JOB DESCRIPTION',
+        'WORK DESCRIPTION', 'ITEM DESCRIPTION', 'ACTION TAKEN', 'DEFECT DESCRIPTION',
+        'DISCREPANCY', 'PROBLEM DESCRIPTION', 'FINDING', 'DEFECT', 'DESC', 'TASK',
+        'ACTION TAKEN / REASON', 'ACTION TAKEN/REASON', 'URAIAN PEKERJAAN', 'DESKRIPSI',
+    ];
+
+    private const DESCRIPTION = [self::DESCRIPTION_ALIASES, null];
 
     private const CODE_OPEN_ALIASES = ['CODE REASON', 'CODE OPEN', 'CODE', 'REASON CODE', 'HOLD REASON CATEGORY', 'KODE ALASAN', 'KD REASON', 'REASON CODE OPEN'];
 
@@ -80,7 +88,7 @@ class DjaRowMapper
             'report_date' => [['REPORT DATE'], 6],
             'due_date' => [['DUE DATE'], 7],
             'part_number' => [['PART NUMBER', 'PN'], 8],
-            'part_description' => [['PART DESCRIPTION'], 9],
+            'part_description' => [['PART DESCRIPTION', 'PART DESC', 'PART NAME', 'P/N DESC'], 9],
             'defer' => [['DEFER'], 10],
             'aoc' => [['AOC'], 11],
             'type' => [['TYPE'], 12],
@@ -192,7 +200,11 @@ class DjaRowMapper
         $f['reason_open'] = $reasonOpen;
 
         $acReg = $f['ac_reg'];
-        $description = $f['description'];
+        $description = $f['description']
+            ?: ($taskCardDescription
+            ?: ($f['part_description'] ?? ($f['remarks'] ?? ($f['remarks_ppc_to_lm'] ?? null))));
+        $f['description'] = $description;
+
         if ($acReg === null && $description === null && ($f['task_id'] ?? null) === null) {
             return null; // blank row
         }

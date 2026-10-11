@@ -2,6 +2,8 @@
 
 namespace Tests\Unit;
 
+use App\Models\DailyJobAssignment;
+use App\Models\WoLog;
 use App\Services\Dja\DjaRowMapper;
 use App\Services\GoogleSheetsReader;
 use Tests\TestCase;
@@ -86,5 +88,52 @@ class DjaRowMapperTest extends TestCase
         $this->assertSame('DJA R01', $resolved['DJA']);
         $this->assertSame('DJA DMI', $resolved['DJA DMI']);
         $this->assertSame('DJA AOC NSRDIL R01', $resolved['DJA NSRD']);
+    }
+
+    public function test_mapper_extracts_descriptions_from_various_header_aliases_and_fallbacks(): void
+    {
+        $mapper = new DjaRowMapper;
+
+        // Header with DMI DESCRIPTION
+        $dmiHeader = ['REG', 'DMI DESCRIPTION', 'DMI NO', 'PLAN DATE', 'STATUS'];
+        $dmiRow = ['PK-LGF', 'TRAY TABLE STUCK AT 14B', 'DMI-888', '10/10/2026', 'OPEN'];
+        $dmiMapped = $mapper->map('DJA DMI', $dmiRow, array_flip($dmiHeader));
+
+        $this->assertNotNull($dmiMapped);
+        $this->assertSame('TRAY TABLE STUCK AT 14B', $dmiMapped['description']);
+
+        // NSRDI with PART DESC fallback when description column is empty
+        $nsrdiHeader = ['REG', 'NSRDI NO', 'PART DESC', 'PLAN DATE', 'STATUS'];
+        $nsrdiRow = ['PK-LGF', 'NSR-111', 'ARMREST CAP REPLACEMENT', '10/10/2026', 'OPEN'];
+        $nsrdiMapped = $mapper->map('DJA AOC NSRDIL R01', $nsrdiRow, array_flip($nsrdiHeader));
+
+        $this->assertNotNull($nsrdiMapped);
+        $this->assertSame('ARMREST CAP REPLACEMENT', $nsrdiMapped['description']);
+    }
+
+    public function test_daily_job_assignment_description_fallback_to_related_logs(): void
+    {
+        $dja = new DailyJobAssignment([
+            'aircraft_registration' => 'PK-LGF',
+            'job_type' => 'DMI',
+            'station' => 'CGK',
+            'date' => '2026-10-10',
+        ]);
+
+        // When description attribute is null and no relations loaded
+        $this->assertNull($dja->description);
+
+        // When woLogs is loaded with description
+        $woLog = new WoLog(['description' => 'REPLACE LAVATORY FAUCET']);
+        $dja->setRelation('woLogs', collect([$woLog]));
+        $dja->setRelation('dmiLogs', collect());
+        $dja->setRelation('nsrdiLogs', collect());
+        $dja->setRelation('cmlLogs', collect());
+
+        $this->assertSame('REPLACE LAVATORY FAUCET', $dja->description);
+
+        // When dja has its own description attribute, it takes precedence
+        $dja->description = 'EXPLICIT DJA DESCRIPTION';
+        $this->assertSame('EXPLICIT DJA DESCRIPTION', $dja->description);
     }
 }

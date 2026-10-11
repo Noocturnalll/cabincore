@@ -20,6 +20,18 @@ class DailyJobAssignment extends Model
         'station',
     ];
 
+    public function getDescriptionAttribute(): ?string
+    {
+        if (! empty($this->attributes['description'])) {
+            return $this->attributes['description'];
+        }
+
+        return $this->woLogs->first()?->description
+            ?? $this->dmiLogs->first()?->description
+            ?? $this->nsrdiLogs->first()?->description
+            ?? $this->cmlLogs->first()?->description;
+    }
+
     public function cmlLogs()
     {
         return $this->hasMany(CmlLog::class, 'dja_id');

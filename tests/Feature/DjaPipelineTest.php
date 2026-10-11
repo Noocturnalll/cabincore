@@ -216,6 +216,49 @@ class DjaPipelineTest extends TestCase
         $this->assertSame(1, WoLog::count());
     }
 
+    public function test_resync_updates_status_to_closed_when_gss_is_marked_closed(): void
+    {
+        // 1. Initially Open in GSS and created as Open in CBM
+        $this->fakeSheets(['DJA' => [self::WO_HEADER, $this->woRow('WO-1', 'Replace seat cover', '25-21')]]);
+        $this->sync();
+
+        $log = WoLog::firstOrFail();
+        $this->assertSame('Open', $log->status);
+
+        // 2. Planner updates GSS status column to 'Closed'
+        $closedRow = $this->woRow('WO-1', 'Replace seat cover', '25-21');
+        $closedRow[13] = 'Closed';
+
+        $this->fakeSheets(['DJA' => [self::WO_HEADER, $closedRow]]);
+        $this->sync();
+
+        $log->refresh();
+        $this->assertSame('Closed', $log->status, 'Log in web app must become Closed when GSS is marked Closed.');
+
+        // 3. Also works if status in GSS is 'CLOSE' or 'DONE'
+        $closedRow[13] = 'CLOSE';
+        $this->fakeSheets(['DJA' => [self::WO_HEADER, $closedRow]]);
+        $this->sync();
+        $this->assertSame('Closed', $log->fresh()->status);
+
+        // 4. NSRDI: updates to Closed when sheet status is Closed or when close_date is filled
+        $nsrdiRow = ['1', 'CABIN', 'PK-GQA', 'N-1', 'Replace carpet', 'CBM', '2026-10-10', '', '', '', '', 'LION', 'AOC', 'CGK', '', 'Open', ''];
+        $this->fakeSheets(['DJA NSRDI' => [self::NSRDI_HEADER, $nsrdiRow]]);
+        $this->sync();
+
+        $nsrdi = NsrdiLog::where('nsrdi_number', 'N-1')->firstOrFail();
+        $this->assertSame('Open', $nsrdi->status);
+
+        // Planner marks NSRDI Closed with close date in sheet
+        $nsrdiClosed = ['1', 'CABIN', 'PK-GQA', 'N-1', 'Replace carpet', 'CBM', '2026-10-10', '', '', '', '', 'LION', 'AOC', 'CGK', '', 'Closed', '2026-10-10'];
+        $this->fakeSheets(['DJA NSRDI' => [self::NSRDI_HEADER, $nsrdiClosed]]);
+        $this->sync();
+
+        $nsrdi->refresh();
+        $this->assertSame('Closed', $nsrdi->status);
+        $this->assertSame('2026-10-10', substr((string) $nsrdi->close_date, 0, 10));
+    }
+
     public function test_nsrdi_only_takes_cbm_and_painting(): void
     {
         $row = fn (string $task, string $category) => ['1', 'CABIN', 'PK-GQA', $task, 'desc', $category, '', '', '', '', '', 'LION', 'AOC', 'CGK', '', '', ''];

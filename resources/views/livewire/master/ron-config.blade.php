@@ -12,6 +12,11 @@
 
     <x-flash />
 
+    <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: .75rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: .75rem; font-size: .875rem; color: #1e40af;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1.25rem; height: 1.25rem; flex-shrink: 0;"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" /></svg>
+        <span><strong>Otomatis:</strong> Data RON kini tersinkronisasi otomatis langsung dari <strong>Sheet 1 (List AC)</strong> setiap kali sinkronisasi DJA berjalan. Tidak perlu input manual.</span>
+    </div>
+
     <div class="mod-card mod-card-accent-purple">
         <div class="mod-toolbar">
             <div class="mod-meta"><span class="mod-record-count">{{ $stations->count() }} station &middot; total RON {{ $stations->sum(fn ($s) => $s->ron_jt + $s->ron_iw + $s->ron_id + $s->ron_iu + $s->ron_sl + $s->ron_od) }}</span></div>

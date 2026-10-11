@@ -18,6 +18,10 @@ class DjaImport implements Import, SkipsUnknownSheets, WithMultipleSheets
     public function sheets(): array
     {
         return [
+            'List AC' => new DjaRonSheetImport('List AC'),
+            'LIST AC' => new DjaRonSheetImport('LIST AC'),
+            'Sheet1' => new DjaRonSheetImport('Sheet1'),
+            0 => new DjaRonSheetImport('Sheet 1'),
             'DJA' => new DjaSheetImport('DJA'),
             'DJA DMI' => new DjaSheetImport('DJA DMI'),
             'DJA NSRD' => new DjaSheetImport('DJA NSRD'),

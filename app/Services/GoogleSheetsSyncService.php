@@ -9,6 +9,7 @@ use App\Models\SyncSetting;
 use App\Models\WoLog;
 use App\Services\Dja\DailyReportArchiver;
 use App\Services\Dja\DjaIngestor;
+use App\Services\Dja\DjaRonSyncService;
 use App\Services\Dja\DjaRowMapper;
 use Google\Service\Sheets\BatchUpdateValuesRequest;
 use Google\Service\Sheets\ValueRange;
@@ -84,13 +85,61 @@ class GoogleSheetsSyncService
             $message .= " {$archived} log masuk Daily Report.";
         }
 
+        // Synchronize RON from Sheet 1 ('List AC')
+        $ronResult = $this->syncRonSheet($spreadsheetId);
+        if ($ronResult && $ronResult['total_stations'] > 0) {
+            $message .= " Data RON {$ronResult['total_stations']} station ({$ronResult['total_aircraft']} A/C) berhasil disinkronkan dari {$ronResult['tab_title']}.";
+        }
+
         if ($this->lastError) {
             $message .= ' Catatan: '.$this->lastError;
         }
 
         SyncSetting::recordResult(SyncSetting::Dja, true, $message);
 
-        return ['success' => true, 'message' => $message, 'synced' => $synced, 'removed' => $removed, 'archived' => $archived, 'stats' => $s];
+        return ['success' => true, 'message' => $message, 'synced' => $synced, 'removed' => $removed, 'archived' => $archived, 'stats' => $s, 'ron' => $ronResult];
+    }
+
+    /**
+     * Synchronize RON aircraft from Sheet 1 ('List AC') into CapacityStation and CapacityReport.
+     *
+     * @return array{total_stations: int, total_aircraft: int, tab_title: string}|null
+     */
+    public function syncRonSheet(string $spreadsheetId): ?array
+    {
+        if (! $this->service) {
+            return null;
+        }
+
+        try {
+            $allTitles = $this->reader->tabTitles($spreadsheetId);
+            if (empty($allTitles)) {
+                return null;
+            }
+
+            // Find tab matching 'List AC' or fallback to the 1st sheet ($allTitles[0])
+            $targetTitle = null;
+            foreach ($allTitles as $title) {
+                $norm = strtoupper(trim($title));
+                if (str_contains($norm, 'LIST AC') || str_contains($norm, 'LIST_AC') || $norm === 'AC' || $norm === 'A/C') {
+                    $targetTitle = $title;
+                    break;
+                }
+            }
+
+            $targetTitle ??= $allTitles[0];
+
+            $values = $this->reader->values($spreadsheetId, $targetTitle);
+            if (empty($values)) {
+                return null;
+            }
+
+            return app(DjaRonSyncService::class)->syncFromArray($values, $targetTitle);
+        } catch (\Throwable $e) {
+            Log::warning("Failed to sync RON from Sheet 1 ({$spreadsheetId}): ".$e->getMessage());
+
+            return null;
+        }
     }
 
     /**

@@ -74,7 +74,7 @@ return [
     ],
 
     // NSRDI is not keyword based: the planner's own CATEGORY column decides.
-    'nsrdi_categories' => ['CBM', 'PAINTING'],
+    'nsrdi_categories' => ['CBM', 'PAINTING', 'CABIN', 'INTERIOR', 'CABIN MAINTENANCE', 'AOC', 'NSRDI'],
 
     // NSRDI that arrives without a category (leader report, unplanned): PAINTING when it is about paint on the
     // aircraft - paint peel off (PPO), paint / cat, livery - or an exterior placard. Anything else is CBM.

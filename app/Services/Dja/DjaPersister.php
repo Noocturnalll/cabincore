@@ -51,14 +51,25 @@ class DjaPersister
             $taskId = self::taskIdFor($mapped);
             $date = $mapped['date'] ?? self::activeDate();
 
-            $dja = DailyJobAssignment::firstOrNew(['task_id' => $taskId, 'date' => $date]);
-            $wasNew = ! $dja->exists;
+            // Look up existing DJA by task_id first to keep identity stable
+            $dja = DailyJobAssignment::where('task_id', $taskId)->latest()->first()
+                ?? DailyJobAssignment::where('task_id', $taskId)->where('date', $date)->first();
+
+            $wasNew = false;
+            if (! $dja) {
+                $dja = new DailyJobAssignment(['task_id' => $taskId, 'date' => $date]);
+                $wasNew = true;
+            } else {
+                if (! empty($mapped['date'])) {
+                    $dja->date = $mapped['date'];
+                }
+            }
 
             $dja->fill([
-                'aircraft_registration' => $mapped['ac_reg'] ?? '',
+                'aircraft_registration' => $mapped['ac_reg'] ?? $dja->aircraft_registration,
                 'job_type' => $mapped['job_type'],
-                'description' => $mapped['description'],
-                'station' => $mapped['station'] ?: config('dja.default_station'),
+                'description' => $mapped['description'] ?? $dja->description,
+                'station' => $mapped['station'] ?: ($dja->station ?: config('dja.default_station')),
             ]);
             if ($spreadsheetId) {
                 $dja->source_spreadsheet_id = $spreadsheetId;
@@ -73,7 +84,19 @@ class DjaPersister
                 $attrs['report_date'] = $attrs['report_date'] ?? $date;
             }
 
+            $logNumberCol = match ($kind) {
+                'wo' => 'wo_number',
+                'dmi' => 'dmi_number',
+                'nsrdi' => 'nsrdi_number',
+            };
+
             $log = $logClass::where('dja_id', $dja->id)->first();
+            if (! $log && ! empty($taskId)) {
+                $log = $logClass::where($logNumberCol, $taskId)->first();
+                if ($log) {
+                    $log->dja_id = $dja->id;
+                }
+            }
 
             if (! $log) {
                 $logClass::create(['dja_id' => $dja->id] + $attrs);
@@ -81,11 +104,37 @@ class DjaPersister
                 return ['task_id' => $taskId, 'result' => 'created'];
             }
 
-            if ($log->is_submitted) {
-                return ['task_id' => $taskId, 'result' => 'unchanged'];
+            if (! $log->is_submitted) {
+                $log->fill(array_intersect_key($attrs, array_flip(self::PLANNER_OWNED[$kind])));
             }
 
-            $log->fill(array_intersect_key($attrs, array_flip(self::PLANNER_OWNED[$kind])));
+            // Synchronize status from Google Sheets (always sync Closed, even if previously submitted)
+            if (! empty($attrs['status'])) {
+                if ($attrs['status'] === 'Closed') {
+                    $log->status = 'Closed';
+                    if ($kind === 'nsrdi') {
+                        if (! empty($attrs['close_date'])) {
+                            $log->close_date = $attrs['close_date'];
+                        } elseif (empty($log->close_date)) {
+                            $log->close_date = $date;
+                        }
+                    }
+                } elseif (! $log->is_submitted && $log->status !== 'Closed') {
+                    $log->status = $attrs['status'];
+                }
+            }
+
+            // Synchronize code_open and reason_open if present in GSS
+            if (! empty($attrs['code_open'])) {
+                $log->code_open = $attrs['code_open'];
+            }
+            if (! empty($attrs['reason_open'])) {
+                $log->reason_open = $attrs['reason_open'];
+            }
+            if (! empty($attrs['act_station']) && empty($log->act_station)) {
+                $log->act_station = $attrs['act_station'];
+            }
+
             $changed = $log->isDirty();
             $log->save();
 

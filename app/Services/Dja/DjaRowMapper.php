@@ -38,12 +38,12 @@ class DjaRowMapper
             'man_hour' => [['MAN HOUR', 'MH'], 7],
             'operator' => [['OPERATOR'], 8],
             'type' => [['TYPE'], 9],
-            'plan_station' => [['PLAN STA', 'PLAN STATION', 'STATION'], 10],
+            'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 10],
             'remarks_ppc_to_lm' => [['REMARKS PPC TO LM'], 11],
-            'act_station' => [['ACT STA', 'ACT STATION'], 12],
-            'status' => [['STATUS'], 13],
-            'code_open' => [['CODE REASON', 'CODE OPEN'], 14],
-            'reason_open' => [['REASON OPEN'], 15],
+            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], 12],
+            'status' => [['STATUS', 'STAT', 'STATUS WO', 'STATUS DJA', 'STATUS JOB', 'STATE', 'CLOSED / OPEN', 'OPEN/CLOSED'], 13],
+            'code_open' => [['CODE REASON', 'CODE OPEN', 'CODE', 'REASON CODE'], 14],
+            'reason_open' => [['REASON OPEN', 'REASON', 'KETERANGAN OPEN', 'HOLD REMARKS'], 15],
         ],
         'dmi' => [
             'ac_reg' => [self::AC_REG[0], 1],
@@ -51,10 +51,11 @@ class DjaRowMapper
             'pn_required' => [['PN REQUIRED', 'PN'], 3],
             'task_id' => [['TASK ID', 'DMI NO', 'DMI NUMBER'], 4],
             'dmi_category' => [['DMI CAT', 'DMI CATEGORY'], 5],
-            'plan_station' => [['PLAN STA', 'PLAN STATION', 'STATION'], 6],
+            'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 6],
             'category' => [['CAT', 'CATEGORY'], 7],
-            'status' => [['STATUS'], 8],
+            'status' => [['STATUS', 'STAT', 'STATUS DMI', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 8],
             'remarks' => [['REMARK', 'REMARKS'], 9],
+            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], null],
         ],
         'nsrdi' => [
             'work_group' => [['WG', 'WORK GROUP'], 1],
@@ -69,10 +70,13 @@ class DjaRowMapper
             'defer' => [['DEFER'], 10],
             'aoc' => [['AOC'], 11],
             'type' => [['TYPE'], 12],
-            'plan_station' => [['PLAN STA', 'PLAN STATION', 'STATION'], 13],
+            'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 13],
             'remarks' => [['REMARKS', 'REMARK'], 14],
-            'status' => [['STATUS'], 15],
-            'close_date' => [['CLOSE DATE'], 16],
+            'status' => [['STATUS', 'STAT', 'STATUS NSRDI', 'STATUS NSRD', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 15],
+            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], 16],
+            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], null],
+            'code_open' => [['CODE REASON', 'CODE OPEN', 'CODE', 'REASON CODE'], null],
+            'reason_open' => [['REASON OPEN', 'REASON', 'HOLD REMARKS'], null],
         ],
     ];
 
@@ -81,7 +85,7 @@ class DjaRowMapper
         'ata' => [['ATA', 'ATA CHAPTER', 'CHAPTER'], null],
         'task_card' => [['TASK CARD'], null],
         'task_card_description' => [['TASK CARD DESCRIPTION'], null],
-        'refresh_date' => [['REFRESH DATE'], 20],
+        'refresh_date' => [['REFRESH DATE', 'DATE REFRESH', 'DATE', 'TANGGAL', 'TGL', 'PLAN DATE'], 20],
     ];
 
     /** Header names the reader should look for to find the header row. */
@@ -196,7 +200,6 @@ class DjaRowMapper
     /** Attributes for wo_logs / dmi_logs / nsrdi_logs, in the same shape the Excel import always produced. */
     private function logAttributes(string $kind, array $f, ?string $date): array
     {
-        $status = fn () => $this->status($f['status'] ?? null);
         $text = fn (?string $v, int $limit = 255) => $v === null ? null : mb_substr($v, 0, $limit);
         $code = fn (?string $v) => $v === null ? null : mb_substr(strtoupper($v), 0, 255); // station codes are always upper-case
 
@@ -214,8 +217,8 @@ class DjaRowMapper
                 'type' => $text($f['type']),
                 'plan_station' => $code($f['plan_station']),
                 'remarks_ppc_to_lm' => $f['remarks_ppc_to_lm'],
-                'act_station' => $code($f['act_station']),
-                'status' => $status(),
+                'act_station' => $code($f['act_station'] ?? null) ?: $code($f['plan_station']),
+                'status' => $this->status($f['status'] ?? null),
                 'code_open' => $text($f['code_open']),
                 'reason_open' => $text($f['reason_open']),
             ],
@@ -228,7 +231,8 @@ class DjaRowMapper
                 'dmi_category' => $text($f['dmi_category']),
                 'plan_station' => $code($f['plan_station']),
                 'category' => $text($f['category']),
-                'status' => $status(),
+                'act_station' => $code($f['act_station'] ?? null) ?: $code($f['plan_station']),
+                'status' => $this->status($f['status'] ?? null),
                 'remarks' => $f['remarks'],
             ],
             'nsrdi' => [
@@ -246,18 +250,45 @@ class DjaRowMapper
                 'aoc' => $text($f['aoc']),
                 'type' => $text($f['type']),
                 'plan_station' => $code($f['plan_station']),
+                'act_station' => $code($f['act_station'] ?? null) ?: $code($f['plan_station']),
                 'remarks' => $f['remarks'],
-                'status' => $status(),
+                'status' => $this->status($f['status'] ?? null, $f['close_date'] ?? null),
                 'close_date' => GoogleSheetsReader::parseDate($f['close_date'] ?? null),
+                'code_open' => $text($f['code_open'] ?? null),
+                'reason_open' => $text($f['reason_open'] ?? null),
             ],
         };
     }
 
-    private function status(?string $value): string
+    public static function normalizeStatus(?string $value, ?string $closeDate = null): string
     {
-        $value = ucfirst(strtolower(trim((string) $value)));
+        $v = strtoupper(trim((string) $value));
 
-        return in_array($value, ['Open', 'Closed', 'Pending'], true) ? $value : 'Open';
+        if (
+            str_starts_with($v, 'CLOSE') ||
+            str_starts_with($v, 'CLS') ||
+            $v === 'C' ||
+            str_starts_with($v, 'DONE') ||
+            str_starts_with($v, 'COMPLETE') ||
+            str_starts_with($v, 'SELESAI')
+        ) {
+            return 'Closed';
+        }
+
+        if (! empty($closeDate) && GoogleSheetsReader::parseDate($closeDate) !== null) {
+            return 'Closed';
+        }
+
+        if (in_array($v, ['PENDING', 'HOLD', 'WAITING'], true) || str_starts_with($v, 'HOLD')) {
+            return 'Pending';
+        }
+
+        return 'Open';
+    }
+
+    private function status(?string $value, ?string $closeDate = null): string
+    {
+        return self::normalizeStatus($value, $closeDate);
     }
 
     private function clean(mixed $value): ?string

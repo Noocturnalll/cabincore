@@ -93,6 +93,13 @@ class DjaClassifierTest extends TestCase
         $this->assertSame('reject', $classifier->classify('wo', null, null, 'MAIN BATTERY')['action']);
         $this->assertSame('reject', $classifier->classify('wo', null, null, 'BATTERY AND CHARGER SYSTEM')['action']);
         $this->assertSame('reject', $classifier->classify('wo', null, null, 'INSPECTION OF MAIN LANDING GEAR SUPPORT RIB5 LUGS')['action']);
+
+        // Exterior cleaning & mechanical waste / crew oxygen systems
+        $this->assertSame('reject', $classifier->classify('wo', null, 'CBMS', 'DEEP CLEANING EXTERIOR')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, 'OP', 'VACUUM TOILET SYSTEM INSPECT WATER SEPARATOR AND FILTER')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, 'DEFER', 'VACUUM TOILET SYSTEM DETAILED INSPECTION OF CLEANLINESS INSIDE WASTE TANK')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, 'HT', 'RESTORE THE FLIGHT CREW OXYGEN MASK/REGULATOR')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, 'HT', 'DETAILED VISUAL INSPECTION OF CREW OXYGEN MASK AND STOWAGE BOX')['action']);
     }
 
     public function test_cockpit_emergency_equipment_accepted(): void

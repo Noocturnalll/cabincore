@@ -76,11 +76,21 @@ return [
         'AC GENERATION', 'OIL SYSTEM', 'DRAIN MAST', 'RADOME', 'PITOT', 'BORESCOPE', 'THRUST REVERSER', 'COWLING', 'NACELLE',
         // APU / Engine bottles
         'APU FIREX', 'ENGINE FIREX', 'APU CARTRIDGE',
+        // Exterior cleaning & placards (handled by exterior wash / LM)
+        'DEEP CLEANING EXTERIOR', 'EXTERIOR CLEANING', 'EXTERIOR PLACARD', 'WASHING EXTERIOR',
+        // Mechanical / ECS / Waste systems non-cabin
+        'WATER SEPARATOR', 'INSIDE WASTE TANK', 'WASTE TANK CLEANLINESS',
+        // Cockpit / Crew oxygen systems (Line Maintenance / Avionics)
+        'CREW OXYGEN', 'FLIGHT CREW OXYGEN', 'CREW OXYGEN MASK', 'CREW OXYGEN CYLINDER', 'HYD CYLINDER',
+        // Sensors / Equipment racks
+        'TEMPERATURE SENSOR', 'SENSOR FILTER', 'EQUIPMENT RACK',
+        // Cockpit overhead P5 / flight deck controls
+        'DRIPSHIELD BRACKET', 'P5 PANEL', 'OVERHEAD P5',
     ],
 
     // Cockpit emergency equipment items that ARE valid cabin maintenance even when located in cockpit.
     'cockpit_emergency_include' => [
-        'LIFE VEST', 'LIFEVEST', 'FLASHLIGHT', 'FLASHLIGHTS', 'PBE', 'PROTECTIVE BREATHING', 'BREATHING EQPT', 'OXYGEN MASK', 'SEAT BELT', 'SEATBELT', 'PORTABLE FIREX',
+        'LIFE VEST', 'LIFEVEST', 'FLASHLIGHT', 'FLASHLIGHTS', 'PBE', 'PROTECTIVE BREATHING', 'BREATHING EQPT', 'SEAT BELT', 'SEATBELT', 'PORTABLE FIREX',
     ],
 
     // A match together with one of these words means "not a cabin job": reject from CBM sync.

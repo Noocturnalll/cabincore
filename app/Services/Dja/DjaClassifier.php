@@ -99,7 +99,7 @@ class DjaClassifier
             return $this->result(self::REJECT, 'keyword.cockpit_exclude', 'Pekerjaan cockpit non-emergency equipment bukan Cabin.');
         }
 
-        // 5. Aerodynamic surfaces exception: escape slides (offwing/overwing) and lavatory flap vs wing flap
+        // 6. Aerodynamic surfaces exception: escape slides (offwing/overwing) and lavatory flap vs wing flap
         if (preg_match('/\b(WING|FLAP|SLAT|SPOILER|AILERON|RUDDER|ELEVATOR)\b/', $text)) {
             $isSlide = (bool) preg_match('/\b(OFFWING|OVERWING|OFF WING|OVER WING|ESCAPE SLIDE|SLIDE RAFT|LIFE RAFT)\b/', $text);
             $isWasteFlap = (bool) preg_match('/\b(WASTE FLAP|BIN FLAP|TOILET|LAVATORY|WASTE COMPARTMENT)\b/', $text);
@@ -110,7 +110,7 @@ class DjaClassifier
 
         $exclude = $this->firstMatch($text, $this->config['exclude'] ?? []);
 
-        // 6. If it contains other non-cabin words (CAPT, F/O, ENGINE, etc.)
+        // 7. If it contains other non-cabin words (CAPT, F/O, ENGINE, etc.)
         if ($exclude !== null) {
             $include = $this->firstMatch($text, $this->config[$kind]['include'] ?? []);
             $hasAcceptedAta = ($ataPrefix !== '' && in_array($ataPrefix, $this->config['ata_accept'], true));
@@ -122,18 +122,18 @@ class DjaClassifier
             return $this->result(self::REJECT, 'keyword.exclude', "Memuat kata non-cabin \"{$exclude}\".");
         }
 
-        // 7. ATA accept check (safe because non-cabin words have already been checked)
+        // 8. ATA accept check (safe because non-cabin words have already been checked)
         if ($ataPrefix !== '' && in_array($ataPrefix, $this->config['ata_accept'], true)) {
             return $this->result(self::ACCEPT, 'ata.accept', "ATA {$ataPrefix} termasuk cabin.");
         }
 
-        // 8. Keyword include check
+        // 9. Keyword include check
         $include = $this->firstMatch($text, $this->config[$kind]['include'] ?? []);
         if ($include !== null) {
             return $this->result(self::ACCEPT, 'keyword.include', "Kata kunci \"{$include}\".");
         }
 
-        // 9. Weak keywords (review list)
+        // 10. Weak keywords (review list)
         $weak = $this->firstMatch($text, $this->config['review'] ?? []);
         if ($weak !== null) {
             return $this->result(self::REVIEW, 'keyword.weak', "Hanya kata \"{$weak}\" yang cocok, perlu dicek manual.");

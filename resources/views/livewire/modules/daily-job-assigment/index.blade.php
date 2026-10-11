@@ -69,12 +69,38 @@
         </div>
 
         <div class="mod-card mod-card-accent-blue">
+            @if(count($selectedDjas) > 0 && $canReview)
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:.65rem;padding:.75rem 1rem;margin-bottom:1rem;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:.6rem;">
+                        <span style="font-weight:700;color:var(--cbm-text);font-size:.875rem;">
+                            <span style="background:var(--cbm-red,#ef4444);color:#fff;border-radius:999px;padding:.15rem .6rem;font-size:.78rem;font-weight:800;">{{ count($selectedDjas) }}</span>
+                            tugas dipilih
+                        </span>
+                        <span style="color:var(--cbm-text-muted);font-size:.8125rem;">(Bukan jobdesk CBM / tidak sengaja lolos sync)</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <button type="button" wire:click="$set('selectedDjas', []); $set('selectAllDjas', false)" class="mod-btn-outline" style="padding:.4rem .85rem;font-size:.8125rem;">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="bulkRemoveFromDja" wire:confirm="Yakin ingin mengeluarkan {{ count($selectedDjas) }} tugas dari DJA? Log terkait yang belum disubmit akan dihapus dan tugas ditandai ditolak." wire:loading.attr="disabled" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;font-size:.8125rem;background:#ef4444;color:#fff;border:none;border-radius:.5rem;cursor:pointer;font-weight:700;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            Keluarkan dari DJA &amp; Pindahkan ke Ditolak
+                        </button>
+                    </div>
+                </div>
+            @endif
+
             <x-log-toolbar :logs="$rows" mode="date" :active="(bool) ($search || $dateFilter)" placeholder="Cari registrasi, task ID, station..." />
 
             <div class="mod-table-wrap">
                 <table class="mod-table">
                     <thead>
                         <tr>
+                            @if($canReview)
+                                <th style="width:2.5rem;text-align:center;">
+                                    <input type="checkbox" wire:model.live="selectAllDjas" style="width:1.05rem;height:1.05rem;accent-color:var(--cbm-blue,#3b82f6);cursor:pointer;border-radius:.25rem;" title="Pilih Semua">
+                                </th>
+                            @endif
                             <th>TANGGAL</th>
                             <th>REG A/C</th>
                             <th>TASK ID</th>
@@ -93,6 +119,11 @@
                                 ];
                             @endphp
                             <tr wire:key="dja-{{ $row->id }}">
+                                @if($canReview)
+                                    <td style="text-align:center;">
+                                        <input type="checkbox" wire:model.live="selectedDjas" value="{{ $row->id }}" style="width:1.05rem;height:1.05rem;accent-color:var(--cbm-blue,#3b82f6);cursor:pointer;border-radius:.25rem;">
+                                    </td>
+                                @endif
                                 <td style="white-space:nowrap;">{{ \Carbon\Carbon::parse($row->date)->format('d M Y') }}</td>
                                 <td><div class="mod-aircraft-name">{{ $row->aircraft_registration }}</div></td>
                                 <td>{{ $row->task_id }}</td>
@@ -113,7 +144,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7">
+                                <td colspan="{{ $canReview ? 8 : 7 }}">
                                     <div class="mod-empty">
                                         <div class="mod-empty-title">{{ ($search || $dateFilter) ? 'Tidak ada data yang cocok' : 'Belum ada data DJA' }}</div>
                                         <div class="mod-empty-sub">
@@ -150,16 +181,52 @@
                 @endforeach
             </div>
 
+            @if(count($selectedReviews) > 0 && $canReview)
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);border-radius:.65rem;padding:.75rem 1rem;margin-bottom:1rem;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:.6rem;">
+                        <span style="font-weight:700;color:var(--cbm-text);font-size:.875rem;">
+                            <span style="background:var(--cbm-blue,#3b82f6);color:#fff;border-radius:999px;padding:.15rem .6rem;font-size:.78rem;font-weight:800;">{{ count($selectedReviews) }}</span>
+                            baris dipilih
+                        </span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <button type="button" wire:click="$set('selectedReviews', []); $set('selectAllReviews', false)" class="mod-btn-outline" style="padding:.4rem .85rem;font-size:.8125rem;">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="bulkAcceptReviews" wire:loading.attr="disabled" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;font-size:.8125rem;background:#10b981;color:#fff;border:none;border-radius:.5rem;cursor:pointer;font-weight:700;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                            Terima Terpilih ({{ count($selectedReviews) }})
+                        </button>
+                        <button type="button" wire:click="bulkRejectReviews" wire:loading.attr="disabled" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;font-size:.8125rem;background:#ef4444;color:#fff;border:none;border-radius:.5rem;cursor:pointer;font-weight:700;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                            Tolak Terpilih ({{ count($selectedReviews) }})
+                        </button>
+                    </div>
+                </div>
+            @endif
+
             <x-log-toolbar :logs="$reviews" mode="none" :active="(bool) $search" placeholder="Cari task, registrasi, deskripsi, alasan..." />
 
             <div class="mod-table-wrap">
                 <table class="mod-table">
                     <thead>
-                        <tr><th>JENIS</th><th>TASK ID</th><th>REG A/C</th><th>DESKRIPSI</th><th>ATA / KATEGORI</th><th>ALASAN SISTEM</th><th>TERAKHIR TERLIHAT</th><th style="text-align:right;">AKSI</th></tr>
+                        <tr>
+                            @if($canReview)
+                                <th style="width:2.5rem;text-align:center;">
+                                    <input type="checkbox" wire:model.live="selectAllReviews" style="width:1.05rem;height:1.05rem;accent-color:var(--cbm-blue,#3b82f6);cursor:pointer;border-radius:.25rem;" title="Pilih Semua">
+                                </th>
+                            @endif
+                            <th>JENIS</th><th>TASK ID</th><th>REG A/C</th><th>DESKRIPSI</th><th>ATA / KATEGORI</th><th>ALASAN SISTEM</th><th>TERAKHIR TERLIHAT</th><th style="text-align:right;">AKSI</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @forelse($reviews as $r)
                             <tr wire:key="review-{{ $r->id }}">
+                                @if($canReview)
+                                    <td style="text-align:center;">
+                                        <input type="checkbox" wire:model.live="selectedReviews" value="{{ $r->id }}" style="width:1.05rem;height:1.05rem;accent-color:var(--cbm-blue,#3b82f6);cursor:pointer;border-radius:.25rem;">
+                                    </td>
+                                @endif
                                 <td><span class="mod-badge-progress" style="text-transform:uppercase;">{{ $r->kind }}</span></td>
                                 <td>{{ $r->task_id ?: '-' }}</td>
                                 <td><div class="mod-aircraft-name">{{ $r->aircraft_registration ?: '-' }}</div></td>
@@ -183,7 +250,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="8">
+                            <tr><td colspan="{{ $canReview ? 9 : 8 }}">
                                 <div class="mod-empty">
                                     <div class="mod-empty-title">{{ $reviewFilter === 'review' ? 'Tidak ada baris yang perlu review' : 'Tidak ada data' }}</div>
                                     <div class="mod-empty-sub">Baris baru muncul di sini setelah sync berikutnya.</div>

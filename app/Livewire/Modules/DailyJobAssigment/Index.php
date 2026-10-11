@@ -34,6 +34,14 @@ class Index extends Component
     /** review tab: 'review' (perlu dicek) | 'reject' (ditolak aturan) | 'decided' (sudah diputuskan manusia) */
     public $reviewFilter = 'review';
 
+    public array $selectedReviews = [];
+
+    public bool $selectAllReviews = false;
+
+    public array $selectedDjas = [];
+
+    public bool $selectAllDjas = false;
+
     public $sheetUrl = '';
 
     public $file;
@@ -42,9 +50,48 @@ class Index extends Component
 
     public $dateFilter = '';
 
-    public function updatingReviewFilter()
+    public function updatingReviewFilter(): void
     {
         $this->resetPage();
+        $this->resetSelection();
+    }
+
+    public function updatedActiveTab(): void
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
+    public function resetSelection(): void
+    {
+        $this->selectedReviews = [];
+        $this->selectAllReviews = false;
+        $this->selectedDjas = [];
+        $this->selectAllDjas = false;
+    }
+
+    public function updatedSelectAllReviews($value): void
+    {
+        if ($value) {
+            $this->selectedReviews = $this->reviewQuery()
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->toArray();
+        } else {
+            $this->selectedReviews = [];
+        }
+    }
+
+    public function updatedSelectAllDjas($value): void
+    {
+        if ($value) {
+            $this->selectedDjas = $this->dataQuery()
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->toArray();
+        } else {
+            $this->selectedDjas = [];
+        }
     }
 
     public function canReview(): bool
@@ -149,6 +196,158 @@ class Index extends Component
         DjaSyncReview::findOrFail($id)->update(['decision' => null, 'decided_by' => null, 'decided_at' => null]);
 
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Keputusan dibatalkan. Aturan akan menilai ulang pada sync berikutnya.']);
+    }
+
+    public function bulkAcceptReviews(DjaPersister $persister): void
+    {
+        $this->authorizeReview();
+        if (empty($this->selectedReviews)) {
+            return;
+        }
+
+        $reviews = DjaSyncReview::whereIn('id', $this->selectedReviews)->get();
+        $count = 0;
+
+        DB::transaction(function () use ($reviews, $persister, &$count) {
+            foreach ($reviews as $review) {
+                $persister->store($review->payload, $review->spreadsheet_id);
+                $review->update([
+                    'decision' => 'accepted',
+                    'decided_by' => auth()->id(),
+                    'decided_at' => now(),
+                ]);
+                app(ClassificationMemory::class)->remember(
+                    $review->kind,
+                    $review->payload['task_card'] ?? null,
+                    $review->description,
+                    ClassificationMemory::CBM,
+                    auth()->id()
+                );
+                $count++;
+            }
+        });
+
+        $this->resetSelection();
+        $this->dispatch('notify', [
+            'icon' => 'success',
+            'message' => "{$count} baris berhasil diterima dan masuk ke modul terkait.",
+        ]);
+    }
+
+    public function bulkRejectReviews(): void
+    {
+        $this->authorizeReview();
+        if (empty($this->selectedReviews)) {
+            return;
+        }
+
+        $reviews = DjaSyncReview::whereIn('id', $this->selectedReviews)->get();
+        $count = 0;
+
+        DB::transaction(function () use ($reviews, &$count) {
+            foreach ($reviews as $review) {
+                $review->update([
+                    'decision' => 'rejected',
+                    'decided_by' => auth()->id(),
+                    'decided_at' => now(),
+                ]);
+                app(ClassificationMemory::class)->remember(
+                    $review->kind,
+                    $review->payload['task_card'] ?? null,
+                    $review->description,
+                    ClassificationMemory::LINE,
+                    auth()->id()
+                );
+                $count++;
+            }
+        });
+
+        $this->resetSelection();
+        $this->dispatch('notify', [
+            'icon' => 'success',
+            'message' => "{$count} baris berhasil ditolak.",
+        ]);
+    }
+
+    public function bulkRemoveFromDja(): void
+    {
+        $this->authorizeReview();
+        if (empty($this->selectedDjas)) {
+            return;
+        }
+
+        $djas = DailyJobAssignment::whereIn('id', $this->selectedDjas)
+            ->with(['woLogs', 'dmiLogs', 'nsrdiLogs', 'cmlLogs'])
+            ->get();
+        $count = 0;
+
+        DB::transaction(function () use ($djas, &$count) {
+            foreach ($djas as $dja) {
+                foreach (['woLogs', 'dmiLogs', 'nsrdiLogs', 'cmlLogs'] as $relation) {
+                    foreach ($dja->$relation as $child) {
+                        if (! $child->is_submitted) {
+                            $child->delete();
+                        } else {
+                            $child->update(['dja_id' => null]);
+                        }
+                    }
+                }
+
+                $kind = match ($dja->job_type) {
+                    'AOC/NSRDI' => 'nsrdi',
+                    'DMI' => 'dmi',
+                    default => 'wo',
+                };
+                $tab = strtoupper($kind);
+                $rowKey = DjaSyncReview::keyFor($tab, $dja->task_id, $dja->aircraft_registration, $dja->description);
+
+                DjaSyncReview::updateOrCreate(
+                    [
+                        'row_key' => $rowKey,
+                    ],
+                    [
+                        'tab' => $tab,
+                        'kind' => $kind,
+                        'task_id' => $dja->task_id,
+                        'aircraft_registration' => $dja->aircraft_registration,
+                        'description' => $dja->description,
+                        'bucket' => 'reject',
+                        'decision' => 'rejected',
+                        'decided_by' => auth()->id(),
+                        'decided_at' => now(),
+                        'rule' => 'manual.removed_from_dja',
+                        'reason' => 'Dikeluarkan dari DJA oleh '.(auth()->user()?->name ?? 'User'),
+                        'payload' => [
+                            'kind' => $kind,
+                            'tab' => $tab,
+                            'task_id' => $dja->task_id,
+                            'ac_reg' => $dja->aircraft_registration,
+                            'description' => $dja->description,
+                            'station' => $dja->station,
+                            'job_type' => $dja->job_type,
+                        ],
+                        'last_seen_at' => now(),
+                    ]
+                );
+
+                app(ClassificationMemory::class)->remember(
+                    $kind,
+                    null,
+                    $dja->description,
+                    ClassificationMemory::LINE,
+                    auth()->id()
+                );
+
+                $dja->delete();
+                $count++;
+            }
+        });
+
+        $this->resetSelection();
+        $this->dispatch('notify', [
+            'icon' => 'success',
+            'message' => "{$count} tugas berhasil dikeluarkan dari DJA dan ditandai sebagai ditolak.",
+        ]);
     }
 
     protected function notifyUser(string $type, string $message): void

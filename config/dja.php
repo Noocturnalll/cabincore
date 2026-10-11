@@ -65,7 +65,25 @@ return [
         'AVIONICS', 'AV', 'MECHANIC', 'MECH', 'STRUCTURE', 'STR', 'ENGINE', 'ENG', 'B1', 'B2', 'SHEET METAL', 'ELECTRICAL',
     ],
 
-    // A match together with one of these words means "not a cabin job": reject immediately from CBM sync.
+    // Absolute non-cabin jobs: rejected immediately without conflict review, regardless of ATA or other matches.
+    'hard_exclude' => [
+        // Cargo
+        'CARGO', 'CARGO COMPARTMENT', 'CARGO DOOR', 'CARGO NET', 'CARGO FLOOR', 'CARGO BULKHEAD', 'BAGGAGE COMPARTMENT', 'FWD CARGO', 'AFT CARGO',
+        // Cockpit windows / windshields / exterior seals
+        'COCKPIT WINDOW', 'COCKPIT WINDOWS', 'FLIGHT COMPARTMENT WINDOW', 'WINDSHIELD', 'HUMP SEAL', 'SEALS FROM OUTSIDE',
+        // Airframe systems & landing gear
+        'LANDING GEAR', 'MLG', 'NLG', 'PACK AREA', 'AIR CONDITIONING PACK', 'MAIN BATTERY', 'BATTERY AND CHARGER',
+        'AC GENERATION', 'OIL SYSTEM', 'DRAIN MAST', 'RADOME', 'PITOT', 'BORESCOPE', 'THRUST REVERSER', 'COWLING', 'NACELLE',
+        // APU / Engine bottles
+        'APU FIREX', 'ENGINE FIREX', 'APU CARTRIDGE',
+    ],
+
+    // Cockpit emergency equipment items that ARE valid cabin maintenance even when located in cockpit.
+    'cockpit_emergency_include' => [
+        'LIFE VEST', 'LIFEVEST', 'FLASHLIGHT', 'FLASHLIGHTS', 'PBE', 'PROTECTIVE BREATHING', 'BREATHING EQPT', 'OXYGEN MASK', 'SEAT BELT', 'SEATBELT', 'PORTABLE FIREX',
+    ],
+
+    // A match together with one of these words means "not a cabin job": reject from CBM sync.
     'exclude' => [
         // Aircraft Systems / Propulsion / Flight Controls
         'ENGINE', 'APU', 'LANDING GEAR', 'HYDRAULIC', 'FUEL TANK', 'BORESCOPE', 'PROPELLER', 'AVIONICS', 'FLIGHT CONTROL',

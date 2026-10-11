@@ -74,4 +74,33 @@ class DjaClassifierTest extends TestCase
         $this->assertSame('reject', $classifier->classify('dmi', null, null, 'L/H FOOTREST F/O SIDE INOPERATIVE')['action']);
         $this->assertSame('review', $classifier->classify('nsrdi', null, 'CBM', 'HANDLE DOOR COCKPIT OUTSIDE DELEMINATED')['action']);
     }
+
+    public function test_hard_non_cabin_jobs_rejected_regardless_of_ata(): void
+    {
+        $classifier = new DjaClassifier(config('dja'));
+
+        // Cockpit windows from outside (even if ATA 56 or 25 is present)
+        $this->assertSame('reject', $classifier->classify('wo', '56', null, 'DETAILED INSPECTION OF ALL COCKPIT WINDOWS INCLUDING SEALS FROM OUTSIDE A330')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'B737NG FLIGHT COMPARTMENT WINDOW 1 HUMP SEAL REPAIR')['action']);
+
+        // Cargo compartments (even if ATA 25 is present)
+        $this->assertSame('reject', $classifier->classify('wo', '25', null, 'INSPECT AFT CARGO COMPARTMENT')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'INSPECT (GENERAL VISUAL) THE FWD CARGO COMPARTMENT FLOOR, CEILING, SIDEWALL')['action']);
+        $this->assertSame('reject', $classifier->classify('nsrdi', null, 'CBM', 'FWD CARGO NET BAD CONDITION')['action']);
+
+        // Systems & airframe
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'GENERAL VISUAL INSPECTION PACK AREA (CLAMP, SEAL AND GASKET)')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'MAIN BATTERY')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'BATTERY AND CHARGER SYSTEM')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'INSPECTION OF MAIN LANDING GEAR SUPPORT RIB5 LUGS')['action']);
+    }
+
+    public function test_cockpit_emergency_equipment_accepted(): void
+    {
+        $classifier = new DjaClassifier(config('dja'));
+
+        $this->assertSame('accept', $classifier->classify('wo', null, null, 'REPLACEMENT CREW LIFEVEST 4EA (COCKPIT, FA2, FA5, FA6)')['action']);
+        $this->assertSame('accept', $classifier->classify('wo', null, null, 'REMOVAL OF COCKPIT FLASHLIGHTS FOR BATTERY DISCARD AND SUBSEQUENT OPERATIONAL TEST')['action']);
+        $this->assertSame('accept', $classifier->classify('wo', null, null, 'REPLACEMENT LIFE VEST CREW AT COCKPIT SEAT PILOT')['action']);
+    }
 }

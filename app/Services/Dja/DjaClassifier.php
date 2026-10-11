@@ -35,6 +35,13 @@ class DjaClassifier
     private function classifyNsrdi(?string $category, ?string $description = null): array
     {
         $text = $description ? $this->normalise($description) : '';
+
+        // Hard non-cabin check (cargo, cockpit windows, airframe systems): never CBM
+        $hardExclude = $text !== '' ? $this->firstMatch($text, $this->config['hard_exclude'] ?? []) : null;
+        if ($hardExclude !== null) {
+            return $this->result(self::REJECT, 'keyword.hard_exclude', "NSRDI non-cabin \"{$hardExclude}\" langsung ditolak.");
+        }
+
         $exclude = $text !== '' ? $this->firstMatch($text, $this->config['exclude'] ?? []) : null;
 
         $category = strtoupper(trim((string) $category));
@@ -74,9 +81,36 @@ class DjaClassifier
         }
 
         $text = $this->normalise((string) $description);
+
+        // 3. Absolute non-cabin check (cargo, cockpit windows, landing gear, etc.): never cabin regardless of ATA
+        $hardExclude = $this->firstMatch($text, $this->config['hard_exclude'] ?? []);
+        if ($hardExclude !== null) {
+            return $this->result(self::REJECT, 'keyword.hard_exclude', "Pekerjaan non-cabin \"{$hardExclude}\" langsung ditolak.");
+        }
+
+        // 4. Cockpit emergency equipment exception: life vests, flashlights, PBE, etc. located in cockpit
+        $isCockpit = (bool) preg_match('/\b(COCKPIT|CKPT|FLIGHT DECK)\b/', $text);
+        if ($isCockpit) {
+            $cockpitEmergency = $this->firstMatch($text, $this->config['cockpit_emergency_include'] ?? []);
+            if ($cockpitEmergency !== null) {
+                return $this->result(self::ACCEPT, 'keyword.cockpit_emergency', "Emergency equipment cockpit \"{$cockpitEmergency}\" termasuk CBM.");
+            }
+
+            return $this->result(self::REJECT, 'keyword.cockpit_exclude', 'Pekerjaan cockpit non-emergency equipment bukan Cabin.');
+        }
+
+        // 5. Aerodynamic surfaces exception: escape slides (offwing/overwing) and lavatory flap vs wing flap
+        if (preg_match('/\b(WING|FLAP|SLAT|SPOILER|AILERON|RUDDER|ELEVATOR)\b/', $text)) {
+            $isSlide = (bool) preg_match('/\b(OFFWING|OVERWING|OFF WING|OVER WING|ESCAPE SLIDE|SLIDE RAFT|LIFE RAFT)\b/', $text);
+            $isWasteFlap = (bool) preg_match('/\b(WASTE FLAP|BIN FLAP|TOILET|LAVATORY|WASTE COMPARTMENT)\b/', $text);
+            if (! $isSlide && ! $isWasteFlap) {
+                return $this->result(self::REJECT, 'keyword.aerodynamic_surface', 'Pekerjaan wing/flap/aerodynamic surface bukan Cabin.');
+            }
+        }
+
         $exclude = $this->firstMatch($text, $this->config['exclude'] ?? []);
 
-        // 3. If it contains non-cabin words (COCKPIT, CAPT, F/O, CARGO, ENGINE, etc.)
+        // 6. If it contains other non-cabin words (CAPT, F/O, ENGINE, etc.)
         if ($exclude !== null) {
             $include = $this->firstMatch($text, $this->config[$kind]['include'] ?? []);
             $hasAcceptedAta = ($ataPrefix !== '' && in_array($ataPrefix, $this->config['ata_accept'], true));
@@ -88,18 +122,18 @@ class DjaClassifier
             return $this->result(self::REJECT, 'keyword.exclude', "Memuat kata non-cabin \"{$exclude}\".");
         }
 
-        // 4. ATA accept check (safe because non-cabin words have already been checked)
+        // 7. ATA accept check (safe because non-cabin words have already been checked)
         if ($ataPrefix !== '' && in_array($ataPrefix, $this->config['ata_accept'], true)) {
             return $this->result(self::ACCEPT, 'ata.accept', "ATA {$ataPrefix} termasuk cabin.");
         }
 
-        // 5. Keyword include check
+        // 8. Keyword include check
         $include = $this->firstMatch($text, $this->config[$kind]['include'] ?? []);
         if ($include !== null) {
             return $this->result(self::ACCEPT, 'keyword.include', "Kata kunci \"{$include}\".");
         }
 
-        // 6. Weak keywords (review list)
+        // 9. Weak keywords (review list)
         $weak = $this->firstMatch($text, $this->config['review'] ?? []);
         if ($weak !== null) {
             return $this->result(self::REVIEW, 'keyword.weak', "Hanya kata \"{$weak}\" yang cocok, perlu dicek manual.");

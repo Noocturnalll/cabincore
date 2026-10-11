@@ -7,6 +7,7 @@ use App\Models\DailyJobAssignment;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
+use App\Services\Dja\DjaClassifier;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -263,11 +264,18 @@ class DailyReportSheetImport implements OnEachRow
             }
         }
 
+        $classifier = app(DjaClassifier::class);
+        $nsrdiCheck = $classifier->classify('nsrdi', null, $row['category'] ?? null, $row['description'] ?? null, $row['work_group'] ?? null);
+        if ($nsrdiCheck['action'] === DjaClassifier::REJECT) {
+            return; // Skip non-cabin jobs from entering CBM
+        }
+
         $djaId = null;
         if ($source === 'dja' && $planDate) {
+            $taskId = $row['nsrdi_number'] ?? $row['task_id'] ?? 'IMPORTED';
             $dja = DailyJobAssignment::firstOrCreate(
-                ['aircraft_registration' => $acReg, 'date' => $planDate],
-                ['job_type' => 'AOC/NSRDI', 'station' => $row['act_station'] ?? 'Unknown', 'task_id' => 'IMPORTED']
+                ['aircraft_registration' => $acReg, 'date' => $planDate, 'task_id' => $taskId],
+                ['job_type' => 'AOC/NSRDI', 'station' => $row['act_station'] ?? 'Unknown', 'description' => $row['description'] ?? null]
             );
             $djaId = $dja->id;
         }
@@ -302,11 +310,19 @@ class DailyReportSheetImport implements OnEachRow
         if (empty($acReg)) {
             return;
         }
+
+        $desc = $row['wo_description'] ?? $row['defect_description'] ?? ($existing->description ?? null);
+        $classifier = app(DjaClassifier::class);
+        $woCheck = $classifier->classify('wo', null, $row['wo_cat'] ?? null, $desc, $row['wg'] ?? null);
+        if ($woCheck['action'] === DjaClassifier::REJECT) {
+            return; // Skip non-cabin jobs from entering CBM
+        }
+
         $djaId = null;
         if (! $isUnplanned && $date) {
             $dja = DailyJobAssignment::firstOrCreate(
-                ['aircraft_registration' => $acReg, 'date' => $date],
-                ['job_type' => 'R01/WO', 'station' => $row['act_sta'] ?? $row['sta'] ?? 'Unknown', 'task_id' => 'IMPORTED']
+                ['aircraft_registration' => $acReg, 'date' => $date, 'task_id' => $woNumber],
+                ['job_type' => 'R01/WO', 'station' => $row['act_sta'] ?? $row['sta'] ?? 'Unknown', 'description' => $desc]
             );
             $djaId = $dja->id;
         }
@@ -315,7 +331,7 @@ class DailyReportSheetImport implements OnEachRow
             'aircraft_registration' => $acReg,
             'act_station' => $row['act_sta'] ?? $row['sta'] ?? ($existing->act_station ?? null),
             'plan_station' => $row['plan_sta'] ?? ($existing->plan_station ?? null),
-            'description' => $row['wo_description'] ?? $row['defect_description'] ?? ($existing->description ?? null),
+            'description' => $desc,
             'status' => ucfirst(strtolower($row['status'] ?? 'Closed')),
             'date' => $date ?? ($existing->date ?? null),
             'operator' => $row['operator'] ?? $row['aoc'] ?? ($existing->operator ?? null),
@@ -358,11 +374,19 @@ class DailyReportSheetImport implements OnEachRow
         if (empty($acReg)) {
             return;
         }
+
+        $desc = $row['dmi_description'] ?? $row['defect_description'] ?? ($existing->description ?? null);
+        $classifier = app(DjaClassifier::class);
+        $dmiCheck = $classifier->classify('dmi', null, $row['dmi_cat'] ?? null, $desc, null);
+        if ($dmiCheck['action'] === DjaClassifier::REJECT) {
+            return; // Skip non-cabin jobs from entering CBM
+        }
+
         $djaId = null;
         if (! $isUnplanned && $date) {
             $dja = DailyJobAssignment::firstOrCreate(
-                ['aircraft_registration' => $acReg, 'date' => $date],
-                ['job_type' => 'DMI', 'station' => $row['act_sta'] ?? $row['sta'] ?? 'Unknown', 'task_id' => 'IMPORTED']
+                ['aircraft_registration' => $acReg, 'date' => $date, 'task_id' => $dmiNumber],
+                ['job_type' => 'DMI', 'station' => $row['act_sta'] ?? $row['sta'] ?? 'Unknown', 'description' => $desc]
             );
             $djaId = $dja->id;
         }

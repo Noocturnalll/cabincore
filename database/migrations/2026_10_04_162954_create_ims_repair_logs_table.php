@@ -4,8 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    public function up(): void {
+return new class extends Migration
+{
+    public function up(): void
+    {
         Schema::create('ims_repair_logs', function (Blueprint $table) {
             $table->id();
             $table->string('repair_code');
@@ -16,5 +18,9 @@ return new class extends Migration {
             $table->timestamps(); // created_at only is fine, or standard timestamps
         });
     }
-    public function down(): void { Schema::dropIfExists('ims_repair_logs'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('ims_repair_logs');
+    }
 };

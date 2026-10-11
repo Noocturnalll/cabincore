@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Location extends Model
 {
     use SoftDeletes;
-    
+
     protected $table = 'ims_locations';
+
     protected $guarded = [];
 }

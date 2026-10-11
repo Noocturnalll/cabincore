@@ -47,7 +47,8 @@ class TaskCardAtaTest extends TestCase
     {
         $c = new DjaClassifier;
 
-        $this->assertSame('review', $c->classify('wo', null, null, 'AIR DATA CLEANING OF 2 OUT OF 3 PITOT PROBES')['action']);
+        $this->assertSame('reject', $c->classify('wo', null, null, 'AIR DATA CLEANING OF 2 OUT OF 3 PITOT PROBES')['action']);
+        $this->assertSame('review', $c->classify('wo', null, null, 'GENERAL CLEANING AND INSPECTION')['action']);
         $this->assertSame('accept', $c->classify('wo', null, null, 'PORTABLE EXTINGUISHER REMOVAL OF HALON')['action']);
         $this->assertSame('accept', $c->classify('wo', null, null, 'CREW LIFEVEST POS FA1 EXPIRED')['action']);
         $this->assertSame('reject', $c->classify('wo', '32', null, 'CLEANING NLG AND MLG UPLOCK')['action']);

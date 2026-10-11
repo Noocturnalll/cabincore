@@ -46,13 +46,13 @@ class DjaIngestor
      * @param  array<string, int>  $headerMap
      * @return string|null the task id when the row is part of the DJA, null when it was skipped / parked
      */
-    public function ingest(string $tab, array $row, array $headerMap, ?string $spreadsheetId): ?string
+    public function ingest(string $tab, array $row, array $headerMap, ?string $spreadsheetId, ?string $targetDate = null): ?string
     {
         if (! $this->ready) {
             $this->begin();
         }
 
-        $mapped = $this->mapper->map($tab, $row, $headerMap);
+        $mapped = $this->mapper->map($tab, $row, $headerMap, $targetDate);
         if ($mapped === null) {
             return null;
         }
@@ -71,11 +71,11 @@ class DjaIngestor
             $verdict = ['action' => DjaClassifier::ACCEPT, 'rule' => 'manual.accepted', 'reason' => 'Diterima manual.'];
             $this->stats['manual_accepted']++;
         } else {
-            $verdict = $this->remembered($mapped) ?? $this->classifier->classify($mapped['kind'], $mapped['ata'], $mapped['category'], $mapped['classify_text'] ?? $mapped['description']);
+            $verdict = $this->remembered($mapped) ?? $this->classifier->classify($mapped['kind'], $mapped['ata'], $mapped['category'], $mapped['classify_text'] ?? $mapped['description'], $mapped['log']['work_group'] ?? null);
         }
 
         if ($verdict['action'] === DjaClassifier::ACCEPT) {
-            $stored = $this->persister->store($mapped, $spreadsheetId);
+            $stored = $this->persister->store($mapped, $spreadsheetId, $targetDate);
             $this->stats[$stored['result']]++;
 
             // Rules accept it now (e.g. the planner filled in the ATA): drop the stale review entry

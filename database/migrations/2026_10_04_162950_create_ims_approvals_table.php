@@ -4,8 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    public function up(): void {
+return new class extends Migration
+{
+    public function up(): void
+    {
         Schema::create('ims_approvals', function (Blueprint $table) {
             $table->id();
             $table->morphs('approvable');
@@ -18,5 +20,9 @@ return new class extends Migration {
             $table->timestamps();
         });
     }
-    public function down(): void { Schema::dropIfExists('ims_approvals'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('ims_approvals');
+    }
 };

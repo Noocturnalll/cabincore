@@ -7,6 +7,7 @@ use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Writes an accepted planner row to daily_job_assignments and the matching WO / DMI / NSRDI log.
@@ -44,12 +45,12 @@ class DjaPersister
      * @param  array<string, mixed>  $mapped  output of DjaRowMapper::map()
      * @return array{task_id: string, result: 'created'|'updated'|'unchanged'}
      */
-    public function store(array $mapped, ?string $spreadsheetId): array
+    public function store(array $mapped, ?string $spreadsheetId, ?string $targetDate = null): array
     {
-        return DB::transaction(function () use ($mapped, $spreadsheetId) {
+        return DB::transaction(function () use ($mapped, $spreadsheetId, $targetDate) {
             $kind = $mapped['kind'];
             $taskId = self::taskIdFor($mapped);
-            $date = $mapped['date'] ?? self::activeDate();
+            $date = $mapped['date'] ?? $targetDate ?? self::activeDate();
 
             // Look up existing DJA by task_id first to keep identity stable
             $dja = DailyJobAssignment::where('task_id', $taskId)->latest()->first()
@@ -60,8 +61,8 @@ class DjaPersister
                 $dja = new DailyJobAssignment(['task_id' => $taskId, 'date' => $date]);
                 $wasNew = true;
             } else {
-                if (! empty($mapped['date'])) {
-                    $dja->date = $mapped['date'];
+                if (! empty($date)) {
+                    $dja->date = $date;
                 }
             }
 
@@ -108,6 +109,14 @@ class DjaPersister
                 $log->fill(array_intersect_key($attrs, array_flip(self::PLANNER_OWNED[$kind])));
             }
 
+            // Always update operational date so re-syncing aligns with the sheet date
+            if (! empty($date)) {
+                $log->{$dateKey} = $date;
+            }
+            if ($kind === 'nsrdi' && ! empty($attrs['refresh_date'])) {
+                $log->refresh_date = $attrs['refresh_date'];
+            }
+
             // Synchronize status from Google Sheets (always sync Closed, even if previously submitted)
             if (! empty($attrs['status'])) {
                 if ($attrs['status'] === 'Closed') {
@@ -126,10 +135,16 @@ class DjaPersister
 
             // Synchronize code_open and reason_open if present in GSS
             if (! empty($attrs['code_open'])) {
-                $log->code_open = $attrs['code_open'];
+                if (Schema::hasColumn($log->getTable(), 'code_open')) {
+                    $log->code_open = $attrs['code_open'];
+                }
+                $log->hold_reason_category = $attrs['code_open'];
             }
             if (! empty($attrs['reason_open'])) {
-                $log->reason_open = $attrs['reason_open'];
+                if (Schema::hasColumn($log->getTable(), 'reason_open')) {
+                    $log->reason_open = $attrs['reason_open'];
+                }
+                $log->hold_remarks = $attrs['reason_open'];
             }
             if (! empty($attrs['act_station']) && empty($log->act_station)) {
                 $log->act_station = $attrs['act_station'];

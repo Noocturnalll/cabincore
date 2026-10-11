@@ -2,8 +2,8 @@
 
 namespace App\Livewire\AuditTrail;
 
-use Livewire\Component;
 use App\Models\AuditLog;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
@@ -13,9 +13,9 @@ class Index extends Component
     public function render()
     {
         $logs = AuditLog::with('user')->orderBy('created_at', 'desc')->paginate(15);
-        
+
         return view('livewire.audit-trail.index', [
-            'logs' => $logs
+            'logs' => $logs,
         ])->layout('components.layouts.app', ['title' => 'Audit Trail']);
     }
 }

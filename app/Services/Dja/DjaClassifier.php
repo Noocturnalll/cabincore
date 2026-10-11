@@ -25,17 +25,26 @@ class DjaClassifier
      * @param  string  $kind  'wo' | 'dmi' | 'nsrdi'
      * @return array{action: string, rule: string, reason: string}
      */
-    public function classify(string $kind, ?string $ata, ?string $category, ?string $description): array
+    public function classify(string $kind, ?string $ata, ?string $category, ?string $description, ?string $workGroup = null): array
     {
         return $kind === 'nsrdi'
-            ? $this->classifyNsrdi($category)
-            : $this->classifyCabin($kind, $ata, $description);
+            ? $this->classifyNsrdi($category, $description)
+            : $this->classifyCabin($kind, $ata, $description, $workGroup);
     }
 
-    private function classifyNsrdi(?string $category): array
+    private function classifyNsrdi(?string $category, ?string $description = null): array
     {
+        $text = $description ? $this->normalise($description) : '';
+        $exclude = $text !== '' ? $this->firstMatch($text, $this->config['exclude'] ?? []) : null;
+
         $category = strtoupper(trim((string) $category));
         $allowed = array_map('strtoupper', $this->config['nsrdi_categories']);
+
+        if ($exclude !== null) {
+            return in_array($category, $allowed, true)
+                ? $this->result(self::REVIEW, 'keyword.conflict', "Kategori {$category} tetapi memuat kata non-cabin \"{$exclude}\".")
+                : $this->result(self::REJECT, 'keyword.exclude', "Memuat kata non-cabin \"{$exclude}\".");
+        }
 
         if ($category === '') {
             return $this->result(self::REVIEW, 'nsrdi.no_category', 'Kolom CATEGORY kosong, tidak bisa ditentukan otomatis.');
@@ -46,29 +55,51 @@ class DjaClassifier
             : $this->result(self::REJECT, 'nsrdi.category_excluded', "Kategori {$category} bukan ".implode('/', $allowed).'.');
     }
 
-    private function classifyCabin(string $kind, ?string $ata, ?string $description): array
+    private function classifyCabin(string $kind, ?string $ata, ?string $description, ?string $workGroup = null): array
     {
-        $ataPrefix = preg_match('/^\s*(\d{2})/', (string) $ata, $m) ? $m[1] : '';
+        // 1. Work group check: if specified and is non-cabin (AVIONICS, MECHANIC, STRUCTURE, etc.), reject immediately.
+        $wg = strtoupper(trim((string) $workGroup));
+        if ($wg !== '') {
+            foreach ($this->config['work_group_exclude'] ?? [] as $excludedWg) {
+                if ($wg === $excludedWg || str_starts_with($wg, $excludedWg.' ') || str_contains($wg, ' '.$excludedWg)) {
+                    return $this->result(self::REJECT, 'work_group.reject', "Work Group \"{$workGroup}\" bukan Cabin.");
+                }
+            }
+        }
 
+        // 2. ATA reject check
+        $ataPrefix = preg_match('/^\s*(\d{2})/', (string) $ata, $m) ? $m[1] : '';
         if ($ataPrefix !== '' && in_array($ataPrefix, $this->config['ata_reject'], true)) {
             return $this->result(self::REJECT, 'ata.reject', "ATA {$ataPrefix} dikecualikan.");
         }
+
+        $text = $this->normalise((string) $description);
+        $exclude = $this->firstMatch($text, $this->config['exclude'] ?? []);
+
+        // 3. If it contains non-cabin words (COCKPIT, CAPT, F/O, CARGO, ENGINE, etc.)
+        if ($exclude !== null) {
+            $include = $this->firstMatch($text, $this->config[$kind]['include'] ?? []);
+            $hasAcceptedAta = ($ataPrefix !== '' && in_array($ataPrefix, $this->config['ata_accept'], true));
+
+            if ($include !== null || $hasAcceptedAta) {
+                return $this->result(self::REVIEW, 'keyword.conflict', "Memuat kata cabin tetapi juga memuat kata non-cabin \"{$exclude}\".");
+            }
+
+            return $this->result(self::REJECT, 'keyword.exclude', "Memuat kata non-cabin \"{$exclude}\".");
+        }
+
+        // 4. ATA accept check (safe because non-cabin words have already been checked)
         if ($ataPrefix !== '' && in_array($ataPrefix, $this->config['ata_accept'], true)) {
             return $this->result(self::ACCEPT, 'ata.accept', "ATA {$ataPrefix} termasuk cabin.");
         }
 
-        $text = $this->normalise((string) $description);
-
+        // 5. Keyword include check
         $include = $this->firstMatch($text, $this->config[$kind]['include'] ?? []);
-        $exclude = $this->firstMatch($text, $this->config['exclude'] ?? []);
-
-        if ($include !== null && $exclude === null) {
+        if ($include !== null) {
             return $this->result(self::ACCEPT, 'keyword.include', "Kata kunci \"{$include}\".");
         }
-        if ($include !== null) {
-            return $this->result(self::REVIEW, 'keyword.conflict', "Kata kunci \"{$include}\" tetapi juga memuat \"{$exclude}\".");
-        }
 
+        // 6. Weak keywords (review list)
         $weak = $this->firstMatch($text, $this->config['review'] ?? []);
         if ($weak !== null) {
             return $this->result(self::REVIEW, 'keyword.weak', "Hanya kata \"{$weak}\" yang cocok, perlu dicek manual.");

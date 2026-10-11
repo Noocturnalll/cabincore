@@ -193,9 +193,7 @@ class CodReportService
         $openLogs = NsrdiLog::where('status', '!=', 'Closed')
             ->where(function ($q) use ($date) {
                 $q->whereHas('dailyJobAssignment', fn ($d) => $d->whereDate('date', $date))
-                    ->orWhereDate('plan_date', $date)
-                    ->orWhereDate('report_date', $date)
-                    ->orWhereDate('created_at', $date);
+                    ->orWhereDate('plan_date', $date);
             })->get();
 
         $woOpenLogs = WoLog::where('status', '!=', 'Closed')
@@ -204,7 +202,13 @@ class CodReportService
                     ->orWhereDate('date', $date);
             })->get();
 
-        $allOpen = $openLogs->concat($woOpenLogs);
+        $dmiOpenLogs = DmiLog::where('status', '!=', 'Closed')
+            ->where(function ($q) use ($date) {
+                $q->whereHas('dailyJobAssignment', fn ($d) => $d->whereDate('date', $date))
+                    ->orWhereDate('date', $date);
+            })->get();
+
+        $allOpen = $openLogs->concat($woOpenLogs)->concat($dmiOpenLogs);
         $reasons = array_fill_keys(self::REASON_CODES, 0);
 
         foreach ($allOpen as $log) {

@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class DjaImport implements Import, SkipsUnknownSheets, WithMultipleSheets
 {
-    public function __construct()
+    public function __construct(protected ?string $targetDate = null)
     {
         // Fresh counters for this file; the ingestor is shared so the caller can read the totals afterwards
         app(DjaIngestor::class)->begin();
@@ -17,15 +17,26 @@ class DjaImport implements Import, SkipsUnknownSheets, WithMultipleSheets
 
     public function sheets(): array
     {
+        $dja = fn (string $tab) => new DjaSheetImport($tab, null, $this->targetDate);
+
         return [
-            'List AC' => new DjaRonSheetImport('List AC'),
-            'LIST AC' => new DjaRonSheetImport('LIST AC'),
-            'Sheet1' => new DjaRonSheetImport('Sheet1'),
-            0 => new DjaRonSheetImport('Sheet 1'),
-            'DJA' => new DjaSheetImport('DJA'),
-            'DJA DMI' => new DjaSheetImport('DJA DMI'),
-            'DJA NSRD' => new DjaSheetImport('DJA NSRD'),
-            'DJA NSRDI' => new DjaSheetImport('DJA NSRDI'),
+            'List AC' => new DjaRonSheetImport('List AC', null, $this->targetDate),
+            'LIST AC' => new DjaRonSheetImport('LIST AC', null, $this->targetDate),
+            'Sheet1' => new DjaRonSheetImport('Sheet1', null, $this->targetDate),
+            0 => new DjaRonSheetImport('Sheet 1', null, $this->targetDate),
+            'DJA' => $dja('DJA'),
+            'DJA R01' => $dja('DJA'),
+            'DJA R01/WO' => $dja('DJA'),
+            'DJA WO' => $dja('DJA'),
+            'R01' => $dja('DJA'),
+            'WO' => $dja('DJA'),
+            'DJA DMI' => $dja('DJA DMI'),
+            'DMI' => $dja('DJA DMI'),
+            'DJA NSRD' => $dja('DJA NSRD'),
+            'DJA NSRDI' => $dja('DJA NSRDI'),
+            'DJA NSRDIL' => $dja('DJA NSRD'),
+            'DJA AOC NSRDIL R01' => $dja('DJA NSRD'),
+            'AOC NSRDI' => $dja('DJA NSRD'),
         ];
     }
 

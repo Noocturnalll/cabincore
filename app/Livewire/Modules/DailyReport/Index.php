@@ -69,6 +69,11 @@ class Index extends Component
         $this->generateCodReport($this->codReportDate);
     }
 
+    public function updatedCodReportDate(): void
+    {
+        $this->generateCodReport($this->codReportDate);
+    }
+
     public function generateCodReport(?string $targetDate = null)
     {
         $codService = app(CodReportService::class);

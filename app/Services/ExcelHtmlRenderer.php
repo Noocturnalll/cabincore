@@ -29,8 +29,8 @@ class ExcelHtmlRenderer
             $writer->setSheetIndex($i);
             $name = e($sheet->getTitle());
 
-            $tabs  .= "<button class='tab' data-i='{$i}'>{$name}</button>";
-            $panes .= "<section class='pane' id='p{$i}'>" . $writer->generateSheetData() . '</section>';
+            $tabs .= "<button class='tab' data-i='{$i}'>{$name}</button>";
+            $panes .= "<section class='pane' id='p{$i}'>".$writer->generateSheetData().'</section>';
         }
 
         $spreadsheet->disconnectWorksheets();

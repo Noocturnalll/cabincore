@@ -111,7 +111,7 @@ class ClassificationMemoryTest extends TestCase
         $admin->assignRole(RoleHelper::SUPER_ADMIN);
 
         // a doubtful row: only the weak word CLEANING
-        $this->sync([$this->row('W9', 'AIR DATA CLEANING OF PITOT PROBES', 'A32-341300-11-1-02-IDN')]);
+        $this->sync([$this->row('W9', 'GENERAL CLEANING AND WIPING DOWN', 'A32-341300-11-1-02-IDN')]);
         $review = DjaSyncReview::where('task_id', 'W9')->first();
         $this->assertSame('review', $review->bucket);
 

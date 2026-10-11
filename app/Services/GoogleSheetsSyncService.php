@@ -55,7 +55,10 @@ class GoogleSheetsSyncService
      */
     public function syncDja(string $spreadsheetId): array
     {
-        $pulledTaskIds = $this->pullSync($spreadsheetId);
+        $title = $this->reader->spreadsheetTitle($spreadsheetId);
+        $sheetDate = GoogleSheetsReader::extractDateFromText($title);
+
+        $pulledTaskIds = $this->pullSync($spreadsheetId, $sheetDate);
 
         if (! is_array($pulledTaskIds)) {
             $message = 'Sync DJA gagal: '.($this->lastError ?? 'unknown error');
@@ -86,7 +89,7 @@ class GoogleSheetsSyncService
         }
 
         // Synchronize RON from Sheet 1 ('List AC')
-        $ronResult = $this->syncRonSheet($spreadsheetId);
+        $ronResult = $this->syncRonSheet($spreadsheetId, $sheetDate);
         if ($ronResult && $ronResult['total_stations'] > 0) {
             $message .= " Data RON {$ronResult['total_stations']} station ({$ronResult['total_aircraft']} A/C) berhasil disinkronkan dari {$ronResult['tab_title']}.";
         }
@@ -105,7 +108,7 @@ class GoogleSheetsSyncService
      *
      * @return array{total_stations: int, total_aircraft: int, tab_title: string}|null
      */
-    public function syncRonSheet(string $spreadsheetId): ?array
+    public function syncRonSheet(string $spreadsheetId, ?string $targetDate = null): ?array
     {
         if (! $this->service) {
             return null;
@@ -134,7 +137,7 @@ class GoogleSheetsSyncService
                 return null;
             }
 
-            return app(DjaRonSyncService::class)->syncFromArray($values, $targetTitle);
+            return app(DjaRonSyncService::class)->syncFromArray($values, $targetTitle, $targetDate);
         } catch (\Throwable $e) {
             Log::warning("Failed to sync RON from Sheet 1 ({$spreadsheetId}): ".$e->getMessage());
 
@@ -182,7 +185,7 @@ class GoogleSheetsSyncService
      *
      * @return array<int, string>|false
      */
-    public function pullSync($spreadsheetId)
+    public function pullSync($spreadsheetId, ?string $targetDate = null)
     {
         $this->lastError = null;
         $this->lastStats = [];
@@ -238,7 +241,7 @@ class GoogleSheetsSyncService
                 $headerMap = $header['map'] ?? [];
 
                 foreach (array_slice($values, $headerIndex + 1) as $row) {
-                    $taskId = $this->ingestor->ingest($tabName, $row, $headerMap, $spreadsheetId);
+                    $taskId = $this->ingestor->ingest($tabName, $row, $headerMap, $spreadsheetId, $targetDate);
                     if ($taskId) {
                         $pulledTaskIds[] = $taskId;
                     }

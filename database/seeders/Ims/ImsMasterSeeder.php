@@ -2,11 +2,11 @@
 
 namespace Database\Seeders\Ims;
 
-use Illuminate\Database\Seeder;
-use App\Models\Ims\Category;
-use App\Models\Ims\Unit;
-use App\Models\Ims\Location;
 use App\Models\Ims\AircraftType;
+use App\Models\Ims\Category;
+use App\Models\Ims\Location;
+use App\Models\Ims\Unit;
+use Illuminate\Database\Seeder;
 
 class ImsMasterSeeder extends Seeder
 {
@@ -38,7 +38,7 @@ class ImsMasterSeeder extends Seeder
         $wh = Location::firstOrCreate(['code' => 'WH-A'], ['name' => 'Warehouse A', 'type' => 'warehouse']);
         $rack = Location::firstOrCreate(['code' => 'WH-A-R01'], ['name' => 'Rack 01', 'type' => 'rack', 'parent_id' => $wh->id]);
         Location::firstOrCreate(['code' => 'WH-A-R01-S01'], ['name' => 'Shelf 01', 'type' => 'shelf', 'parent_id' => $rack->id]);
-        
+
         Location::firstOrCreate(['code' => 'WH-B'], ['name' => 'Warehouse B', 'type' => 'warehouse']);
         Location::firstOrCreate(['code' => 'REPAIR-AREA'], ['name' => 'Repair Area', 'type' => 'repair_area']);
         Location::firstOrCreate(['code' => 'QUARANTINE'], ['name' => 'Quarantine', 'type' => 'quarantine']);

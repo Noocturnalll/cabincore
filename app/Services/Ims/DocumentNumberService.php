@@ -11,20 +11,20 @@ class DocumentNumberService
         return DB::transaction(function () use ($type) {
             $prefix = config("ims.prefix.{$type}", strtoupper(substr($type, 0, 3)));
             $period = date('Ym');
-            
+
             $sequence = DB::table('ims_document_sequences')
                 ->where('prefix', $prefix)
                 ->where('period', $period)
                 ->lockForUpdate()
                 ->first();
-                
-            if (!$sequence) {
+
+            if (! $sequence) {
                 DB::table('ims_document_sequences')->insert([
                     'prefix' => $prefix,
                     'period' => $period,
                     'last_number' => 1,
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
                 $number = 1;
             } else {
@@ -33,11 +33,11 @@ class DocumentNumberService
                     ->where('id', $sequence->id)
                     ->update([
                         'last_number' => $number,
-                        'updated_at' => now()
+                        'updated_at' => now(),
                     ]);
             }
-            
-            return sprintf("%s-%s-%04d", $prefix, $period, $number);
+
+            return sprintf('%s-%s-%04d', $prefix, $period, $number);
         });
     }
 }

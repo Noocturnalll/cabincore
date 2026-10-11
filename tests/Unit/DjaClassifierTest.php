@@ -57,4 +57,21 @@ class DjaClassifierTest extends TestCase
         $this->assertSame('keyword.include', $verdict['rule']);
         $this->assertStringContainsString('LIFE VEST', $verdict['reason']);
     }
+
+    public function test_non_cabin_work_group_is_rejected(): void
+    {
+        $classifier = new DjaClassifier(config('dja'));
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'REPLACE SEAT', 'AVIONICS')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'REPLACE SEAT', 'MECHANIC')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'REPLACE SEAT', 'STRUCTURE')['action']);
+    }
+
+    public function test_cockpit_and_ground_equipment_are_not_auto_accepted(): void
+    {
+        $classifier = new DjaClassifier(config('dja'));
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'BOTH GROUND LOCK BAD CONDITION')['action']);
+        $this->assertSame('reject', $classifier->classify('dmi', null, null, 'SLIDING TABLE HINGE MECHANISM CAPT SIDE BROKEN')['action']);
+        $this->assertSame('reject', $classifier->classify('dmi', null, null, 'L/H FOOTREST F/O SIDE INOPERATIVE')['action']);
+        $this->assertSame('review', $classifier->classify('nsrdi', null, 'CBM', 'HANDLE DOOR COCKPIT OUTSIDE DELEMINATED')['action']);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use App\Models\AuditLog;
 use App\Notifications\SystemNotification;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
@@ -32,11 +33,11 @@ class Index extends Component
             'password' => Hash::make($this->password),
         ]);
 
-        \App\Models\AuditLog::create([
+        AuditLog::create([
             'user_id' => $user->id,
             'action' => 'Ganti Password',
             'description' => 'Pengguna memperbarui kata sandi profil',
-            'ip_address' => request()->ip()
+            'ip_address' => request()->ip(),
         ]);
 
         $this->reset(['current_password', 'password', 'password_confirmation']);

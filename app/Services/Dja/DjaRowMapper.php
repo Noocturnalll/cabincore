@@ -26,6 +26,14 @@ class DjaRowMapper
 
     private const DESCRIPTION = [['DESCRIPTION', 'WO DESCRIPTION', 'TASK CARD DESCRIPTION', 'DESC'], null];
 
+    private const CODE_OPEN_ALIASES = ['CODE REASON', 'CODE OPEN', 'CODE', 'REASON CODE', 'HOLD REASON CATEGORY', 'KODE ALASAN', 'KD REASON', 'REASON CODE OPEN'];
+
+    private const REASON_OPEN_ALIASES = ['REASON OPEN', 'REASON', 'KETERANGAN OPEN', 'HOLD REMARKS', 'ALASAN', 'REASON CODE REMARKS', 'REASON KET'];
+
+    private const PLAN_DATE_ALIASES = ['PLAN DATE', 'DATE PLAN', 'PLANNING DATE', 'PLAN DATE DJA', 'TGL PLAN', 'TANGGAL PLAN'];
+
+    private const REFRESH_DATE_ALIASES = ['REFRESH DATE', 'DATE REFRESH', 'REFRESH', 'TGL REFRESH', 'TANGGAL REFRESH'];
+
     /** @var array<string, array<string, array{0: array<int, string>, 1: int|null}>> */
     private const FIELDS = [
         'wo' => [
@@ -42,8 +50,10 @@ class DjaRowMapper
             'remarks_ppc_to_lm' => [['REMARKS PPC TO LM'], 11],
             'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], 12],
             'status' => [['STATUS', 'STAT', 'STATUS WO', 'STATUS DJA', 'STATUS JOB', 'STATE', 'CLOSED / OPEN', 'OPEN/CLOSED'], 13],
-            'code_open' => [['CODE REASON', 'CODE OPEN', 'CODE', 'REASON CODE'], 14],
-            'reason_open' => [['REASON OPEN', 'REASON', 'KETERANGAN OPEN', 'HOLD REMARKS'], 15],
+            'code_open' => [self::CODE_OPEN_ALIASES, 14],
+            'reason_open' => [self::REASON_OPEN_ALIASES, 15],
+            'plan_date' => [self::PLAN_DATE_ALIASES, null],
+            'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
         ],
         'dmi' => [
             'ac_reg' => [self::AC_REG[0], 1],
@@ -56,6 +66,10 @@ class DjaRowMapper
             'status' => [['STATUS', 'STAT', 'STATUS DMI', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 8],
             'remarks' => [['REMARK', 'REMARKS'], 9],
             'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], null],
+            'code_open' => [self::CODE_OPEN_ALIASES, null],
+            'reason_open' => [self::REASON_OPEN_ALIASES, null],
+            'plan_date' => [self::PLAN_DATE_ALIASES, null],
+            'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
         ],
         'nsrdi' => [
             'work_group' => [['WG', 'WORK GROUP'], 1],
@@ -75,8 +89,10 @@ class DjaRowMapper
             'status' => [['STATUS', 'STAT', 'STATUS NSRDI', 'STATUS NSRD', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 15],
             'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], 16],
             'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], null],
-            'code_open' => [['CODE REASON', 'CODE OPEN', 'CODE', 'REASON CODE'], null],
-            'reason_open' => [['REASON OPEN', 'REASON', 'HOLD REMARKS'], null],
+            'code_open' => [self::CODE_OPEN_ALIASES, null],
+            'reason_open' => [self::REASON_OPEN_ALIASES, null],
+            'plan_date' => [self::PLAN_DATE_ALIASES, null],
+            'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
         ],
     ];
 
@@ -85,7 +101,10 @@ class DjaRowMapper
         'ata' => [['ATA', 'ATA CHAPTER', 'CHAPTER'], null],
         'task_card' => [['TASK CARD'], null],
         'task_card_description' => [['TASK CARD DESCRIPTION'], null],
-        'refresh_date' => [['REFRESH DATE', 'DATE REFRESH', 'DATE', 'TANGGAL', 'TGL', 'PLAN DATE'], 20],
+        'plan_date' => [self::PLAN_DATE_ALIASES, null],
+        'refresh_date' => [self::REFRESH_DATE_ALIASES, 20],
+        'code_open' => [self::CODE_OPEN_ALIASES, null],
+        'reason_open' => [self::REASON_OPEN_ALIASES, null],
     ];
 
     /** Header names the reader should look for to find the header row. */
@@ -97,22 +116,50 @@ class DjaRowMapper
                 array_push($names, ...$aliases);
             }
         }
-        array_push($names, 'ATA', 'REFRESH DATE');
+        foreach (self::SHARED as [$aliases]) {
+            array_push($names, ...$aliases);
+        }
 
         return array_values(array_unique($names));
     }
 
     public static function kindForTab(string $tab): ?string
     {
-        return self::KIND_BY_TAB[strtoupper(trim($tab))] ?? null;
+        $normalized = strtoupper(trim($tab));
+
+        if (isset(self::KIND_BY_TAB[$normalized])) {
+            return self::KIND_BY_TAB[$normalized];
+        }
+
+        // Fuzzy matching for tab name variations in actual workbooks
+        if (str_contains($normalized, 'NSRD') || str_contains($normalized, 'AOC')) {
+            return 'nsrdi';
+        }
+
+        if (str_contains($normalized, 'DMI')) {
+            return 'dmi';
+        }
+
+        if (
+            str_contains($normalized, 'WO') ||
+            str_contains($normalized, 'R01') ||
+            str_contains($normalized, 'DJA') ||
+            $normalized === 'SHEET1' ||
+            $normalized === 'SHEET 1'
+        ) {
+            return 'wo';
+        }
+
+        return null;
     }
 
     /**
      * @param  array<int, mixed>  $row
      * @param  array<string, int>  $headerMap  header name => column index (empty = positional only)
+     * @param  string|null  $targetDate  optional operational date from spreadsheet context
      * @return array<string, mixed>|null null when the row is blank
      */
-    public function map(string $tab, array $row, array $headerMap = []): ?array
+    public function map(string $tab, array $row, array $headerMap = [], ?string $targetDate = null): ?array
     {
         $kind = self::kindForTab($tab);
         if (! $kind) {
@@ -131,7 +178,18 @@ class DjaRowMapper
         }
         $ata = $get(self::SHARED['ata']) ?? DjaClassifier::ataFromTaskCard($get(self::SHARED['task_card']));
         $taskCardDescription = $get(self::SHARED['task_card_description']);
-        $refresh = $get(self::SHARED['refresh_date']);
+
+        $planDateRaw = $f['plan_date'] ?? $get(self::SHARED['plan_date']);
+        $refreshDateRaw = $f['refresh_date'] ?? $get(self::SHARED['refresh_date']);
+
+        $planDate = GoogleSheetsReader::parseDate($planDateRaw);
+        $refreshDate = GoogleSheetsReader::parseDate($refreshDateRaw);
+
+        // Code reason and reason open fallbacks from shared columns
+        $codeOpen = $f['code_open'] ?? $get(self::SHARED['code_open']);
+        $reasonOpen = $f['reason_open'] ?? $get(self::SHARED['reason_open']);
+        $f['code_open'] = $codeOpen;
+        $f['reason_open'] = $reasonOpen;
 
         $acReg = $f['ac_reg'];
         $description = $f['description'];
@@ -139,7 +197,9 @@ class DjaRowMapper
             return null; // blank row
         }
 
-        $date = GoogleSheetsReader::parseDate($refresh);
+        // Operational date rule: use plan_date as the current operational date for the record.
+        // Never use refresh_date as the operational date (refresh_date is only recorded as metadata).
+        $date = $planDate ?? $targetDate;
         $planStation = $f['plan_station'] ? strtoupper($f['plan_station']) : null;
 
         return [
@@ -155,8 +215,10 @@ class DjaRowMapper
             'classify_text' => trim((string) $description.' '.($taskCardDescription !== $description ? (string) $taskCardDescription : '')),
             'category' => $kind === 'nsrdi' ? $f['category'] : ($f['wo_category'] ?? $f['dmi_category'] ?? null),
             'date' => $date,
+            'plan_date' => $planDate,
+            'refresh_date' => $refreshDate,
             'station' => $planStation,
-            'log' => $this->logAttributes($kind, $f, $date),
+            'log' => $this->logAttributes($kind, $f, $date, $planDate, $refreshDate),
         ];
     }
 
@@ -168,7 +230,7 @@ class DjaRowMapper
      */
     public function columnFor(string $kind, string $field, array $headerMap = []): ?int
     {
-        $spec = self::FIELDS[$kind][$field] ?? null;
+        $spec = self::FIELDS[$kind][$field] ?? self::SHARED[$field] ?? null;
 
         return $spec ? $this->locate($spec, $headerMap) : null;
     }
@@ -198,7 +260,7 @@ class DjaRowMapper
     }
 
     /** Attributes for wo_logs / dmi_logs / nsrdi_logs, in the same shape the Excel import always produced. */
-    private function logAttributes(string $kind, array $f, ?string $date): array
+    private function logAttributes(string $kind, array $f, ?string $date, ?string $planDate = null, ?string $refreshDate = null): array
     {
         $text = fn (?string $v, int $limit = 255) => $v === null ? null : mb_substr($v, 0, $limit);
         $code = fn (?string $v) => $v === null ? null : mb_substr(strtoupper($v), 0, 255); // station codes are always upper-case
@@ -221,6 +283,8 @@ class DjaRowMapper
                 'status' => $this->status($f['status'] ?? null),
                 'code_open' => $text($f['code_open']),
                 'reason_open' => $text($f['reason_open']),
+                'hold_reason_category' => $text($f['code_open']),
+                'hold_remarks' => $text($f['reason_open']),
             ],
             'dmi' => [
                 'date' => $date,
@@ -234,9 +298,12 @@ class DjaRowMapper
                 'act_station' => $code($f['act_station'] ?? null) ?: $code($f['plan_station']),
                 'status' => $this->status($f['status'] ?? null),
                 'remarks' => $f['remarks'],
+                'hold_reason_category' => $text($f['code_open'] ?? null),
+                'hold_remarks' => $text($f['reason_open'] ?? null) ?: $f['remarks'],
             ],
             'nsrdi' => [
-                'plan_date' => $date,
+                'plan_date' => $planDate ?? $date,
+                'refresh_date' => $refreshDate,
                 'work_group' => $text($f['work_group']),
                 'aircraft_registration' => $text($f['ac_reg']),
                 'nsrdi_number' => $text($f['task_id']),
@@ -256,6 +323,8 @@ class DjaRowMapper
                 'close_date' => GoogleSheetsReader::parseDate($f['close_date'] ?? null),
                 'code_open' => $text($f['code_open'] ?? null),
                 'reason_open' => $text($f['reason_open'] ?? null),
+                'hold_reason_category' => $text($f['code_open'] ?? null),
+                'hold_remarks' => $text($f['reason_open'] ?? null) ?: $f['remarks'],
             ],
         };
     }

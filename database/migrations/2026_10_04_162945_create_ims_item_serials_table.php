@@ -4,8 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    public function up(): void {
+return new class extends Migration
+{
+    public function up(): void
+    {
         Schema::create('ims_item_serials', function (Blueprint $table) {
             $table->id();
             $table->foreignId('item_id')->constrained('ims_items')->cascadeOnDelete();
@@ -25,9 +27,13 @@ return new class extends Migration {
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->unique(['item_id', 'serial_number']);
         });
     }
-    public function down(): void { Schema::dropIfExists('ims_item_serials'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('ims_item_serials');
+    }
 };

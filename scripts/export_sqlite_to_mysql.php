@@ -3,8 +3,8 @@
 $sqlitePath = __DIR__.'/../database/database.sqlite';
 $outputPath = __DIR__.'/../database/cbm_data_for_mysql.sql';
 
-if (!file_exists($sqlitePath)) {
-    die("database.sqlite not found!\n");
+if (! file_exists($sqlitePath)) {
+    exit("database.sqlite not found!\n");
 }
 
 $pdo = new PDO("sqlite:{$sqlitePath}");
@@ -55,7 +55,7 @@ foreach ($tables as $table) {
             } elseif (is_int($val) || is_float($val)) {
                 $values[] = $val;
             } else {
-                $escaped = str_replace(["\\", "'", "\0", "\n", "\r"], ["\\\\", "\\'", "\\0", "\\n", "\\r"], $val);
+                $escaped = str_replace(['\\', "'", "\0", "\n", "\r"], ['\\\\', "\\'", '\\0', '\\n', '\\r'], $val);
                 $values[] = "'{$escaped}'";
             }
         }
@@ -68,7 +68,7 @@ foreach ($tables as $table) {
         }
     }
 
-    if (!empty($batch)) {
+    if (! empty($batch)) {
         $colList = '`'.implode('`, `', $columns).'`';
         fwrite($out, "INSERT INTO `{$table}` ({$colList}) VALUES\n".implode(",\n", $batch).";\n");
     }
@@ -83,7 +83,7 @@ fclose($out);
 $sizeMb = round(filesize($outputPath) / 1024 / 1024, 2);
 echo "Exported {$totalExported} rows to {$outputPath} ({$sizeMb} MB)\n";
 
-$gzPath = $outputPath . '.gz';
+$gzPath = $outputPath.'.gz';
 file_put_contents($gzPath, gzencode(file_get_contents($outputPath), 9));
 $gzSizeMb = round(filesize($gzPath) / 1024 / 1024, 2);
 echo "SUCCESS! Compressed to {$gzPath} ({$gzSizeMb} MB)\n";

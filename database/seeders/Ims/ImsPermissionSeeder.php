@@ -5,12 +5,13 @@ namespace Database\Seeders\Ims;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class ImsPermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
             'ims.catalog.view',
@@ -37,7 +38,7 @@ class ImsPermissionSeeder extends Seeder
         foreach ($permissions as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
         }
-        
+
         // Roles (creating if they don't exist, though typically they exist in the app)
         $admin = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
         $admin->givePermissionTo($permissions);

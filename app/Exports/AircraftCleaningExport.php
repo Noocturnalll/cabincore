@@ -3,8 +3,8 @@
 namespace App\Exports;
 
 use App\Models\AircraftCleaning;
-use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
@@ -13,7 +13,9 @@ class AircraftCleaningExport implements FromQuery, WithHeadings, WithMapping
     use Exportable;
 
     protected $search;
+
     protected $dateFilter;
+
     protected $activeTab;
 
     public function __construct($search = '', $dateFilter = '', $activeTab = '')

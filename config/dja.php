@@ -60,12 +60,25 @@ return [
         ],
     ],
 
-    // A match together with one of these words means "probably not a cabin job": send to review, do not auto-accept.
-    'exclude' => [
-        'ENGINE', 'APU', 'LANDING GEAR', 'HYDRAULIC', 'FUEL TANK', 'BORESCOPE', 'PROPELLER', 'AVIONICS', 'FLIGHT CONTROL',
+    // Non-cabin work groups from the planner sheet to reject immediately.
+    'work_group_exclude' => [
+        'AVIONICS', 'AV', 'MECHANIC', 'MECH', 'STRUCTURE', 'STR', 'ENGINE', 'ENG', 'B1', 'B2', 'SHEET METAL', 'ELECTRICAL',
     ],
 
-    // Weak cabin-related words: not enough to accept, but worth a human look.
+    // A match together with one of these words means "not a cabin job": reject immediately from CBM sync.
+    'exclude' => [
+        // Aircraft Systems / Propulsion / Flight Controls
+        'ENGINE', 'APU', 'LANDING GEAR', 'HYDRAULIC', 'FUEL TANK', 'BORESCOPE', 'PROPELLER', 'AVIONICS', 'FLIGHT CONTROL',
+        // Cockpit / Flight Deck / Pilot
+        'COCKPIT', 'FLIGHT DECK', 'PILOT', 'COPILOT', 'CAPT', 'CAPTAIN', 'F/O', 'FIRST OFFICER', 'OBSERVER',
+        'PEDESTAL', 'WINDSHIELD', 'RUDDER', 'CONTROL COLUMN', 'SIDESTICK', 'THRUST LEVER', 'CREW SEAT', 'PILOT SEAT', 'OBSERVER SEAT',
+        // Airframe / Cargo / Exterior / Ground Equipment
+        'CARGO', 'CARGO DOOR', 'BAGGAGE', 'RADOME', 'WING', 'FLAP', 'SLAT', 'SPOILER', 'AILERON', 'ELEVATOR',
+        'STABILIZER', 'TAIL', 'FUSELAGE', 'PITOT', 'STATIC PORT', 'BRAKE', 'TIRE', 'WHEEL', 'STRUT',
+        'GROUND LOCK', 'GEAR PIN', 'BYPASS PIN', 'ANTENNA', 'PROBE', 'DRAIN MAST', 'NACELLE', 'COWLING', 'THRUST REVERSER', 'EXHAUST',
+    ],
+
+    // Weak cabin-related words: not enough to accept on their own, but worth a human look.
     'review' => [
         'CABIN', 'PASSENGER', 'PAX', 'CARPET', 'LINING', 'OVERHEAD', 'BIN', 'CURTAIN', 'MIRROR', 'PLACARD', 'DECAL',
         'SIDEWALL', 'PANEL', 'COVER', 'LIGHT', 'DOOR', 'WINDOW', 'TABLE', 'LAV', 'TOILET',

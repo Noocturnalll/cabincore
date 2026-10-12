@@ -48,6 +48,17 @@ return [
     'whatsapp' => [
         'url' => env('WHATSAPP_SERVICE_URL', 'http://127.0.0.1:3001/send-message'),
         'report_group' => env('WHATSAPP_REPORT_GROUP', '081234567890'),
+        'webhook_secret' => env('WHATSAPP_WEBHOOK_SECRET'),
+        'reply_evidence_ack' => env('WHATSAPP_REPLY_EVIDENCE_ACK', true),
+    ],
+
+    'microsoft' => [
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'tenant_id' => env('MICROSOFT_TENANT_ID', 'common'),
+        'user_id' => env('MICROSOFT_USER_ID'), // Email or ID of Outlook / M365 account with 1TB OneDrive
+        'drive_id' => env('MICROSOFT_DRIVE_ID'),
+        'folder' => env('MICROSOFT_ONEDRIVE_FOLDER', 'CBM_Evidence'),
     ],
 
 ];

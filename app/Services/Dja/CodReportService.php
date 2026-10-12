@@ -313,7 +313,7 @@ class CodReportService
                 if ($log->dja_id && $stationDjas->contains('id', $log->dja_id)) {
                     return true;
                 }
-                $logStation = $log->act_station ?: ($log->plan_station ?: $log->dailyJobAssignment?->station);
+                $logStation = $log->plan_station ?: ($log->dailyJobAssignment?->station ?: $log->act_station);
 
                 return $logStation === $st;
             });
@@ -371,7 +371,7 @@ class CodReportService
         }
 
         foreach ($logs as $log) {
-            $st = strtoupper(trim((string) ($log->act_station ?: ($log->plan_station ?: $log->dailyJobAssignment?->station))));
+            $st = strtoupper(trim((string) ($log->plan_station ?: ($log->dailyJobAssignment?->station ?: $log->act_station))));
             if ($st !== '' && ! in_array($st, self::STATIONS, true)) {
                 $extra[$st] = true;
             }

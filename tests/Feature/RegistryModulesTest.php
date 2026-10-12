@@ -117,14 +117,103 @@ class RegistryModulesTest extends TestCase
     public function test_new_cleaning_pages_open(): void
     {
         $u = $this->user(RoleHelper::PIC_AIEC, 'AIEC');
-        foreach (['dbi', 'gci', 'gce', 'lgt'] as $page) {
+        foreach (['gci', 'gce', 'lgt'] as $page) {
             $this->actingAs($u)->get("/modules/aircraft-cleaning/$page")->assertOk();
         }
+    }
+
+    public function test_dbi_page_opens_under_cabin_maintenance(): void
+    {
+        $u = $this->user(RoleHelper::PIC_CBM, 'Cabin');
+        $this->actingAs($u)->get('/modules/dbi')->assertOk()->assertSee('Daily Beautification (DBI)');
     }
 
     public function test_dashboard_renders_with_new_sidebar(): void
     {
         $this->actingAs($this->user(RoleHelper::MANAGER, 'Cabin'))->get('/dashboard')
             ->assertOk()->assertSee('Development &amp; GA', false)->assertSee('Data PAS Bandara')->assertSee('Organisasi &amp; Assessment', false);
+    }
+
+    public function test_training_record_with_absence_reason_and_others_notes(): void
+    {
+        $cabin = Division::where('name', 'Cabin')->value('id');
+        $manager = $this->user(RoleHelper::MANAGER, 'Cabin');
+
+        // Test saving with absence reason Sakit
+        Livewire::actingAs($manager)->test(Index::class, ['module' => 'training'])
+            ->call('create')
+            ->set('division_id', $cabin)
+            ->set('form.employee', 'Budi Santoso')
+            ->set('form.nik', '12345')
+            ->set('form.training', 'Safety Awareness')
+            ->set('form.training_date', '2026-10-15')
+            ->set('form.attendance_status', 'Tidak Hadir')
+            ->set('form.absence_reason', 'Sakit')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('registry_records', [
+            'module' => 'training',
+            'title' => 'Budi Santoso',
+        ]);
+
+        $rec = RegistryRecord::where('title', 'Budi Santoso')->firstOrFail();
+        $this->assertSame('Tidak Hadir', $rec->data['attendance_status']);
+        $this->assertSame('Sakit', $rec->data['absence_reason']);
+
+        // Test saving with absence reason Others and notes
+        Livewire::actingAs($manager)->test(Index::class, ['module' => 'training'])
+            ->call('create')
+            ->set('division_id', $cabin)
+            ->set('form.employee', 'Sari Handayani')
+            ->set('form.nik', '67890')
+            ->set('form.training', 'First Aid Basic')
+            ->set('form.training_date', '2026-10-16')
+            ->set('form.attendance_status', 'Tidak Hadir')
+            ->set('form.absence_reason', 'Others')
+            ->set('form.absence_notes', 'Tugas darurat AOG di Surabaya')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $recOthers = RegistryRecord::where('title', 'Sari Handayani')->firstOrFail();
+        $this->assertSame('Others', $recOthers->data['absence_reason']);
+        $this->assertSame('Tugas darurat AOG di Surabaya', $recOthers->data['absence_notes']);
+
+        // Test rendering view contains badges and notes
+        Livewire::actingAs($manager)->test(Index::class, ['module' => 'training'])
+            ->assertSee('Budi Santoso')
+            ->assertSee('Sakit')
+            ->assertSee('Sari Handayani')
+            ->assertSee('Others')
+            ->assertSee('Tugas darurat AOG di Surabaya');
+    }
+
+    public function test_registry_export_and_import(): void
+    {
+        $cabin = Division::create(['name' => 'Cabin Maintenance', 'status' => 'Aktif'])->id;
+        $manager = User::factory()->create(['division_id' => $cabin]);
+        $manager->givePermissionTo(['registry.training.view', 'registry.training.manage']);
+
+        RegistryRecord::create([
+            'module' => 'training',
+            'division_id' => $cabin,
+            'title' => 'Agus Pratama',
+            'data' => [
+                'employee' => 'Agus Pratama',
+                'training' => 'Fire Safety',
+                'training_date' => '2026-10-15',
+                'attendance_status' => 'Hadir',
+            ],
+        ]);
+
+        Livewire::actingAs($manager)->test(Index::class, ['module' => 'training'])
+            ->call('exportExcel')
+            ->assertFileDownloaded();
+
+        Livewire::actingAs($manager)->test(Index::class, ['module' => 'training'])
+            ->call('openImportModal')
+            ->assertSet('isImportModalOpen', true)
+            ->call('closeImportModal')
+            ->assertSet('isImportModalOpen', false);
     }
 }

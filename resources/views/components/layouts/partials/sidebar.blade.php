@@ -27,7 +27,7 @@
             <div class="cbm-nav-section-label">Data Master</div>
             @endhasanyrole
 
-            @hasrole(\App\Helpers\RoleHelper::SUPER_ADMIN)
+            @hasanyrole([\App\Helpers\RoleHelper::SUPER_ADMIN, \App\Helpers\RoleHelper::DEPUTY])
             <a href="{{ route('master.airports') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('master.airports') ? 'cbm-active' : '' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" /></svg>
                 Bandara / Station
@@ -36,6 +36,9 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
                 Registrasi Pesawat
             </a>
+            @endhasanyrole
+
+            @hasrole(\App\Helpers\RoleHelper::SUPER_ADMIN)
             <a href="{{ route('master.categories') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('master.categories') ? 'cbm-active' : '' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-3h-5.379a1.5 1.5 0 01-1.06-.44l-2.122-2.12a1.5 1.5 0 00-1.06-.44H4.5A3 3 0 001.5 6v12a3 3 0 003 3h15z" clip-rule="evenodd" /></svg>
                 Kategori Pekerjaan
@@ -63,8 +66,8 @@
 
             @can('menu.production')
             <div class="cbm-nav-section-label">Cabin Maintenance</div>
-            <div x-data="{ open: {{ request()->routeIs(['modules.dja', 'modules.cml', 'modules.nsrdi', 'modules.dmi', 'modules.wo', 'modules.daily-report', 'modules.leader-report']) ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.dja', 'modules.cml', 'modules.nsrdi', 'modules.dmi', 'modules.wo', 'modules.daily-report', 'modules.leader-report']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+            <div x-data="{ open: {{ request()->routeIs(['modules.dja', 'modules.cml', 'modules.nsrdi', 'modules.dmi', 'modules.wo', 'modules.stretcher.*', 'modules.dbi', 'modules.daily-report', 'modules.leader-report']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.dja', 'modules.cml', 'modules.nsrdi', 'modules.dmi', 'modules.wo', 'modules.stretcher.*', 'modules.dbi', 'modules.daily-report', 'modules.leader-report']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M2.515 10.674a1.875 1.875 0 012.385-2.222l4.896 1.632-1.393-4.18a1.875 1.875 0 012.222-2.385l4.811 1.604a3.75 3.75 0 011.666 6.326L13.626 15h.874a2.25 2.25 0 012.25 2.25v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 00-.75-.75h-1.5a.75.75 0 01-.75-.75v-1.5a.75.75 0 00-.75-.75h-1.5a.75.75 0 01-.75-.75v-1.5h-1.28l-3.476 3.476a3.75 3.75 0 01-6.326-1.666l-1.604-4.811z" clip-rule="evenodd" />
@@ -74,7 +77,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                     </svg>
-                </a>
+                </button>
                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
                     <a href="{{ route('modules.dja') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.dja') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 11.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
@@ -95,6 +98,14 @@
                     <a href="{{ route('modules.wo') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.wo') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625zM7.5 15a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 017.5 15zm.75 2.25a.75.75 0 000 1.5H12a.75.75 0 000-1.5H8.25z" clip-rule="evenodd" /></svg>
                         WO Logs
+                    </a>
+                    <a href="{{ route('modules.stretcher.index') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.stretcher.*') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v5.25H6a.75.75 0 000 1.5h5.25V18a.75.75 0 001.5 0v-5.25H18a.75.75 0 000-1.5h-5.25V6z" clip-rule="evenodd" /></svg>
+                        Stretcher Tracking
+                    </a>
+                    <a href="{{ route('modules.dbi') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.dbi') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" /></svg>
+                        Daily Beautification (DBI)
                     </a>
 
                     <a href="{{ route('modules.daily-report') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.daily-report') ? 'cbm-active' : '' }}">
@@ -130,8 +141,8 @@
             @endcan
             @can('menu.cleaning')
             <div class="cbm-nav-section-label">Aircraft Cleaning</div>
-            <div x-data="{ open: {{ request()->routeIs(['modules.cleaning.hub', 'modules.cleaning.general', 'modules.cleaning.interior', 'modules.cleaning.exterior', 'modules.cleaning.dbi', 'modules.cleaning.gci', 'modules.cleaning.gce', 'modules.cleaning.lgt', 'modules.cleaning.daily-report']) ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.cleaning.hub', 'modules.cleaning.general', 'modules.cleaning.interior', 'modules.cleaning.exterior', 'modules.cleaning.dbi', 'modules.cleaning.gci', 'modules.cleaning.gce', 'modules.cleaning.lgt', 'modules.cleaning.daily-report']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+            <div x-data="{ open: {{ request()->routeIs(['modules.cleaning.*']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.cleaning.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
@@ -141,11 +152,11 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                     </svg>
-                </a>
+                </button>
                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
-                    <a href="{{ route('modules.cleaning.hub') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs(['modules.cleaning.hub', 'modules.cleaning.general', 'modules.cleaning.interior', 'modules.cleaning.exterior', 'modules.cleaning.dbi', 'modules.cleaning.gci', 'modules.cleaning.gce', 'modules.cleaning.lgt']) ? 'cbm-active' : '' }}">
+                    <a href="{{ route('modules.cleaning.hub') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs(['modules.cleaning.hub', 'modules.cleaning.general', 'modules.cleaning.interior', 'modules.cleaning.exterior', 'modules.cleaning.gci', 'modules.cleaning.gce', 'modules.cleaning.lgt']) ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/></svg>
-                        Cleaning Log <span class="kd-sub" style="margin-left:auto;font-size:.65rem;opacity:.7;">8 jenis</span>
+                        Cleaning Log <span class="kd-sub" style="margin-left:auto;font-size:.65rem;opacity:.7;">7 jenis</span>
                     </a>
                     <a href="{{ route('modules.cleaning.daily-report') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.cleaning.daily-report') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0112 15.75c-2.73 0-5.36-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 017.5 5.455V5.25zm7.5 0v.09a49.488 49.488 0 00-6 0v-.09a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5zm-3 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /><path d="M3 18.4v-2.796a4.3 4.3 0 00.713.31A26.226 26.226 0 0012 17.25c2.892 0 5.68-.468 8.287-1.335.252-.084.49-.189.713-.311V18.4c0 1.452-1.047 2.728-2.523 2.923-2.12.282-4.282.427-6.477.427a49.19 49.19 0 01-6.477-.427C4.047 21.128 3 19.852 3 18.4z" /></svg>
@@ -161,8 +172,8 @@
 
             @can('menu.inventory')
             <div class="cbm-nav-section-label">Inventory Management</div>
-            <div x-data="{ open: {{ request()->routeIs(['ims.*']) ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+                <div x-data="{ open: {{ request()->routeIs(['ims.*']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm3.75-1.5a.75.75 0 01.75.75v6a.75.75 0 01-1.5 0v-6a.75.75 0 01.75-.75z" clip-rule="evenodd" />
@@ -172,7 +183,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                     </svg>
-                </a>
+                </button>
                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
                     <a href="{{ route('ims.catalog') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.catalog') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M3 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm5.25 0a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75zM3 12a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm5.25 0a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75zM3 18a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm5.25 0a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75z" clip-rule="evenodd" /></svg>
@@ -184,7 +195,7 @@
                     </a>
                     @can('ims.approval.view')
                     <a href="{{ route('ims.penerimaan') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.penerimaan') ? 'cbm-active' : '' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-2.25a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3v-2.25a.75.75 0 01.75-.75z" clip-rule="evenodd" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.08 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-2.25a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3v-2.25a.75.75 0 01.75-.75z" clip-rule="evenodd" /></svg>
                         Penerimaan Barang
                     </a>
                     <a href="{{ route('ims.opname') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.opname') ? 'cbm-active' : '' }}">
@@ -214,7 +225,7 @@
                     @endcan
                     @can('ims.master.manage')
                     <div x-data="{ openMaster: {{ request()->routeIs(['ims.master.*']) ? 'true' : 'false' }} }">
-                        <a href="#" @click.prevent="openMaster = !openMaster" class="cbm-nav-item {{ request()->routeIs(['ims.master.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+                        <button type="button" @click="openMaster = !openMaster" class="cbm-nav-item {{ request()->routeIs(['ims.master.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: .75rem;">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2.25 5.25a3 3 0 013-3h13.5a3 3 0 013 3V15a3 3 0 01-3 3H5.25a3 3 0 01-3-3V5.25zM4.5 15a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM19.5 15a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM4.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM19.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>
                                 <span>Data Master</span>
@@ -222,7 +233,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="openMaster ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                             </svg>
-                        </a>
+                        </button>
                         <div x-show="openMaster" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
                             <a href="{{ route('ims.master') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('ims.master') ? 'cbm-active' : '' }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h2.25a3 3 0 013 3v2.25a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm9.75 0a3 3 0 013-3H18a3 3 0 013 3v2.25a3 3 0 01-3 3h-2.25a3 3 0 01-3-3V6zM3 15.75a3 3 0 013-3h2.25a3 3 0 013 3V18a3 3 0 01-3 3H6a3 3 0 01-3-3v-2.25zm9.75 0a3 3 0 013-3H18a3 3 0 013 3V18a3 3 0 01-3 3h-2.25a3 3 0 01-3-3v-2.25z" clip-rule="evenodd" /></svg>
@@ -261,8 +272,8 @@
 
             @can('menu.nsrdi')
             <div class="cbm-nav-section-label">NSRDI Management</div>
-            <div x-data="{ open: {{ request()->routeIs(['modules.nsrdi-no-spare', 'modules.nsrdi-overdue']) ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.nsrdi-no-spare', 'modules.nsrdi-overdue']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+            <div x-data="{ open: {{ request()->routeIs(['modules.nsrdi-no-spare', 'modules.nsrdi-overdue', 'reports.nsrdi-pivot']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.nsrdi-no-spare', 'modules.nsrdi-overdue', 'reports.nsrdi-pivot']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625zM7.5 15a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 017.5 15zm.75 2.25a.75.75 0 000 1.5H12a.75.75 0 000-1.5H8.25z" clip-rule="evenodd" />
@@ -272,7 +283,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                     </svg>
-                </a>
+                </button>
                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
                     <a href="{{ route('modules.nsrdi-overdue') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.nsrdi-overdue') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 11.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
@@ -295,7 +306,7 @@
             @can('menu.ict')
             <div class="cbm-nav-section-label">ICT Management</div>
             <div x-data="{ open: {{ request()->routeIs(['modules.ict-pi', 'modules.ict-tbd']) ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.ict-pi', 'modules.ict-tbd']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.ict-pi', 'modules.ict-tbd']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
@@ -305,7 +316,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                     </svg>
-                </a>
+                </button>
                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
                     <a href="{{ route('modules.ict-pi') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.ict-pi') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 11.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
@@ -421,7 +432,7 @@
             <div class="cbm-nav-section-label">Lainnya</div>
 
             <div x-data="{ open: {{ request()->routeIs(['documents.*']) ? 'true' : 'false' }} }">
-                <a href="#" @click.prevent="open = !open" class="cbm-nav-item {{ request()->routeIs(['documents.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['documents.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625zM7.5 15a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 017.5 15zm.75 2.25a.75.75 0 000 1.5H12a.75.75 0 000-1.5H8.25z" clip-rule="evenodd" /><path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" /></svg>
                         <span>Document Center</span>
@@ -429,7 +440,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                     </svg>
-                </a>
+                </button>
                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="padding-left: 2rem; margin-top: 0.25rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.25rem;">
                     <a href="{{ route('documents.index') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('documents.index') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zm0 1.5h8.25a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H4.5A1.5 1.5 0 013 16.5v-9A1.5 1.5 0 014.5 6z" clip-rule="evenodd" /><path d="M19.5 5.25v13.5a1.5 1.5 0 01-1.5 1.5h-3v-16.5h3a1.5 1.5 0 011.5 1.5zM12 9.75a.75.75 0 00-1.5 0v3a.75.75 0 001.5 0v-3z" /></svg>
@@ -462,11 +473,11 @@
                     </div>
                     <div class="cbm-user-role">{{ auth()->user()->jabatan ?? 'Staff' }}</div>
                 </div>
-                <a href="#" onclick="event.preventDefault(); document.getElementById('cbm-logout-form').submit();" style="color:var(--cbm-text-sub); display:flex;">
+                <button type="button" onclick="document.getElementById('cbm-logout-form').submit();" style="background:transparent; border:none; padding:0; cursor:pointer; color:var(--cbm-text-sub); display:flex;" title="Log Out">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1rem;height:1rem;">
                         <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 006 5.25v13.5a1.5 1.5 0 001.5 1.5h6a1.5 1.5 0 001.5-1.5V15a.75.75 0 011.5 0v3.75a3 3 0 01-3 3h-6a3 3 0 01-3-3V5.25a3 3 0 013-3h6a3 3 0 013 3V9A.75.75 0 0115 9V5.25a1.5 1.5 0 00-1.5-1.5h-6zm10.72 4.72a.75.75 0 011.06 0l3 3a.75.75 0 010 1.06l-3 3a.75.75 0 11-1.06-1.06l1.72-1.72H9a.75.75 0 010-1.5h10.94l-1.72-1.72a.75.75 0 010-1.06z" clip-rule="evenodd" />
                     </svg>
-                </a>
+                </button>
             </div>
             <form id="cbm-logout-form" action="{{ route('logout') ?? '#' }}" method="POST" style="display:none;">
                 @csrf

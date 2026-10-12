@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Modules\Ims\Report;
 
+use App\Exports\ImsReportExport;
 use App\Models\Ims\Item;
 use App\Models\Ims\Location;
 use App\Models\Ims\StockMovement;
@@ -9,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
@@ -54,6 +56,18 @@ class Index extends Component
     public function updatingEndDate()
     {
         $this->resetPage();
+    }
+
+    public function exportExcel()
+    {
+        abort_unless(auth()->user()?->can('ims.report.export'), 403, 'Anda tidak memiliki akses untuk mengekspor laporan.');
+
+        $filename = 'mutasi_stok_pivot_'.date('Y-m-d').'.xlsx';
+
+        return Excel::download(
+            new ImsReportExport($this->type, $this->startDate, $this->endDate),
+            $filename
+        );
     }
 
     public function exportMutasi()

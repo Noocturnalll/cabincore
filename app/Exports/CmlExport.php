@@ -2,12 +2,17 @@
 
 namespace App\Exports;
 
+use App\Exports\Helpers\PivotBuilder;
+use App\Exports\Sheets\DetailDataSheet;
+use App\Exports\Sheets\PivotRekapSheet;
 use App\Models\CmlLog;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class CmlExport implements FromCollection, WithHeadings
+class CmlExport implements Export, FromCollection, WithHeadings, WithMultipleSheets
 {
     protected $search;
 
@@ -26,6 +31,52 @@ class CmlExport implements FromCollection, WithHeadings
         $this->search = $search;
         $this->dateFilter = $dateFilter;
         $this->activeTab = $activeTab;
+    }
+
+    public function sheets(): array
+    {
+        $data = $this->collection();
+
+        $metadata = [
+            'Total Record' => number_format($data->count()).' logs',
+            'Filter Tanggal' => ($this->dateFilter || $this->dateEnd) ? (($this->dateFilter ?: '-').' s/d '.($this->dateEnd ?: '-')) : 'Default (Hari Ini / Kemarin)',
+            'Filter Station' => $this->station ?: 'Semua Station',
+            'Pencarian' => $this->search ?: 'Semua Data',
+            'Waktu Ekspor' => now()->translatedFormat('d F Y H:i:s'),
+        ];
+
+        // 1. Pivot Matrix: Station x Status
+        $matrixStation = PivotBuilder::buildMatrix(
+            $data,
+            'station',
+            'status',
+            ['Open', 'Closed'],
+            'Station / Bandara',
+            '1. Matriks Rekapitulasi: Station vs Status Pekerjaan'
+        );
+
+        // 2. Breakdown: Operator / Maskapai
+        $breakdownOperator = PivotBuilder::buildBreakdown(
+            $data,
+            'operator',
+            'Operator / Maskapai',
+            '2. Rekapitulasi per Operator / Maskapai'
+        );
+
+        // 3. Breakdown: Document Type
+        $breakdownDocType = PivotBuilder::buildBreakdown(
+            $data,
+            'doc_type',
+            'Jenis Dokumen',
+            '3. Rekapitulasi per Jenis Dokumen'
+        );
+
+        $tables = [$matrixStation, $breakdownOperator, $breakdownDocType];
+
+        return [
+            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI & PIVOT CML LOGS', $metadata, $tables),
+            new DetailDataSheet($data, $this->headings(), 'Data Detail CML'),
+        ];
     }
 
     public function collection(): Collection
@@ -67,8 +118,6 @@ class CmlExport implements FromCollection, WithHeadings
             }
         }
 
-        // We return the raw collection, omitting standard eloquent hidden fields
-        // Exclude some internal fields if necessary, or just return all
         return $query->orderBy('id', 'desc')->get()->map(function ($item) {
             return $item->makeHidden(['id', 'dja_id', 'created_at', 'updated_at']);
         });
@@ -76,8 +125,6 @@ class CmlExport implements FromCollection, WithHeadings
 
     public function headings(): array
     {
-        // Headings will be dynamically generated based on the first row's keys, or just left generic
-        // A simple trick if dynamic headings fail is to fetch a dummy instance
         $dummy = new CmlLog;
         $hidden = ['id', 'dja_id', 'created_at', 'updated_at'];
         $keys = array_diff(array_keys($dummy->getAttributes() ?: (\Schema::getColumnListing($dummy->getTable()))), $hidden);

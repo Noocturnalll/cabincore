@@ -100,7 +100,7 @@ class RegistryPermissionSeeder extends Seeder
         }
 
         // Added diagram roles (additive grants matching diagram domain)
-        $grants[RoleHelper::DEPUTY] = array_merge($common, [
+        $grants[RoleHelper::DEPUTY] = array_merge($common, $masterManage, [
             'master.kpi_target.manage', 'master.shift.manage', 'kpi.view',
         ], self::IMS_REQUESTER);
 
@@ -136,15 +136,16 @@ class RegistryPermissionSeeder extends Seeder
                 $r->revokePermissionTo(['ims.repair.request']);
             }
         }
-        // LGT: the COD desk drafts (plan), Finishing / CBM / AIEC fill in (manage)
+        // LGT: the COD desk drafts (plan), Finishing / Supporting / CBM / AIEC fill in (manage)
         foreach (RoleHelper::COD_DESK as $role) {
             $r = Role::findByName($role);
             $r->revokePermissionTo(['ims.repair.manage', 'lgt.manage']);
             $r->givePermissionTo('lgt.plan');
         }
-        foreach ([RoleHelper::PIC_PAINTING, RoleHelper::PIC_SUPPORTING] as $role) {
+        foreach ([RoleHelper::PIC_PAINTING] as $role) {
             Role::findByName($role)->revokePermissionTo('lgt.manage');
         }
+        Role::findByName(RoleHelper::PIC_SUPPORTING)->givePermissionTo('lgt.manage');
 
         MasterSettings::flush();
         app()[PermissionRegistrar::class]->forgetCachedPermissions();

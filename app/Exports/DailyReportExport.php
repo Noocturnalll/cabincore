@@ -2,15 +2,20 @@
 
 namespace App\Exports;
 
+use App\Exports\Helpers\PivotBuilder;
+use App\Exports\Sheets\DetailDataSheet;
+use App\Exports\Sheets\PivotRekapSheet;
 use App\Models\CmlLog;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class DailyReportExport implements FromCollection, WithHeadings
+class DailyReportExport implements Export, FromCollection, WithHeadings, WithMultipleSheets
 {
     protected $search;
 
@@ -23,6 +28,47 @@ class DailyReportExport implements FromCollection, WithHeadings
         $this->search = $search;
         $this->dateFilter = $dateFilter;
         $this->activeTab = $activeTab ?: 'dja-wo';
+    }
+
+    public function sheets(): array
+    {
+        $data = $this->collection();
+
+        $metadata = [
+            'Total Record' => number_format($data->count()).' logs',
+            'Kategori / Tab' => strtoupper($this->activeTab),
+            'Filter Tanggal' => $this->dateFilter ?: 'Default (Tanggal Aktif)',
+            'Pencarian' => $this->search ?: 'Semua Data',
+            'Waktu Ekspor' => now()->translatedFormat('d F Y H:i:s'),
+        ];
+
+        $first = $data->first();
+        $stationKey = isset($first['plan_station']) ? 'plan_station' : (isset($first['station']) ? 'station' : 'act_station');
+        $statusKey = isset($first['status']) ? 'status' : 'work_group';
+
+        $matrixStation = PivotBuilder::buildMatrix(
+            $data,
+            $stationKey,
+            $statusKey,
+            ['Open', 'Closed'],
+            'Station / STA',
+            '1. Matriks Rekapitulasi: Station vs '.strtoupper(str_replace('_', ' ', $statusKey))
+        );
+
+        $regKey = isset($first['registration']) ? 'registration' : (isset($first['operator']) ? 'operator' : 'aircraft_registration');
+        $breakdownReg = PivotBuilder::buildBreakdown(
+            $data,
+            $regKey,
+            strtoupper(str_replace('_', ' ', $regKey)),
+            '2. Rekapitulasi per '.strtoupper(str_replace('_', ' ', $regKey))
+        );
+
+        $tables = [$matrixStation, $breakdownReg];
+
+        return [
+            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI & PIVOT DAILY REPORT ('.strtoupper($this->activeTab).')', $metadata, $tables),
+            new DetailDataSheet($data, $this->headings(), 'Data Detail Report'),
+        ];
     }
 
     public function collection(): Collection

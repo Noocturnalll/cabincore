@@ -54,6 +54,58 @@
         overlay.classList.remove('cbm-visible');
         setTimeout(function() { overlay.style.display = 'none'; }, 300);
     };
+
+    // Sidebar scroll persistence across Livewire navigation
+    function getSidebarNav() {
+        return document.querySelector('.cbm-sidebar-nav');
+    }
+
+    function saveSidebarScroll() {
+        var nav = getSidebarNav();
+        if (nav) {
+            sessionStorage.setItem('cbm-sidebar-scroll', nav.scrollTop);
+        }
+    }
+
+    function restoreSidebarScroll() {
+        var nav = getSidebarNav();
+        if (!nav) return;
+        var saved = sessionStorage.getItem('cbm-sidebar-scroll');
+        if (saved !== null) {
+            var top = parseInt(saved, 10);
+            nav.scrollTop = top;
+            requestAnimationFrame(function () {
+                nav.scrollTop = top;
+            });
+        } else {
+            var active = nav.querySelector('.cbm-nav-item.cbm-active');
+            if (active) {
+                active.scrollIntoView({ block: 'nearest' });
+            }
+        }
+    }
+
+    document.addEventListener('scroll', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('cbm-sidebar-nav')) {
+            sessionStorage.setItem('cbm-sidebar-scroll', e.target.scrollTop);
+        }
+    }, { capture: true, passive: true });
+
+    document.addEventListener('livewire:navigating', saveSidebarScroll);
+    window.addEventListener('beforeunload', saveSidebarScroll);
+
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('.cbm-sidebar-nav')) {
+            saveSidebarScroll();
+        }
+    }, { capture: true, passive: true });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', restoreSidebarScroll);
+    } else {
+        restoreSidebarScroll();
+    }
+    document.addEventListener('livewire:navigated', restoreSidebarScroll);
 })();
 
 // Listen for SweetAlert Toast notifications from Livewire
@@ -80,6 +132,36 @@ document.addEventListener('livewire:initialized', () => {
             icon: data.icon || "success",
             title: data.title || data.message || "Berhasil"
         });
+    });
+
+    Livewire.on('swal:modal', (event) => {
+        const data = Array.isArray(event) ? event[0] : event;
+        if (window.Swal) {
+            Swal.fire({
+                icon: data.icon || 'info',
+                title: data.title || '',
+                text: data.text || data.message || '',
+                confirmButtonText: data.confirmButtonText || 'Mengerti',
+                confirmButtonColor: 'var(--cbm-primary, #3b82f6)',
+                background: 'var(--cbm-card-bg, #1e293b)',
+                color: 'var(--cbm-text, #f8fafc)',
+            });
+        }
+    });
+
+    Livewire.on('swal:error', (event) => {
+        const data = Array.isArray(event) ? event[0] : event;
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: data.title || 'Error',
+                text: data.text || data.message || '',
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#ef4444',
+                background: 'var(--cbm-card-bg, #1e293b)',
+                color: 'var(--cbm-text, #f8fafc)',
+            });
+        }
     });
 });
 </script>

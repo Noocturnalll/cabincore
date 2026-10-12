@@ -2,12 +2,17 @@
 
 namespace App\Livewire\Modules\Registry;
 
+use App\Exports\RegistryExport;
 use App\Models\Division;
 use App\Models\RegistryRecord;
 use App\Support\ExpiryStatus;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
  * One page for every module in config/registry.php. Access is per module (registry.<key>.view / .manage) and
@@ -15,7 +20,7 @@ use Livewire\WithPagination;
  */
 class Index extends Component
 {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
 
     public string $module = '';
 
@@ -33,6 +38,10 @@ class Index extends Component
 
     /** @var array<string, mixed> */
     public array $form = [];
+
+    public $importFile = null;
+
+    public bool $isImportModalOpen = false;
 
     public function mount(string $module): void
     {
@@ -174,6 +183,107 @@ class Index extends Component
     {
         $this->isOpen = false;
         $this->resetForm();
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(
+            new RegistryExport($this->module, $this->search, $this->divisionFilter, $this->onlyDue),
+            'Registry-'.$this->module.'-'.date('Y-m-d').'.xlsx'
+        );
+    }
+
+    public function openImportModal(): void
+    {
+        abort_unless($this->canManage(), 403);
+        $this->importFile = null;
+        $this->isImportModalOpen = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->isImportModalOpen = false;
+        $this->importFile = null;
+    }
+
+    public function importExcel(): void
+    {
+        abort_unless($this->canManage(), 403);
+        $this->validate([
+            'importFile' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            $spreadsheet = IOFactory::load($this->importFile->getRealPath());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+
+            if (count($rows) < 2) {
+                throw new \Exception('File Excel tidak memiliki baris data.');
+            }
+
+            $headers = array_map(fn ($h) => strtolower(trim((string) $h)), $rows[0]);
+            $cfg = $this->cfg();
+            $fields = $cfg['fields'];
+            $defaultDivisionId = $this->seesAll() ? (Division::first()?->id ?? 1) : auth()->user()->division_id;
+
+            $imported = 0;
+            for ($i = 1; $i < count($rows); $i++) {
+                $row = $rows[$i];
+                if (empty(array_filter($row, fn ($v) => $v !== null && $v !== ''))) {
+                    continue;
+                }
+
+                $data = [];
+                foreach ($fields as $key => $def) {
+                    $headerLabel = strtolower(trim($def[0]));
+                    $idx = array_search($headerLabel, $headers, true);
+                    if ($idx === false) {
+                        $idx = array_search(strtolower($key), $headers, true);
+                    }
+                    $data[$key] = ($idx !== false && isset($row[$idx])) ? trim((string) $row[$idx]) : null;
+                }
+
+                // Division mapping: check if "divisi" column exists
+                $divIdx = array_search('divisi', $headers, true);
+                $rowDivisionId = $defaultDivisionId;
+                if ($divIdx !== false && ! empty($row[$divIdx]) && $this->seesAll()) {
+                    $divName = trim((string) $row[$divIdx]);
+                    $matchedDiv = Division::where('name', 'like', "%{$divName}%")->first();
+                    if ($matchedDiv) {
+                        $rowDivisionId = $matchedDiv->id;
+                    }
+                }
+
+                $title = $data[$cfg['title']] ?? 'Record '.($i);
+                $dueDate = null;
+                if (! empty($cfg['due']) && ! empty($data[$cfg['due']])) {
+                    try {
+                        $dueDate = Carbon::parse($data[$cfg['due']])->toDateString();
+                    } catch (\Throwable $e) {
+                        $dueDate = null;
+                    }
+                }
+
+                RegistryRecord::create([
+                    'module' => $this->module,
+                    'division_id' => $rowDivisionId,
+                    'title' => $title,
+                    'due_date' => $dueDate,
+                    'data' => $data,
+                    'created_by' => auth()->id(),
+                ]);
+
+                $imported++;
+            }
+
+            $this->isImportModalOpen = false;
+            $this->importFile = null;
+            $this->dispatch('notify', ['icon' => 'success', 'message' => "Berhasil mengimpor {$imported} data."]);
+            session()->flash('success', "Berhasil mengimpor {$imported} data ke modul {$cfg['label']}.");
+        } catch (\Throwable $e) {
+            $this->addError('importFile', 'Gagal memproses file: '.$e->getMessage());
+        }
     }
 
     private function resetForm(): void

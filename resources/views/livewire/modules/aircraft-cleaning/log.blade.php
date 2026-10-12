@@ -2,17 +2,26 @@
     {{-- Header --}}
     <div class="mod-header">
         <div class="mod-title-block">
-            <div class="mod-title-accent mod-title-accent-{{ $meta['accent'] }}">Aircraft Cleaning</div>
+            <div class="mod-title-accent mod-title-accent-{{ $meta['accent'] }}">{{ $meta['section'] ?? 'Aircraft Cleaning' }}</div>
             <div class="mod-title">{{ $meta['title'] }}</div>
             <div class="mod-subtitle">{{ $meta['subtitle'] }}</div>
         </div>
         <div class="mod-actions">
+            <button type="button" wire:click="exportExcel" wire:loading.attr="disabled" class="mod-btn-outline" style="display:inline-flex;align-items:center;gap:.35rem;" title="Download Excel dengan Pivot & Rekapitulasi">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;color:var(--cbm-green,#10b981);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span wire:loading.remove wire:target="exportExcel">Export (Pivot)</span>
+                <span wire:loading wire:target="exportExcel">...</span>
+            </button>
+            @can('menu.cleaning')
             <a href="{{ route('modules.cleaning.sync') }}" wire:navigate class="mod-btn-outline" style="text-decoration:none;">
                 <span style="display:inline-flex;align-items:center;gap:.4rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1rem;height:1rem;"><path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z" clip-rule="evenodd"/></svg>
                     Sync Sheets
                 </span>
             </a>
+            @endcan
             <button wire:click="create" class="mod-btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/></svg>
                 Tambah Data

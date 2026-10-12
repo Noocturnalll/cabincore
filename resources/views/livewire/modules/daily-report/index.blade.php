@@ -94,6 +94,7 @@
             <button type="button" wire:click="setTab('unplanned-nsrdi')" class="cbm-tab {{ $activeTab === 'unplanned-nsrdi' ? 'active' : '' }}">Unplanned NSRDI</button>
             <button type="button" wire:click="setTab('cml')" class="cbm-tab {{ $activeTab === 'cml' ? 'active' : '' }}">CML</button>
             <button type="button" wire:click="setTab('summary')" class="cbm-tab {{ $activeTab === 'summary' ? 'active' : '' }}">Summary Pivot</button>
+            <button type="button" wire:click="setTab('station-feedback')" class="cbm-tab {{ $activeTab === 'station-feedback' ? 'active' : '' }}">Feedback Station (✓ / ✗)</button>
         </div>
 
         <div class="mod-hint" style="margin:1rem 1.25rem 0;background:var(--cbm-nav-hover);color:var(--cbm-text-muted);border-color:var(--cbm-card-border);">
@@ -107,6 +108,140 @@
                 sudah lewat cutoff tetapi masih Open tanpa code reason + remarks. Lengkapi di modul WO / DMI / NSRDI, lalu otomatis masuk ke sini.
             </div>
         @endif
+
+        @if($activeTab === 'station-feedback')
+            <div style="padding:1.25rem;">
+                {{-- Top Control Bar --}}
+                <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; background:var(--cbm-nav-hover); border:1px solid var(--cbm-card-border); border-radius:.75rem; padding:.85rem 1.15rem;">
+                    <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:.4rem;">
+                            <span style="font-size:.82rem; font-weight:700; color:var(--cbm-text);">Tanggal Operasional:</span>
+                            <input type="date" wire:model.live="feedbackDate" style="background:var(--cbm-bg-main); color:var(--cbm-text); border:1px solid var(--cbm-card-border); border-radius:6px; padding:.32rem .6rem; font-size:.82rem;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:.35rem;">
+                            <button type="button" wire:click="setFeedbackDate('yesterday')" style="background:rgba(255,255,255,0.06); border:1px solid var(--cbm-card-border); color:var(--cbm-text); border-radius:6px; padding:.3rem .65rem; font-size:.78rem; cursor:pointer; font-weight:600;">
+                                H-1 (Kemarin)
+                            </button>
+                            <button type="button" wire:click="setFeedbackDate('today')" style="background:rgba(255,255,255,0.06); border:1px solid var(--cbm-card-border); color:var(--cbm-text); border-radius:6px; padding:.3rem .65rem; font-size:.78rem; cursor:pointer; font-weight:600;">
+                                Hari Ini
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:.65rem; flex-wrap:wrap;">
+                        {{-- Search Station --}}
+                        <input type="text" wire:model.live.debounce.300ms="feedbackSearch" placeholder="Cari stasiun (CGK, DPS...)" style="background:var(--cbm-bg-main); color:var(--cbm-text); border:1px solid var(--cbm-card-border); border-radius:6px; padding:.32rem .65rem; font-size:.82rem; width:180px;">
+
+                        {{-- Realtime Refresh Button --}}
+                        <button type="button" wire:click="refreshRealtime" wire:loading.attr="disabled" wire:target="refreshRealtime" class="mod-btn-primary" style="padding:.35rem .85rem; font-size:.8rem; display:inline-flex; align-items:center; gap:.4rem;">
+                            <span wire:loading.remove wire:target="refreshRealtime">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                                Tarik Data Real-time
+                            </span>
+                            <span wire:loading wire:target="refreshRealtime">
+                                Menarik Data...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Status Stats Cards --}}
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.25rem;">
+                    <div style="background:var(--cbm-nav-hover); border:1px solid var(--cbm-card-border); border-radius:.75rem; padding:1rem;">
+                        <div style="font-size:.78rem; font-weight:700; color:var(--cbm-text-muted); text-transform:uppercase;">Total Station Aktif</div>
+                        <div style="font-size:1.75rem; font-weight:800; color:var(--cbm-text); margin-top:.35rem;">{{ $logs['total_stations'] ?? 0 }}</div>
+                        <div style="font-size:.75rem; color:var(--cbm-text-muted); margin-top:.2rem;">Master Airport Seluruh Station</div>
+                    </div>
+
+                    <div style="background:rgba(35, 134, 54, 0.08); border:1px solid rgba(35, 134, 54, 0.3); border-radius:.75rem; padding:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-size:.78rem; font-weight:700; color:#3fb950; text-transform:uppercase;">Sudah Lapor (Checklist ✓)</div>
+                            <span style="background:rgba(35, 134, 54, 0.25); color:#3fb950; font-size:.75rem; font-weight:800; padding:.15rem .5rem; border-radius:999px;">{{ $logs['percentage'] ?? 0 }}%</span>
+                        </div>
+                        <div style="font-size:1.75rem; font-weight:800; color:#3fb950; margin-top:.35rem;">{{ $logs['submitted_count'] ?? 0 }}</div>
+                        <div style="font-size:.75rem; color:#8b949e; margin-top:.2rem;">Laporan WO / DMI / NSRDI / CML masuk</div>
+                    </div>
+
+                    <div style="background:rgba(248, 81, 73, 0.08); border:1px solid rgba(248, 81, 73, 0.3); border-radius:.75rem; padding:1rem;">
+                        <div style="font-size:.78rem; font-weight:700; color:#f85149; text-transform:uppercase;">Belum Lapor (Silang ✗)</div>
+                        <div style="font-size:1.75rem; font-weight:800; color:#f85149; margin-top:.35rem;">{{ $logs['missing_count'] ?? 0 }}</div>
+                        <div style="font-size:.75rem; color:#8b949e; margin-top:.2rem;">Belum ada laporan harian pada tanggal ini</div>
+                    </div>
+                </div>
+
+                {{-- Filter Pills --}}
+                <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap;">
+                    <span style="font-size:.8rem; font-weight:700; color:var(--cbm-text-muted);">Filter Tampilan:</span>
+                    <button type="button" wire:click="$set('feedbackFilter', 'all')" style="border-radius:999px; padding:.25rem .75rem; font-size:.78rem; font-weight:700; cursor:pointer; border:1px solid var(--cbm-card-border); background:{{ $feedbackFilter === 'all' ? 'var(--cbm-primary)' : 'transparent' }}; color:{{ $feedbackFilter === 'all' ? '#fff' : 'var(--cbm-text)' }};">
+                        Semua Station ({{ $logs['total_stations'] ?? 0 }})
+                    </button>
+                    <button type="button" wire:click="$set('feedbackFilter', 'missing')" style="border-radius:999px; padding:.25rem .75rem; font-size:.78rem; font-weight:700; cursor:pointer; border:1px solid rgba(248,81,73,0.4); background:{{ $feedbackFilter === 'missing' ? '#f85149' : 'transparent' }}; color:{{ $feedbackFilter === 'missing' ? '#fff' : '#f85149' }};">
+                        ✗ Belum Lapor (Silang: {{ $logs['missing_count'] ?? 0 }})
+                    </button>
+                    <button type="button" wire:click="$set('feedbackFilter', 'submitted')" style="border-radius:999px; padding:.25rem .75rem; font-size:.78rem; font-weight:700; cursor:pointer; border:1px solid rgba(63,185,80,0.4); background:{{ $feedbackFilter === 'submitted' ? '#238636' : 'transparent' }}; color:{{ $feedbackFilter === 'submitted' ? '#fff' : '#3fb950' }};">
+                        ✓ Sudah Lapor (Checklist: {{ $logs['submitted_count'] ?? 0 }})
+                    </button>
+                </div>
+
+                {{-- Table --}}
+                <div class="cbm-table-container">
+                    <table class="cbm-table" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th style="width:50px;">NO</th>
+                                <th>KODE STASIUN</th>
+                                <th>NAMA BANDARA</th>
+                                <th style="text-align:center;">STATUS FEEDBACK</th>
+                                <th style="text-align:center;">WO</th>
+                                <th style="text-align:center;">DMI</th>
+                                <th style="text-align:center;">NSRDI</th>
+                                <th style="text-align:center;">CML</th>
+                                <th style="text-align:center; background:rgba(255,255,255,0.03);">TOTAL REKOR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($logs['rows'] ?? [] as $idx => $r)
+                                <tr>
+                                    <td>{{ $idx + 1 }}</td>
+                                    <td style="font-weight:800; font-size:.95rem; letter-spacing:0.04em;">
+                                        <span style="background:rgba(255,255,255,0.06); padding:.2rem .45rem; border-radius:4px; border:1px solid var(--cbm-card-border);">
+                                            {{ $r['code'] }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $r['name'] }}</td>
+                                    <td style="text-align:center;">
+                                        @if($r['is_submitted'])
+                                            <span style="display:inline-flex; align-items:center; gap:.35rem; background:rgba(35,134,54,0.18); color:#3fb950; border:1px solid rgba(35,134,54,0.4); padding:.25rem .75rem; border-radius:999px; font-weight:800; font-size:.8rem;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" style="width:.95rem;height:.95rem;" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                ✓ Terecord
+                                            </span>
+                                        @else
+                                            <span style="display:inline-flex; align-items:center; gap:.35rem; background:rgba(248,81,73,0.18); color:#f85149; border:1px solid rgba(248,81,73,0.4); padding:.25rem .75rem; border-radius:999px; font-weight:800; font-size:.8rem;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" style="width:.95rem;height:.95rem;" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                                ✗ Belum Terecord
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td style="text-align:center;">{{ $r['wo'] ?: '-' }}</td>
+                                    <td style="text-align:center;">{{ $r['dmi'] ?: '-' }}</td>
+                                    <td style="text-align:center;">{{ $r['nsrdi'] ?: '-' }}</td>
+                                    <td style="text-align:center;">{{ $r['cml'] ?: '-' }}</td>
+                                    <td style="text-align:center; font-weight:800; background:rgba(255,255,255,0.02); font-size:.92rem;">
+                                        {{ $r['total'] ?: '-' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" style="text-align:center; padding:2rem; color:var(--cbm-text-muted);">
+                                        Tidak ada stasiun yang cocok dengan filter atau pencarian.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @else
 
         @if($activeTab === 'summary')
             <x-log-toolbar mode="date" :active="(bool) $dateFilter" />
@@ -445,6 +580,7 @@
 
         @if($activeTab !== 'summary' && method_exists($logs, 'hasPages') && $logs->hasPages())
             <div class="mod-pagination">{{ $logs->links('pagination::tailwind') }}</div>
+        @endif
         @endif
 
     </div>

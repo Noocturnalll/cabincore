@@ -2,12 +2,17 @@
 
 namespace App\Exports;
 
+use App\Exports\Helpers\PivotBuilder;
+use App\Exports\Sheets\DetailDataSheet;
+use App\Exports\Sheets\PivotRekapSheet;
 use App\Models\DailyJobAssignment;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class DjaExport implements FromCollection, WithHeadings
+class DjaExport implements Export, FromCollection, WithHeadings, WithMultipleSheets
 {
     protected $search;
 
@@ -20,6 +25,43 @@ class DjaExport implements FromCollection, WithHeadings
         $this->search = $search;
         $this->dateFilter = $dateFilter;
         $this->activeTab = $activeTab;
+    }
+
+    public function sheets(): array
+    {
+        $data = $this->collection();
+
+        $metadata = [
+            'Total Tugas DJA' => number_format($data->count()).' tugas',
+            'Filter Tanggal' => $this->dateFilter ?: 'Semua Tanggal',
+            'Pencarian' => $this->search ?: 'Semua Data',
+            'Waktu Ekspor' => now()->translatedFormat('d F Y H:i:s'),
+        ];
+
+        // 1. Pivot Matrix: Station x Job Type
+        $matrixStation = PivotBuilder::buildMatrix(
+            $data,
+            'station',
+            'job_type',
+            ['TRANSIT', 'RON', 'DAILY', 'WEEKLY'],
+            'Station / Bandara',
+            '1. Matriks Rekapitulasi: Station vs Job Type (Jenis Tugas)'
+        );
+
+        // 2. Breakdown: Registrasi Pesawat
+        $breakdownAircraft = PivotBuilder::buildBreakdown(
+            $data,
+            'registration',
+            'Registrasi Pesawat',
+            '2. Rekapitulasi Penugasan per Pesawat'
+        );
+
+        $tables = [$matrixStation, $breakdownAircraft];
+
+        return [
+            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI & PIVOT DAILY JOB ASSIGNMENT (DJA)', $metadata, $tables),
+            new DetailDataSheet($data, $this->headings(), 'Data Detail DJA'),
+        ];
     }
 
     public function collection(): Collection
@@ -45,9 +87,9 @@ class DjaExport implements FromCollection, WithHeadings
                 'date' => $item->date,
                 'registration' => $item->aircraft_registration,
                 'task_id' => $item->task_id,
-                'job_type' => $item->job_type,
+                'job_type' => $item->job_type ?: 'UNASSIGNED',
                 'description' => $item->description,
-                'station' => $item->station,
+                'station' => $item->station ?: 'N/A',
             ];
         });
     }

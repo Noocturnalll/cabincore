@@ -38,7 +38,9 @@ return [
     'ac_movement_stale_after_minutes' => 10,
 
     'ata_reject' => ['72', '32'],
-    'ata_accept' => ['11', '23', '25', '33', '35', '38', '44', '52', '56'],
+    // Only chapters that are cabin by nature. 23 (comms), 33 (lights), 52 (doors) and 56 (windows) also cover
+    // cockpit / exterior work, so they must be backed by a cabin keyword instead of being accepted blindly.
+    'ata_accept' => ['11', '25', '35', '38', '44'],
 
     'wo' => [
         'include' => [
@@ -47,7 +49,7 @@ return [
             'POTABLE WATER', 'WATER FILTER', 'STERILIZATION', 'WASTE COMPARTMENT', 'VACUUM', 'LAVATORY',
             'PASSENGER CABIN', 'SEAT', 'ROLLER BLIND', 'COMPARTMENT WINDOWS', 'GALLEY',
             'PEST CONTROL', 'PORTABLE EXTINGUISHER', 'EXTINGUISHER', 'MEDICAL KIT', 'FIRST AID', 'LIFEVEST', 'EMERGENCY EQUIPMENT',
-            'ESCAPE SLIDE', 'SLIDE RAFT', 'LIFE RAFT', 'EMERGENCY ESCAPE',
+            'ESCAPE SLIDE', 'SLIDE RAFT', 'LIFE RAFT', 'EMERGENCY ESCAPE', 'EMERGENCY LIGHT', 'EMERGENCY LIGHTS',
         ],
     ],
 
@@ -86,11 +88,13 @@ return [
         'TEMPERATURE SENSOR', 'SENSOR FILTER', 'EQUIPMENT RACK',
         // Cockpit overhead P5 / flight deck controls
         'DRIPSHIELD BRACKET', 'P5 PANEL', 'OVERHEAD P5',
+        // Structural seat beams (structure shop), crew oxygen regulator masks, hydraulic-tested bottles
+        'SEAT BEAMS', 'OXYGEN REGULATOR', 'HYD BOTTLE',
     ],
 
     // Cockpit emergency equipment items that ARE valid cabin maintenance even when located in cockpit.
     'cockpit_emergency_include' => [
-        'LIFE VEST', 'LIFEVEST', 'FLASHLIGHT', 'FLASHLIGHTS', 'PBE', 'PROTECTIVE BREATHING', 'BREATHING EQPT', 'SEAT BELT', 'SEATBELT', 'PORTABLE FIREX',
+        'LIFE VEST', 'LIFEVEST', 'FLASHLIGHT', 'FLASHLIGHTS', 'PBE', 'PROTECTIVE BREATHING', 'BREATHING EQPT', 'PORTABLE FIREX',
     ],
 
     // A match together with one of these words means "not a cabin job": reject from CBM sync.

@@ -2,14 +2,18 @@
 
 namespace App\Livewire\Modules\Hr;
 
+use App\Exports\EmployeeExport;
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Position;
 use App\Models\RegistryRecord;
+use App\Services\Hr\HrExcelImporter;
 use App\Support\ExpiryStatus;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Employee database (Development & GA). Division admins only see and edit their own division;
@@ -17,7 +21,11 @@ use Livewire\WithPagination;
  */
 class Employees extends Component
 {
-    use WithPagination;
+    use WithFileUploads, WithPagination;
+
+    public $importFile = null;
+
+    public bool $isImportOpen = false;
 
     public string $search = '';
 
@@ -40,6 +48,10 @@ class Employees extends Component
     public ?string $phone = null;
 
     public ?string $join_date = null;
+
+    public ?string $resign_date = null;
+
+    public ?string $resign_reason = null;
 
     public string $status = 'Aktif';
 
@@ -129,6 +141,8 @@ class Employees extends Component
         $this->position_id = $e->position_id;
         $this->phone = $e->phone;
         $this->join_date = $e->join_date?->format('Y-m-d');
+        $this->resign_date = $e->resign_date?->format('Y-m-d');
+        $this->resign_reason = $e->resign_reason;
         $this->status = $e->status;
         $this->contract_type = $e->contract_type;
         $this->contract_start = $e->contract_start?->format('Y-m-d');
@@ -152,7 +166,9 @@ class Employees extends Component
             'position_id' => 'nullable|integer|exists:positions,id',
             'phone' => 'nullable|string|max:30',
             'join_date' => 'nullable|date',
-            'status' => 'required|in:Aktif,Nonaktif',
+            'resign_date' => 'nullable|date',
+            'resign_reason' => 'nullable|string|max:500',
+            'status' => 'required|in:Aktif,Nonaktif,Resign,Cuti',
             'contract_type' => 'required|in:PKWT,PKWTT',
             'contract_start' => 'nullable|date',
             'contract_end' => [$this->contract_type === 'PKWT' ? 'required' : 'nullable', 'date', 'after_or_equal:contract_start'],
@@ -173,6 +189,8 @@ class Employees extends Component
             'position_id' => $this->position_id ?: null,
             'phone' => $this->phone ?: null,
             'join_date' => $this->join_date ?: null,
+            'resign_date' => $this->status === 'Resign' ? ($this->resign_date ?: now()->toDateString()) : ($this->resign_date ?: null),
+            'resign_reason' => $this->resign_reason ?: null,
             'status' => $this->status,
             'contract_type' => $this->contract_type,
             'contract_start' => $this->contract_start ?: null,
@@ -201,6 +219,55 @@ class Employees extends Component
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Karyawan dihapus.']);
     }
 
+    public function exportExcel()
+    {
+        abort_unless(auth()->user()?->can('hr.view'), 403);
+
+        $allowedDivisions = $this->allowedDivisionIds();
+        $filename = 'karyawan_pivot_'.date('Y-m-d').'.xlsx';
+
+        return Excel::download(
+            new EmployeeExport($this->search, $this->divisionFilter, $this->expiryFilter, $allowedDivisions),
+            $filename
+        );
+    }
+
+    public function openImport(): void
+    {
+        abort_unless($this->canManage(), 403);
+        $this->importFile = null;
+        $this->isImportOpen = true;
+    }
+
+    public function closeImport(): void
+    {
+        $this->importFile = null;
+        $this->isImportOpen = false;
+        $this->resetErrorBag();
+    }
+
+    public function importExcel(HrExcelImporter $importer): void
+    {
+        abort_unless($this->canManage(), 403);
+        $this->validate([
+            'importFile' => 'required|file|mimes:xlsx,xls,csv|max:20480',
+        ]);
+
+        $path = $this->importFile->getRealPath();
+        $stats = $importer->importEmployees($path, false, true);
+
+        $this->closeImport();
+        $this->resetPage();
+
+        $message = "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['skipped']} data lama dipertahankan (tidak ditimpa).";
+        $this->dispatch('swal:modal', [
+            'type' => 'success',
+            'title' => 'Import Karyawan Berhasil',
+            'message' => $message,
+        ]);
+        $this->dispatch('notify', ['icon' => 'success', 'message' => $message]);
+    }
+
     public function close(): void
     {
         $this->isOpen = false;
@@ -209,7 +276,7 @@ class Employees extends Component
 
     private function resetForm(): void
     {
-        $this->reset(['employeeId', 'nik', 'name', 'division_id', 'position_id', 'phone', 'join_date', 'contract_start', 'contract_end', 'passport_no', 'passport_expiry', 'notes']);
+        $this->reset(['employeeId', 'nik', 'name', 'division_id', 'position_id', 'phone', 'join_date', 'resign_date', 'resign_reason', 'contract_start', 'contract_end', 'passport_no', 'passport_expiry', 'notes']);
         $this->status = 'Aktif';
         $this->contract_type = 'PKWT';
         $this->resetErrorBag();

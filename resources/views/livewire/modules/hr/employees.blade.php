@@ -66,7 +66,18 @@
                     </select>
                 </div>
             </div>
-            <div class="mod-meta"><span class="mod-record-count">{{ number_format($employees->total()) }} karyawan</span></div>
+            <div class="mod-meta" style="display:flex;align-items:center;gap:.75rem;">
+                @if($canManage)
+                    <button type="button" wire:click="openImport" class="kd-act-btn" title="Import data excel karyawan baru (tidak menimpa data lama)" style="background:#2563eb;color:#fff;border-color:#2563eb;display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .8rem;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                        Import Excel
+                    </button>
+                @endif
+                <button type="button" wire:click="exportExcel" class="kd-act-btn" title="Unduh data karyawan dengan rekapitulasi sheet Pivot Excel" style="background:#107c41;color:#fff;border-color:#107c41;display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .8rem;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;">
+                    <span>📊</span> Ekspor Excel (Pivot)
+                </button>
+                <span class="mod-record-count">{{ number_format($employees->total()) }} karyawan</span>
+            </div>
         </div>
 
         <div class="mod-table-wrap">
@@ -230,4 +241,39 @@
             <textarea id="em-notes" wire:model="notes" class="cbm-form-input" rows="2" maxlength="1000"></textarea>
         </div>
     </x-master.modal>
+
+    {{-- Import Modal --}}
+    @if($isImportOpen)
+        <div class="cbm-modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem;">
+            <div class="cbm-modal-card" style="background:var(--cbm-card-bg, #1e293b);border:1px solid var(--cbm-border, rgba(255,255,255,0.1));border-radius:1rem;max-width:32rem;width:100%;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);overflow:hidden;">
+                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--cbm-border, rgba(255,255,255,0.1));display:flex;align-items:center;justify-content:space-between;">
+                    <div>
+                        <h3 style="font-size:1.125rem;font-weight:700;color:var(--cbm-text, #f8fafc);margin:0;">Import Data Karyawan (Excel)</h3>
+                        <p style="font-size:0.75rem;color:var(--cbm-text-muted, #94a3b8);margin:0.25rem 0 0;">Data yang sudah ada tidak akan ditimpa, hanya data baru yang masuk ke database.</p>
+                    </div>
+                    <button type="button" wire:click="closeImport" style="background:none;border:none;color:var(--cbm-text-muted, #94a3b8);cursor:pointer;font-size:1.25rem;line-height:1;">&times;</button>
+                </div>
+                <form wire:submit.prevent="importExcel" style="padding:1.5rem;">
+                    <div class="cbm-form-group" style="margin-bottom:1.25rem;">
+                        <label class="cbm-form-label" for="emp-file" style="display:block;margin-bottom:0.5rem;font-weight:600;font-size:0.875rem;">Pilih File Excel (.xlsx, .xls, .csv)</label>
+                        <input id="emp-file" type="file" wire:model="importFile" accept=".xlsx,.xls,.csv" class="cbm-form-input" style="width:100%;padding:0.5rem;background:rgba(255,255,255,0.05);border:1px dashed var(--cbm-border, rgba(255,255,255,0.2));border-radius:0.5rem;">
+                        <div wire:loading wire:target="importFile" style="font-size:0.75rem;color:#38bdf8;margin-top:0.375rem;">Mengunggah file...</div>
+                        @error('importFile') <span class="mod-field-error" style="color:#ef4444;font-size:0.75rem;display:block;margin-top:0.375rem;">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:0.5rem;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.75rem;color:#93c5fd;line-height:1.4;">
+                        <strong>Catatan Alur:</strong> Sistem akan mencocokkan ID/NIK karyawan. NIK yang telah tercatat sebelumnya akan diabaikan (dipertahankan), dan hanya data karyawan baru yang ditambahkan secara otomatis.
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;gap:0.75rem;">
+                        <button type="button" wire:click="closeImport" class="cbm-btn cbm-btn-secondary" style="padding:0.5rem 1rem;border-radius:0.5rem;background:rgba(255,255,255,0.1);border:none;color:var(--cbm-text, #fff);cursor:pointer;">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" class="cbm-btn cbm-btn-primary" style="padding:0.5rem 1.25rem;border-radius:0.5rem;background:#2563eb;border:none;color:#fff;font-weight:600;cursor:pointer;">
+                            <span wire:loading.remove wire:target="importExcel">Proses Import</span>
+                            <span wire:loading wire:target="importExcel">Memproses...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 </div>

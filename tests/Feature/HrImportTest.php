@@ -121,4 +121,36 @@ class HrImportTest extends TestCase
         (new HrExcelImporter)->importPasban($path);
         $this->assertSame(2, RegistryRecord::where('module', 'pas')->count(), 're-import does not duplicate');
     }
+
+    public function test_employee_import_preserves_existing_data_when_flag_is_set(): void
+    {
+        Employee::create([
+            'nik' => '83064072',
+            'name' => 'BUDI ORIGINAL',
+            'contract_type' => 'PKWTT',
+            'job_title' => 'SENIOR MEKANIK',
+            'division_id' => Division::where('name', 'Cabin')->value('id'),
+        ]);
+
+        $path = $this->xlsx('DATABASE', [
+            ['Judul'],
+            ['NO', 'NAMA', 'NO. ID', 'STATION', 'JABATAN', 'DIREKTORAT', 'JENIS KELAMIN', 'ATASAN LANGSUNG ( PIC, GL )', 'TMT'],
+            [1, 'BUDI MODIFIED', 83064072, 'cgk', 'MEKANIK CBM', 'BAT', 'L', 'ANDI', 45000],
+            [2, 'NEW EMP', 'TL999999', 'DMK', 'DRIVER', 'AAS', 'P', 'BUDI', null],
+        ]);
+
+        $importer = new HrExcelImporter;
+        $stats = $importer->importEmployees($path, false, true);
+
+        $this->assertSame(1, $stats['skipped']);
+        $this->assertSame(1, $stats['created']);
+
+        $budi = Employee::where('nik', '83064072')->first();
+        $this->assertSame('BUDI ORIGINAL', $budi->name, 'Existing employee was preserved');
+        $this->assertSame('SENIOR MEKANIK', $budi->job_title, 'Existing title preserved');
+
+        $newEmp = Employee::where('nik', 'TL999999')->first();
+        $this->assertNotNull($newEmp);
+        $this->assertSame('NEW EMP', $newEmp->name);
+    }
 }

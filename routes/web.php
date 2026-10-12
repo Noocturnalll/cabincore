@@ -16,7 +16,6 @@ use App\Livewire\Master\Divisions;
 use App\Livewire\Master\Entries;
 use App\Livewire\Master\Positions;
 use App\Livewire\Master\RonConfig;
-use App\Livewire\Modules\AircraftCleaning\DailyBeautification;
 use App\Livewire\Modules\AircraftCleaning\DailyReport;
 use App\Livewire\Modules\AircraftCleaning\Exterior;
 use App\Livewire\Modules\AircraftCleaning\General;
@@ -52,8 +51,8 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/profile', Index::class)->name('profile.index');
 
     // Master Data
-    Route::get('/master/airports', Airports::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('master.airports');
-    Route::get('/master/aircraft', Aircraft::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('master.aircraft');
+    Route::get('/master/airports', Airports::class)->middleware('role:'.RoleHelper::SUPER_ADMIN.'|'.RoleHelper::DEPUTY)->name('master.airports');
+    Route::get('/master/aircraft', Aircraft::class)->middleware('role:'.RoleHelper::SUPER_ADMIN.'|'.RoleHelper::DEPUTY)->name('master.aircraft');
     Route::get('/master/categories', Categories::class)->middleware('role:'.RoleHelper::SUPER_ADMIN)->name('master.categories');
 
     Route::middleware(['role:'.RoleHelper::SUPER_ADMIN])->group(function () {
@@ -70,7 +69,7 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/tools/equipment', Equipment::class)->middleware('role:Super Admin|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing')->name('tools.equipment');
     Route::get('/hr/employees', Employees::class)->middleware('permission:hr.view')->name('hr.employees');
     Route::get('/registry/{module}', App\Livewire\Modules\Registry\Index::class)->name('registry.index');
-    Route::get('/modules/aircraft-cleaning/dbi', DailyBeautification::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.dbi');
+    Route::redirect('/modules/aircraft-cleaning/dbi', '/modules/dbi');
     Route::get('/modules/aircraft-cleaning/gci', GeneralInterior::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.gci');
     Route::get('/modules/aircraft-cleaning/gce', GeneralExterior::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.gce');
     Route::get('/modules/aircraft-cleaning/lgt', LongGroundTime::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.lgt');
@@ -97,6 +96,8 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/modules/nsrdi-no-spare', App\Livewire\Modules\NsrdiNoSpare\Index::class)->middleware('permission:menu.nsrdi')->name('modules.nsrdi-no-spare');
     Route::get('/modules/dmi', App\Livewire\Modules\DmiLog\Index::class)->middleware('permission:menu.production')->name('modules.dmi');
     Route::get('/modules/wo', App\Livewire\Modules\WoLog\Index::class)->middleware('permission:menu.production')->name('modules.wo');
+    Route::get('/modules/stretcher', App\Livewire\Modules\Stretcher\Index::class)->middleware('permission:menu.production')->name('modules.stretcher.index');
+    Route::get('/modules/dbi', App\Livewire\Modules\DailyBeautification\Index::class)->middleware('permission:menu.production')->name('modules.dbi');
     Route::get('/modules/capacity', App\Livewire\Modules\Capacity\Index::class)->middleware('permission:menu.capacity')->name('modules.capacity');
     Route::get('/modules/ict/pi', App\Livewire\Modules\IctFinding\Index::class)->middleware('permission:menu.ict')->name('modules.ict-pi');
     Route::get('/modules/ict/tbd', App\Livewire\Modules\IctFindingTbd\Index::class)->middleware('permission:menu.ict')->name('modules.ict-tbd');

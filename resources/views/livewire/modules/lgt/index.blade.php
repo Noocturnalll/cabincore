@@ -48,6 +48,9 @@
                 <option value="">Semua status</option>
                 @foreach($statuses as $s)<option value="{{ $s }}">{{ $s }}</option>@endforeach
             </select>
+            <button type="button" wire:click="exportExcel" class="kd-act-btn" style="background:#107c41;color:#fff;border-color:#107c41;padding:.4rem .8rem;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;" title="Unduh data LGT dengan rekapitulasi sheet Pivot Excel">
+                <span>📊</span> Ekspor Excel (Pivot)
+            </button>
         </div>
     </div>
 

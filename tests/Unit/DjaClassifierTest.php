@@ -102,6 +102,31 @@ class DjaClassifierTest extends TestCase
         $this->assertSame('reject', $classifier->classify('wo', null, 'HT', 'DETAILED VISUAL INSPECTION OF CREW OXYGEN MASK AND STOWAGE BOX')['action']);
     }
 
+    public function test_ata_only_cockpit_or_exterior_chapters_are_not_auto_accepted(): void
+    {
+        $classifier = new DjaClassifier(config('dja'));
+
+        // 33 / 52 / 56 / 23 cover cockpit and exterior work, so ATA alone no longer accepts
+        $this->assertNotSame('accept', $classifier->classify('wo', '33', null, 'REPLACE LANDING LIGHT BULB')['action']);
+        $this->assertNotSame('accept', $classifier->classify('wo', '52', null, 'INSPECT ENTRY DOOR SEAL')['action']);
+        $this->assertNotSame('accept', $classifier->classify('wo', '23', null, 'CHECK VHF RADIO')['action']);
+        // cabin by nature chapters still accept
+        $this->assertSame('accept', $classifier->classify('wo', '25', null, 'CHECK SOMETHING ELSE')['action']);
+        $this->assertSame('accept', $classifier->classify('wo', '38', null, 'CHECK SOMETHING ELSE')['action']);
+        // cabin keyword still accepts under a broad chapter
+        $this->assertSame('accept', $classifier->classify('wo', '33', null, 'REPLACE LIFE VEST')['action']);
+    }
+
+    public function test_structural_and_crew_items_that_used_to_leak_are_rejected(): void
+    {
+        $classifier = new DjaClassifier(config('dja'));
+
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'PINNACLE INSPECTION OF SEAT BEAMS GENERIC ALL AIRCRAFT TYPES')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'OHC OXYGEN REGULATOR MASK ASSY')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'HYD BOTTLE FIRE EXTINGUISHER PN 34100005')['action']);
+        $this->assertSame('reject', $classifier->classify('wo', null, null, 'SB 063-25-11 REPLACEMENT OF COCKPIT SEAT BELT BUCKLE')['action']);
+    }
+
     public function test_cockpit_emergency_equipment_accepted(): void
     {
         $classifier = new DjaClassifier(config('dja'));

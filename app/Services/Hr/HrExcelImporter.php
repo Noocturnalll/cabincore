@@ -27,13 +27,13 @@ class HrExcelImporter
     /** @var array<string, int|null> division name => id */
     private array $divisionIds = [];
 
-    /** @return array{read: int, created: int, updated: int, no_division: array<string, int>} */
-    public function importEmployees(string $path, bool $dryRun = false): array
+    /** @return array{read: int, created: int, updated: int, skipped: int, no_division: array<string, int>} */
+    public function importEmployees(string $path, bool $dryRun = false, bool $preserveExisting = false): array
     {
         $ws = $this->sheet($path, ['DATABASE', 'DATABASE ']);
         $rows = $this->table($ws, ['NO ID', 'NAMA']);
 
-        $stats = ['read' => 0, 'created' => 0, 'updated' => 0, 'no_division' => []];
+        $stats = ['read' => 0, 'created' => 0, 'updated' => 0, 'skipped' => 0, 'no_division' => []];
         foreach ($rows as $r) {
             $id = $this->id($r['no_id'] ?? null);
             $name = trim((string) ($r['nama'] ?? ''));
@@ -50,6 +50,13 @@ class HrExcelImporter
 
             $employee = Employee::withTrashed()->firstOrNew(['nik' => $id]);
             $isNew = ! $employee->exists;
+
+            if (! $isNew && $preserveExisting) {
+                $stats['skipped']++;
+
+                continue;
+            }
+
             $employee->fill([
                 'name' => $name,
                 'station' => strtoupper(trim((string) ($r['station'] ?? ''))) ?: null,

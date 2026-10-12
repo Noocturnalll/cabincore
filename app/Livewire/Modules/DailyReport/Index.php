@@ -5,6 +5,7 @@ namespace App\Livewire\Modules\DailyReport;
 use App\Exports\DailyReportExport;
 use App\Imports\DailyReportImport;
 use App\Livewire\Traits\WithLogTable;
+use App\Models\AircraftCleaning;
 use App\Models\Airport;
 use App\Models\CmlLog;
 use App\Models\DmiLog;
@@ -46,6 +47,12 @@ class Index extends Component
 
     public $telegramChatId = '';
 
+    public $feedbackDate = '';
+
+    public $feedbackFilter = 'all';
+
+    public $feedbackSearch = '';
+
     public function mount()
     {
         $this->telegramChatId = (string) config('services.telegram.chat_id', '');
@@ -72,6 +79,33 @@ class Index extends Component
     public function updatedCodReportDate(): void
     {
         $this->generateCodReport($this->codReportDate);
+    }
+
+    public function setFeedbackDate(string $preset): void
+    {
+        if ($preset === 'yesterday') {
+            $this->feedbackDate = now()->subDay()->format('Y-m-d');
+        } elseif ($preset === 'today') {
+            $this->feedbackDate = now()->format('Y-m-d');
+        }
+    }
+
+    public function updatedFeedbackFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFeedbackSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function refreshRealtime(): void
+    {
+        $this->dispatch('notify', [
+            'icon' => 'success',
+            'message' => 'Data Daily Report & Feedback Station berhasil ditarik secara real-time!',
+        ]);
     }
 
     public function generateCodReport(?string $targetDate = null)
@@ -496,6 +530,82 @@ class Index extends Component
                 }
 
                 $logs = $summaryData;
+                break;
+            case 'station-feedback':
+                $targetDate = $this->feedbackDate ?: ($this->dateFilter ?: (now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDay()->format('Y-m-d')));
+                $airports = Airport::where('status', 'Aktif')->orderBy('kode')->get();
+
+                $feedbackRows = [];
+                $submittedCount = 0;
+                $missingCount = 0;
+
+                foreach ($airports as $airport) {
+                    $sta = strtoupper($airport->kode);
+
+                    $woCount = WoLog::where('is_submitted', true)
+                        ->where(fn ($q) => $q->where('act_station', $sta)->orWhere('plan_station', $sta))
+                        ->where(fn ($q) => $q->whereHas('dailyJobAssignment', fn ($d) => $d->whereDate('date', $targetDate))->orWhereDate('date', $targetDate))
+                        ->count();
+
+                    $dmiCount = DmiLog::where('is_submitted', true)
+                        ->where(fn ($q) => $q->where('act_station', $sta)->orWhere('plan_station', $sta))
+                        ->where(fn ($q) => $q->whereHas('dailyJobAssignment', fn ($d) => $d->whereDate('date', $targetDate))->orWhereDate('date', $targetDate))
+                        ->count();
+
+                    $nsrdiCount = NsrdiLog::where('is_submitted', true)
+                        ->where(fn ($q) => $q->where('act_station', $sta)->orWhere('plan_station', $sta))
+                        ->where(fn ($q) => $q->whereHas('dailyJobAssignment', fn ($d) => $d->whereDate('date', $targetDate))->orWhereDate('plan_date', $targetDate)->orWhereDate('report_date', $targetDate))
+                        ->count();
+
+                    $cmlCount = CmlLog::where('station', $sta)->whereDate('date', $targetDate)->count();
+                    $acCount = AircraftCleaning::where('station', $sta)->whereDate('date', $targetDate)->count();
+
+                    $totalItems = $woCount + $dmiCount + $nsrdiCount + $cmlCount + $acCount;
+                    $isSubmitted = $totalItems > 0;
+
+                    if ($isSubmitted) {
+                        $submittedCount++;
+                    } else {
+                        $missingCount++;
+                    }
+
+                    $statusKey = $isSubmitted ? 'submitted' : 'missing';
+                    if ($this->feedbackFilter !== 'all' && $this->feedbackFilter !== $statusKey) {
+                        continue;
+                    }
+
+                    if ($this->feedbackSearch !== '') {
+                        $term = strtolower(trim($this->feedbackSearch));
+                        if (! str_contains(strtolower($sta), $term) && ! str_contains(strtolower($airport->nama ?? ''), $term)) {
+                            continue;
+                        }
+                    }
+
+                    $feedbackRows[] = [
+                        'code' => $sta,
+                        'name' => $airport->nama ?? $sta,
+                        'is_submitted' => $isSubmitted,
+                        'status_label' => $isSubmitted ? '✓ Terecord' : '✗ Belum Terecord',
+                        'wo' => $woCount,
+                        'dmi' => $dmiCount,
+                        'nsrdi' => $nsrdiCount,
+                        'cml' => $cmlCount,
+                        'ac' => $acCount,
+                        'total' => $totalItems,
+                    ];
+                }
+
+                $totalStations = count($airports);
+                $percentage = $totalStations > 0 ? round(($submittedCount / $totalStations) * 100, 1) : 0;
+
+                $logs = [
+                    'target_date' => $targetDate,
+                    'total_stations' => $totalStations,
+                    'submitted_count' => $submittedCount,
+                    'missing_count' => $missingCount,
+                    'percentage' => $percentage,
+                    'rows' => $feedbackRows,
+                ];
                 break;
         }
 

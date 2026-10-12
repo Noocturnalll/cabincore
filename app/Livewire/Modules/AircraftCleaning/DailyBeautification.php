@@ -2,20 +2,6 @@
 
 namespace App\Livewire\Modules\AircraftCleaning;
 
-class DailyBeautification extends CleaningLog
-{
-    protected function type(): string
-    {
-        return 'DBI';
-    }
+use App\Livewire\Modules\DailyBeautification\Index as DbiIndex;
 
-    protected function title(): string
-    {
-        return 'Daily Beautification (DBI)';
-    }
-
-    protected function subtitle(): string
-    {
-        return 'Log dan laporan Daily Beautification Interior pesawat';
-    }
-}
+class DailyBeautification extends DbiIndex {}

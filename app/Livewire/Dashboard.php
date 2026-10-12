@@ -50,6 +50,28 @@ class Dashboard extends Component
         return in_array($this->period, $this->scope()->periods, true) ? $this->period : 'daily';
     }
 
+    public function mount(): void
+    {
+        $hour = now()->hour;
+        if ($hour >= 7 && $hour <= 9) {
+            $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
+            $missingCount = DB::table('wo_logs')
+                ->where('is_submitted', false)
+                ->where('status', '!=', 'Closed')
+                ->whereDate('date', '<=', $activeDate)
+                ->where(fn ($q) => $q->whereNull('hold_reason_category')->orWhere('hold_reason_category', ''))
+                ->count();
+
+            if ($missingCount > 0) {
+                $this->dispatch('swal:modal', [
+                    'title' => 'Pengingat Pukul 07:00 - 09:00',
+                    'text' => "Terdapat {$missingCount} log DJA berstatus Open yang belum dilengkapi alasan (reason). Harap segera dilengkapi sebelum batas waktu.",
+                    'icon' => 'warning',
+                ]);
+            }
+        }
+    }
+
     private function has(string $module): bool
     {
         return in_array($module, $this->scope()->modules, true);
@@ -650,6 +672,100 @@ class Dashboard extends Component
             }
         }
 
+        // ─── 13. DBI Count (Daily Beautification) ──────────────────────────
+        $dbi_count = $this->applyStationFilter(DB::table('aircraft_cleanings'), 'aircraft_cleanings')
+            ->whereBetween('date', [$from, $to])
+            ->where('type', 'DBI')
+            ->count();
+
+        // ─── 14. DJA Open with Reason Breakdown & Stations ──────────────────
+        $openWos = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')
+            ->whereNotNull('dja_id')
+            ->where('status', 'Open')
+            ->whereBetween('date', [$from, $to])
+            ->select('wo_number as doc_no', 'act_station', 'plan_station', 'hold_reason_category', 'code_open', 'hold_remarks', 'reason_open')
+            ->get()
+            ->map(function ($r) {
+                $sta = strtoupper(trim($r->act_station ?: $r->plan_station ?: 'UNKNOWN'));
+                $reason = trim($r->hold_reason_category ?: $r->code_open ?: $r->hold_remarks ?: $r->reason_open ?: 'Tanpa Reason');
+
+                return ['type' => 'WO', 'doc' => $r->doc_no, 'station' => $sta, 'reason' => $reason];
+            });
+
+        $openDmis = $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')
+            ->whereNotNull('dja_id')
+            ->where('status', 'Open')
+            ->whereBetween('date', [$from, $to])
+            ->select('dmi_number as doc_no', 'act_station', 'plan_station', 'hold_reason_category', 'hold_remarks', 'remarks')
+            ->get()
+            ->map(function ($r) {
+                $sta = strtoupper(trim($r->act_station ?: $r->plan_station ?: 'UNKNOWN'));
+                $reason = trim($r->hold_reason_category ?: $r->hold_remarks ?: $r->remarks ?: 'Tanpa Reason');
+
+                return ['type' => 'DMI', 'doc' => $r->doc_no, 'station' => $sta, 'reason' => $reason];
+            });
+
+        $openNsrdis = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
+            ->whereNotNull('dja_id')
+            ->where('status', 'Open')
+            ->whereBetween('plan_date', [$from, $to])
+            ->select('nsrdi_number as doc_no', 'act_station', 'plan_station', 'hold_reason_category', 'code_open', 'hold_remarks', 'reason_open')
+            ->get()
+            ->map(function ($r) {
+                $sta = strtoupper(trim($r->act_station ?: $r->plan_station ?: 'UNKNOWN'));
+                $reason = trim($r->hold_reason_category ?: $r->code_open ?: $r->hold_remarks ?: $r->reason_open ?: 'Tanpa Reason');
+
+                return ['type' => 'NSRDI', 'doc' => $r->doc_no, 'station' => $sta, 'reason' => $reason];
+            });
+
+        $allDjaOpen = $openWos->concat($openDmis)->concat($openNsrdis);
+        $stationsDjaOpen = $allDjaOpen->pluck('station')->unique()->filter()->values()->all();
+        $djaOpenReasons = $allDjaOpen->groupBy('reason')->map(fn ($group, $reason) => [
+            'reason' => $reason,
+            'count' => $group->count(),
+            'stations' => $group->pluck('station')->unique()->values()->all(),
+        ])->sortByDesc('count')->take(6)->values()->all();
+
+        // ─── 15. Top Defect / Problem (Pareto) ──────────────────────────────
+        $topDefects = $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')
+            ->whereBetween('plan_date', [$from, $to])
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->select('category', DB::raw('COUNT(*) as total'))
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->take(5)
+            ->get()
+            ->map(fn ($r) => ['category' => $r->category, 'count' => (int) $r->total])
+            ->all();
+
+        if (empty($topDefects)) {
+            $topDefects = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')
+                ->whereBetween('date', [$from, $to])
+                ->whereNotNull('doc_type')
+                ->select('doc_type as category', DB::raw('COUNT(*) as total'))
+                ->groupBy('doc_type')
+                ->orderByDesc('total')
+                ->take(5)
+                ->get()
+                ->map(fn ($r) => ['category' => $r->category, 'count' => (int) $r->total])
+                ->all();
+        }
+
+        // ─── 16. Capacity & RON Summary ─────────────────────────────────────
+        $ronCount = DB::table('ac_rons')->whereDate('ron_date', $targetDate)->count();
+        if ($ronCount === 0) {
+            $latestRonDate = DB::table('ac_rons')->max('ron_date');
+            $ronCount = $latestRonDate ? DB::table('ac_rons')->whereDate('ron_date', $latestRonDate)->count() : 0;
+        }
+        $standbyCount = DB::table('ac_standbies')->count();
+        $capacitySummary = [
+            'ron_count' => $ronCount,
+            'standby_count' => $standbyCount,
+            'man_hours' => $man_hours,
+            'man_power' => $man_power,
+        ];
+
         return [
             'target_date' => $targetDate,
             'range' => [$from, $to],
@@ -749,6 +865,11 @@ class Dashboard extends Component
             'man_power' => $man_power,
             'man_hours' => $man_hours,
             'recurring_ns' => $recurringNs,
+            'dbi_count' => $dbi_count,
+            'dja_open_reasons' => $djaOpenReasons,
+            'stations_dja_open' => $stationsDjaOpen,
+            'top_defects' => $topDefects,
+            'capacity_summary' => $capacitySummary,
         ];
     }
 

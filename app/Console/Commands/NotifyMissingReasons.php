@@ -8,6 +8,8 @@ use App\Models\NsrdiLog;
 use App\Models\User;
 use App\Models\WoLog;
 use App\Notifications\SystemNotification;
+use App\Services\TelegramService;
+use App\Services\WhatsAppService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -76,6 +78,38 @@ class NotifyMissingReasons extends Command
                     'title' => 'Alasan Open belum lengkap: '.$station,
                     'message' => $message,
                 ]));
+            }
+        }
+
+        // Broadcast to WhatsApp and Telegram group during operational window
+        if ($missing->isNotEmpty()) {
+            $summaryLines = $missing->groupBy('station')->map(function ($items, $st) {
+                $counts = $items->groupBy('type')->map->count()->map(fn ($n, $type) => "{$n} {$type}")->implode(', ');
+
+                return "• Station {$st}: {$counts}";
+            })->implode("\n");
+
+            $groupMessage = "⚠️ *PENGINGAT DJA OPEN TANPA REASON (07:00 - 09:00)*\n"
+                ."Terdapat log pekerjaan Open yang belum dilengkapi kode reason / remarks:\n\n"
+                .$summaryLines."\n\n"
+                .'Mohon tim station/COD terkait segera melengkapi data sebelum batas waktu operasional.';
+
+            try {
+                $waGroup = config('services.whatsapp.report_group');
+                if ($waGroup) {
+                    app(WhatsAppService::class)->sendMessage($waGroup, $groupMessage);
+                }
+            } catch (\Throwable $e) {
+                // Ignore failure if service unconfigured
+            }
+
+            try {
+                $tgChat = config('services.telegram.chat_id');
+                if ($tgChat) {
+                    app(TelegramService::class)->sendMessage($tgChat, $groupMessage);
+                }
+            } catch (\Throwable $e) {
+                // Ignore failure if service unconfigured
             }
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Modules\AircraftCleaning;
 
+use App\Exports\AircraftCleaningExport;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\AircraftCleaning;
 use App\Models\Airport;
@@ -11,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Shared CRUD for the General / Interior (DCI) / Exterior (DCE) cleaning logs.
@@ -76,6 +78,11 @@ abstract class CleaningLog extends Component
     protected function accent(): string
     {
         return 'green';
+    }
+
+    protected function section(): string
+    {
+        return 'Aircraft Cleaning';
     }
 
     /** Stations the current user may see/edit; null = all stations. */
@@ -249,6 +256,14 @@ abstract class CleaningLog extends Component
         $this->resetValidation();
     }
 
+    public function exportExcel()
+    {
+        return Excel::download(
+            new AircraftCleaningExport($this->search, $this->dateFilter, $this->type()),
+            $this->type().'-Cleaning-Export-'.date('Y-m-d').'.xlsx'
+        );
+    }
+
     public function render()
     {
         $base = $this->scopedQuery();
@@ -283,6 +298,7 @@ abstract class CleaningLog extends Component
                 'subtitle' => $this->subtitle(),
                 'teamLabel' => $this->teamLabel(),
                 'accent' => $this->accent(),
+                'section' => $this->section(),
             ],
             'shifts' => self::SHIFTS,
         ])->layout('components.layouts.app', ['title' => $this->title()]);

@@ -17,6 +17,7 @@ class Employee extends Model
     {
         return [
             'join_date' => 'date',
+            'resign_date' => 'date',
             'contract_start' => 'date',
             'contract_end' => 'date',
             'passport_expiry' => 'date',
@@ -46,5 +47,10 @@ class Employee extends Model
     public function passportStatus(): string
     {
         return ExpiryStatus::for($this->passport_expiry, config('hr.passport.yellow'), config('hr.passport.red'));
+    }
+
+    public function isResigned(): bool
+    {
+        return strcasecmp((string) $this->status, 'Resign') === 0 || $this->resign_date !== null;
     }
 }

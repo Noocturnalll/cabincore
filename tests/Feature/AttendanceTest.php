@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Helpers\RoleHelper;
 use App\Livewire\Modules\Attendance\Index;
 use App\Models\AttendanceRecord;
+use App\Models\Employee;
 use App\Models\MasterEntry;
 use App\Models\ShiftCode;
 use App\Models\User;
@@ -201,5 +202,162 @@ class AttendanceTest extends TestCase
         $nobody = User::factory()->create(['is_default_password' => false, 'status' => 'active']);
         $this->actingAs($nobody)->get('/attendance')->assertForbidden();
         $this->actingAs($manager)->get('/attendance')->assertOk();
+    }
+
+    public function test_weekly_period_and_breakdown_are_calculated_correctly(): void
+    {
+        // 1 week from 2026-10-05 to 2026-10-11
+        $from = Carbon::parse('2026-10-05');
+        $to = Carbon::parse('2026-10-11');
+
+        $this->roster('111', 'BUDI', '2026-10-05', 'P40', 'PAGI');
+        $this->roster('111', 'BUDI', '2026-10-06', 'P40', 'PAGI');
+        $this->roster('222', 'SARI', '2026-10-05', 'P40', 'PAGI');
+
+        AttendanceRecord::create(['employee_nik' => '111', 'station' => 'CGK', 'work_date' => '2026-10-05', 'status_code' => 'H', 'status_group' => 'hadir', 'late_minutes' => 0]);
+        AttendanceRecord::create(['employee_nik' => '111', 'station' => 'CGK', 'work_date' => '2026-10-06', 'status_code' => 'S', 'status_group' => 'sakit', 'late_minutes' => 0]);
+        AttendanceRecord::create(['employee_nik' => '222', 'station' => 'CGK', 'work_date' => '2026-10-05', 'status_code' => 'A', 'status_group' => 'alpa', 'late_minutes' => 0]);
+
+        $result = (new AttendanceScorer)->build($from, $to);
+
+        $this->assertNotEmpty($result['weekly_breakdown']);
+        // For a week (<= 7 days), it generates day-by-day entries
+        $this->assertCount(7, $result['weekly_breakdown']);
+        $day1 = collect($result['weekly_breakdown'])->firstWhere('date', '2026-10-05');
+        $this->assertSame(2, $day1['working']);
+        $this->assertSame(1, $day1['present']);
+        $this->assertSame(1, $day1['absent']);
+
+        // For a month, it generates W1..W5 windows
+        $monthResult = (new AttendanceScorer)->build(Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'));
+        $this->assertCount(5, $monthResult['weekly_breakdown']);
+        $w1 = $monthResult['weekly_breakdown'][0];
+        $this->assertSame('W1', $w1['key']);
+        $this->assertGreaterThan(0, $w1['working']);
+    }
+
+    public function test_sakit_cuti_alpa_and_resign_lists_are_populated_with_details(): void
+    {
+        $this->roster('101', 'ALICE', '2026-10-05', 'P40', 'PAGI');
+        $this->roster('102', 'BOB', '2026-10-05', 'P40', 'PAGI');
+        $this->roster('103', 'CHARLIE', '2026-10-05', 'P40', 'PAGI');
+
+        AttendanceRecord::create(['employee_nik' => '101', 'station' => 'CGK', 'work_date' => '2026-10-05', 'status_code' => 'S', 'status_group' => 'sakit', 'notes' => 'Surat Dokter RS']);
+        AttendanceRecord::create(['employee_nik' => '102', 'station' => 'CGK', 'work_date' => '2026-10-05', 'status_code' => 'C', 'status_group' => 'cuti', 'notes' => 'Cuti Tahunan']);
+        AttendanceRecord::create(['employee_nik' => '103', 'station' => 'CGK', 'work_date' => '2026-10-05', 'status_code' => 'A', 'status_group' => 'alpa', 'notes' => 'Tanpa Keterangan']);
+
+        Employee::create([
+            'nik' => '999',
+            'name' => 'ZACK RESIGN',
+            'status' => 'Resign',
+            'station' => 'CGK',
+            'resign_date' => '2026-10-10',
+            'resign_reason' => 'Pindah domisili',
+            'contract_type' => 'PKWTT',
+        ]);
+
+        $result = (new AttendanceScorer)->build(Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'));
+
+        $this->assertTrue($result['sakit_list']->contains('nik', '101'));
+        $this->assertSame('Surat Dokter RS', $result['sakit_list']->firstWhere('nik', '101')['notes'][0]);
+
+        $this->assertTrue($result['cuti_list']->contains('nik', '102'));
+        $this->assertSame('Cuti Tahunan', $result['cuti_list']->firstWhere('nik', '102')['notes'][0]);
+
+        $this->assertTrue($result['alpa_list']->contains('nik', '103'));
+        $this->assertSame('Tanpa Keterangan', $result['alpa_list']->firstWhere('nik', '103')['notes'][0]);
+
+        $this->assertTrue($result['resign_list']->contains('nik', '999'));
+        $this->assertSame('Pindah domisili', $result['resign_list']->firstWhere('nik', '999')['resign_reason']);
+        $this->assertTrue($result['resign_list']->firstWhere('nik', '999')['is_period_resign']);
+    }
+
+    public function test_manual_attendance_recording_modal_saves_records(): void
+    {
+        $manager = User::factory()->create(['is_default_password' => false, 'status' => 'active']);
+        $manager->assignRole(RoleHelper::MANAGER);
+
+        Employee::create([
+            'nik' => '301',
+            'name' => 'DENI',
+            'station' => 'CGK',
+            'status' => 'Aktif',
+            'contract_type' => 'PKWT',
+        ]);
+
+        Livewire::actingAs($manager)->test(Index::class)
+            ->call('openRecordModal', '301', 'sakit')
+            ->set('recordNik', '301')
+            ->set('recordStatus', 'sakit')
+            ->set('recordDateFrom', '2026-10-15')
+            ->set('recordDateTo', '2026-10-16')
+            ->set('recordNotes', 'Flu berat istirahat 2 hari')
+            ->call('saveRecord')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('attendance_records', [
+            'employee_nik' => '301',
+            'work_date' => '2026-10-15',
+            'status_group' => 'sakit',
+            'status_code' => 'S',
+            'notes' => 'Flu berat istirahat 2 hari',
+        ]);
+
+        $this->assertDatabaseHas('attendance_records', [
+            'employee_nik' => '301',
+            'work_date' => '2026-10-16',
+            'status_group' => 'sakit',
+            'status_code' => 'S',
+        ]);
+    }
+
+    public function test_marking_and_reverting_staff_resignation(): void
+    {
+        $manager = User::factory()->create(['is_default_password' => false, 'status' => 'active']);
+        $manager->assignRole(RoleHelper::MANAGER);
+
+        $emp = Employee::create([
+            'nik' => '401',
+            'name' => 'EKO',
+            'station' => 'CGK',
+            'status' => 'Aktif',
+            'contract_type' => 'PKWT',
+        ]);
+
+        Livewire::actingAs($manager)->test(Index::class)
+            ->call('openResignModal', $emp->id)
+            ->set('resignDate', '2026-10-20')
+            ->set('resignReason', 'Mendapat pekerjaan baru')
+            ->set('resignNotes', 'Serah terima tools lengkap')
+            ->call('saveResign')
+            ->assertHasNoErrors();
+
+        $emp->refresh();
+        $this->assertSame('Resign', $emp->status);
+        $this->assertSame('2026-10-20', $emp->resign_date->toDateString());
+        $this->assertSame('Mendapat pekerjaan baru', $emp->resign_reason);
+
+        // Revert back to active
+        Livewire::actingAs($manager)->test(Index::class)
+            ->call('revertResign', $emp->id);
+
+        $emp->refresh();
+        $this->assertSame('Aktif', $emp->status);
+        $this->assertNull($emp->resign_date);
+    }
+
+    public function test_export_csv_streams_file_with_expected_headers(): void
+    {
+        $manager = User::factory()->create(['is_default_password' => false, 'status' => 'active']);
+        $manager->assignRole(RoleHelper::MANAGER);
+
+        $this->roster('111', 'BUDI', '2026-10-05', 'P40', 'PAGI');
+        AttendanceRecord::create(['employee_nik' => '111', 'station' => 'CGK', 'work_date' => '2026-10-05', 'status_code' => 'H', 'status_group' => 'hadir']);
+
+        $response = Livewire::actingAs($manager)->test(Index::class)
+            ->set('date', '2026-10-01')
+            ->call('exportCsv');
+
+        $response->assertFileDownloaded('presensi_overview_20261001_20261031.csv');
     }
 }

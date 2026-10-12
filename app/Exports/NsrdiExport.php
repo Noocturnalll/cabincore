@@ -2,12 +2,17 @@
 
 namespace App\Exports;
 
+use App\Exports\Helpers\PivotBuilder;
+use App\Exports\Sheets\DetailDataSheet;
+use App\Exports\Sheets\PivotRekapSheet;
 use App\Models\NsrdiLog;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class NsrdiExport implements FromCollection, WithHeadings
+class NsrdiExport implements Export, FromCollection, WithHeadings, WithMultipleSheets
 {
     protected $search;
 
@@ -22,15 +27,64 @@ class NsrdiExport implements FromCollection, WithHeadings
         $this->activeTab = $activeTab;
     }
 
+    public function sheets(): array
+    {
+        $data = $this->collection();
+
+        $metadata = [
+            'Total Record' => number_format($data->count()).' NSRDI items',
+            'Filter Tanggal' => $this->dateFilter ?: 'Semua Periode',
+            'Filter Tab' => $this->activeTab ? strtoupper($this->activeTab) : 'SEMUA',
+            'Pencarian' => $this->search ?: 'Semua Data',
+            'Waktu Ekspor' => now()->translatedFormat('d F Y H:i:s'),
+        ];
+
+        // 1. Pivot Matrix: Station x Status
+        $matrixStation = PivotBuilder::buildMatrix(
+            $data,
+            'plan_station',
+            'status',
+            ['Open', 'Closed'],
+            'Station / STA',
+            '1. Matriks Rekapitulasi: Station vs Status NSRDI'
+        );
+
+        // 2. Pivot Matrix: AOC / Airline x Status
+        $matrixAoc = PivotBuilder::buildMatrix(
+            $data,
+            'aoc',
+            'status',
+            ['Open', 'Closed'],
+            'AOC / Maskapai',
+            '2. Matriks Rekapitulasi: AOC Maskapai vs Status'
+        );
+
+        // 3. Breakdown: Alasan Hold / Open Code
+        $breakdownReason = PivotBuilder::buildBreakdown(
+            $data,
+            'code_reason',
+            'Kode Alasan (Hold / Open)',
+            '3. Rekapitulasi Kode Alasan / Kategori Hold (NS, Spare, dll)'
+        );
+
+        $tables = [$matrixStation, $matrixAoc, $breakdownReason];
+
+        return [
+            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI & PIVOT NSRDI LOGS', $metadata, $tables),
+            new DetailDataSheet($data, $this->headings(), 'Data Detail NSRDI'),
+        ];
+    }
+
     public function collection(): Collection
     {
         $query = NsrdiLog::query();
 
         if ($this->search) {
             $query->where(function ($q) {
-                // Adjust search fields as necessary, default to aircraft_registration
                 $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
-                    ->orWhere('status', 'like', '%'.$this->search.'%');
+                    ->orWhere('status', 'like', '%'.$this->search.'%')
+                    ->orWhere('nsrdi_number', 'like', '%'.$this->search.'%')
+                    ->orWhere('description', 'like', '%'.$this->search.'%');
             });
         }
 
@@ -76,12 +130,12 @@ class NsrdiExport implements FromCollection, WithHeadings
                 'defer' => $item->defer,
                 'aoc' => $item->aoc,
                 'type' => $item->type,
-                'plan_station' => $item->plan_station,
+                'plan_station' => $item->plan_station ?: ($item->act_station ?: 'N/A'),
                 'remarks' => $item->remarks,
                 'status' => $item->status,
                 'close_date' => $item->close_date,
                 'act_station' => $item->act_station,
-                'code_reason' => $item->hold_reason_category ?? $item->code_open,
+                'code_reason' => $item->hold_reason_category ?? ($item->code_open ?: 'None'),
                 'reason_open' => $item->hold_remarks ?? $item->reason_open,
             ];
         });

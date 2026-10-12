@@ -143,7 +143,7 @@
         <div>
             <div class="cbm-kpi-label">DJA Close Rate</div>
             <div class="cbm-kpi-value">{{ $djaCloseRate }}<span style="font-size:.875rem;font-weight:600;color:var(--cbm-text-muted);">%</span></div>
-            <div class="cbm-kpi-sub">Planned task selesai</div>
+            <div class="cbm-kpi-sub">Laporan selesai</div>
         </div>
     </div>
     <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(251,146,60,.06) 0%, rgba(245,158,11,.03) 100%);">
@@ -154,6 +154,26 @@
             <div class="cbm-kpi-label">Unplanned Close Rate</div>
             <div class="cbm-kpi-value">{{ $unplannedRate }}<span style="font-size:.875rem;font-weight:600;color:var(--cbm-text-muted);">%</span></div>
             <div class="cbm-kpi-sub">Unplanned task selesai</div>
+        </div>
+    </div>
+    <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(6,182,212,.06) 0%, rgba(14,165,233,.03) 100%);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);box-shadow:0 6px 1rem rgba(6,182,212,.4);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clip-rule="evenodd" /></svg>
+        </div>
+        <div>
+            <div class="cbm-kpi-label">DBI Production</div>
+            <div class="cbm-kpi-value">{{ $stats['dbi_count'] ?? 0 }} <span style="font-size:.875rem;color:var(--cbm-text-muted);">A/C</span></div>
+            <div class="cbm-kpi-sub">Daily Beautification Interior</div>
+        </div>
+    </div>
+    <div class="cbm-kpi-card" style="background: linear-gradient(145deg, rgba(20,184,166,.06) 0%, rgba(59,130,246,.03) 100%);">
+        <div class="cbm-kpi-icon" style="background:linear-gradient(135deg,#14b8a6,#3b82f6);box-shadow:0 6px 1rem rgba(20,184,166,.4);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
+        </div>
+        <div>
+            <div class="cbm-kpi-label">A/C RON & Standby</div>
+            <div class="cbm-kpi-value">{{ $stats['capacity_summary']['ron_count'] ?? 0 }} <span style="font-size:.875rem;color:var(--cbm-text-muted);">RON</span></div>
+            <div class="cbm-kpi-sub">{{ $stats['capacity_summary']['standby_count'] ?? 0 }} pesawat Standby</div>
         </div>
     </div>
 </div>
@@ -248,6 +268,75 @@
             <div class="cbm-kpi-label">Unplanned NSRDI</div>
             <div class="cbm-kpi-value">{{ $unplanned['nsrdi_total'] ?? 0 }}</div>
             <div class="cbm-kpi-sub">Closed: {{ $unplanned['nsrdi_closed'] ?? 0 }} | Open: {{ $unplanned['nsrdi_open'] ?? 0 }}</div>
+        </div>
+    </div>
+</div>
+
+{{-- DJA Open Reasons & Stations Open + Top Defect / Problem --}}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;margin-bottom:1.25rem;">
+    {{-- Card 1: DJA Open Reasons & Stations Open --}}
+    <div class="cbm-table-card" style="padding:1.25rem;border-radius:1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+            <div style="font-size:0.875rem;font-weight:700;color:var(--cbm-text);display:flex;align-items:center;gap:0.5rem;">
+                <span style="display:inline-block;width:0.5rem;height:0.5rem;border-radius:9999px;background:#f59e0b;"></span>
+                DJA Open dengan Reason & Stations Open
+            </div>
+            <span style="font-size:0.75rem;color:var(--cbm-text-muted);font-weight:600;">{{ $djaOpen }} Open</span>
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+            <div style="font-size:0.75rem;font-weight:600;color:var(--cbm-text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.375rem;">Distribusi Alasan Open:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.375rem;">
+                @forelse($stats['dja_open_reasons'] ?? [] as $reason => $count)
+                    <span style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.25rem 0.625rem;border-radius:9999px;background:rgba(245,158,11,0.1);color:#d97706;font-size:0.75rem;font-weight:600;border:1px solid rgba(245,158,11,0.2);">
+                        <span>{{ $reason }}</span>
+                        <span style="background:rgba(245,158,11,0.25);padding:0.05rem 0.375rem;border-radius:9999px;font-size:0.7rem;">{{ $count }}</span>
+                    </span>
+                @empty
+                    <span style="font-size:0.75rem;color:var(--cbm-text-muted);font-style:italic;">Semua DJA telah closed / tidak ada item open</span>
+                @endforelse
+            </div>
+        </div>
+
+        <div>
+            <div style="font-size:0.75rem;font-weight:600;color:var(--cbm-text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.375rem;">Stations dengan DJA Open:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.375rem;">
+                @forelse($stats['stations_dja_open'] ?? [] as $stn => $count)
+                    <span style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.25rem 0.625rem;border-radius:9999px;background:rgba(59,130,246,0.1);color:#2563eb;font-size:0.75rem;font-weight:700;border:1px solid rgba(59,130,246,0.2);">
+                        <span>{{ $stn }}</span>
+                        <span style="background:rgba(59,130,246,0.2);padding:0.05rem 0.375rem;border-radius:9999px;font-size:0.7rem;">{{ $count }} task</span>
+                    </span>
+                @empty
+                    <span style="font-size:0.75rem;color:var(--cbm-text-muted);font-style:italic;">Tidak ada open task di station</span>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    {{-- Card 2: Top Defect / Problem (Pareto) --}}
+    <div class="cbm-table-card" style="padding:1.25rem;border-radius:1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+            <div style="font-size:0.875rem;font-weight:700;color:var(--cbm-text);display:flex;align-items:center;gap:0.5rem;">
+                <span style="display:inline-block;width:0.5rem;height:0.5rem;border-radius:9999px;background:#ec4899;"></span>
+                Top Defect / Problem (Pareto)
+            </div>
+            <span style="font-size:0.75rem;color:var(--cbm-text-muted);font-weight:600;">Top 5 Categories</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:0.625rem;">
+            @forelse($stats['top_defects'] ?? [] as $defect)
+                <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.75rem;font-weight:600;margin-bottom:0.25rem;">
+                        <span style="color:var(--cbm-text);">{{ $defect['category'] }}</span>
+                        <span style="color:var(--cbm-text-muted);">{{ $defect['count'] }} item ({{ $defect['pct'] }}%)</span>
+                    </div>
+                    <div style="height:0.375rem;border-radius:9999px;background:rgba(255,255,255,0.06);overflow:hidden;">
+                        <div style="height:100%;width:{{ $defect['pct'] }}%;border-radius:9999px;background:linear-gradient(90deg,#ec4899,#8b5cf6);"></div>
+                    </div>
+                </div>
+            @empty
+                <div style="font-size:0.75rem;color:var(--cbm-text-muted);font-style:italic;text-align:center;padding:1rem 0;">Belum ada data temuan defect pada periode ini</div>
+            @endforelse
         </div>
     </div>
 </div>

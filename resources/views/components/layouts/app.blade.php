@@ -404,6 +404,16 @@
         position: relative;
         cursor: pointer;
     }
+    button.cbm-nav-item {
+        width: 100%;
+        border: none;
+        background: transparent;
+        text-align: left;
+        font-family: inherit;
+        font-size: .875rem;
+        color: inherit;
+        line-height: inherit;
+    }
     .cbm-nav-item svg {
         width: 1.125rem;
         height: 1.125rem;

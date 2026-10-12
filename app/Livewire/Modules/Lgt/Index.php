@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Modules\Lgt;
 
+use App\Exports\LgtExport;
 use App\Helpers\RoleHelper;
 use App\Models\Aircraft;
 use App\Models\LgtRecord;
@@ -12,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Long Ground Time plan and result. Somebody lists the aircraft that will sit on the ground for a long time and the
@@ -96,6 +98,18 @@ class Index extends Component
     public function today(): void
     {
         $this->date = now()->toDateString();
+    }
+
+    public function exportExcel()
+    {
+        abort_unless(auth()->user()?->can('lgt.view'), 403);
+        $allowed = $this->ownStation() ? [$this->ownStation()] : null;
+        $filename = 'lgt_pivot_'.($this->date ?: date('Y-m-d')).'.xlsx';
+
+        return Excel::download(
+            new LgtExport($this->date, $this->station, $this->statusFilter, $allowed),
+            $filename
+        );
     }
 
     public function create(?int $copyFrom = null): void
@@ -197,7 +211,9 @@ class Index extends Component
             $record = LgtRecord::create($data + ['drafted_by' => $u->id] + (! $isDraft ? ['filled_by' => $u->id, 'filled_at' => now()] : []));
             if ($isDraft) {
                 $minutes = self::groundMinutes($record->sta_time, $record->std_time);
-                app(ImsNotifier::class)->toRole(RoleHelper::PIC_FINISHING, 'LGT baru perlu diisi', "{$record->aircraft_registration} di {$record->station} tgl {$record->work_date->format('d M')}".($minutes !== null ? ' · ground time '.intdiv($minutes, 60).'j '.($minutes % 60).'m' : '').'. Isi pekerjaan CBM / AIEC.', 'warning');
+                $msg = "{$record->aircraft_registration} di {$record->station} tgl {$record->work_date->format('d M')}".($minutes !== null ? ' · ground time '.intdiv($minutes, 60).'j '.($minutes % 60).'m' : '').'. Isi pekerjaan action taken / reason.';
+                app(ImsNotifier::class)->toRole(RoleHelper::PIC_FINISHING, 'LGT baru perlu diisi', $msg, 'warning');
+                app(ImsNotifier::class)->toRole(RoleHelper::PIC_SUPPORTING, 'LGT baru perlu diisi', $msg, 'warning');
             }
         }
 

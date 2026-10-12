@@ -28,9 +28,13 @@
                 </select>
                 <input type="date" wire:model.live="startDate" class="mod-search-input">
                 <input type="date" wire:model.live="endDate" class="mod-search-input">
-                <div style="margin-left: auto;">
+                <div style="margin-left: auto; display: flex; gap: .5rem;">
                     @can('ims.report.export')
-                    <button type="button" class="mod-btn-primary" wire:click="exportMutasi" wire:loading.attr="disabled" wire:target="exportMutasi">
+                    <button type="button" class="mod-btn-primary" style="background:#107c41; border-color:#107c41;" wire:click="exportExcel" wire:loading.attr="disabled" wire:target="exportExcel">
+                        <span wire:loading.remove wire:target="exportExcel">📊 Ekspor Excel (Pivot)</span>
+                        <span wire:loading wire:target="exportExcel"><span class="cbm-spinner"></span> Mengekspor...</span>
+                    </button>
+                    <button type="button" class="mod-btn-secondary" wire:click="exportMutasi" wire:loading.attr="disabled" wire:target="exportMutasi">
                         <span wire:loading.remove wire:target="exportMutasi">Ekspor CSV</span>
                         <span wire:loading wire:target="exportMutasi"><span class="cbm-spinner"></span> Mengekspor...</span>
                     </button>

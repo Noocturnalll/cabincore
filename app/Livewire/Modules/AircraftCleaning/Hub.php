@@ -16,7 +16,6 @@ class Hub extends Component
         'general' => [General::class, 'General'],
         'dci' => [Interior::class, 'DCI'],
         'dce' => [Exterior::class, 'DCE'],
-        'dbi' => [DailyBeautification::class, 'DBI'],
         'gci' => [GeneralInterior::class, 'GCI'],
         'gce' => [GeneralExterior::class, 'GCE'],
         'lgt' => [LongGroundTime::class, 'LGT'],

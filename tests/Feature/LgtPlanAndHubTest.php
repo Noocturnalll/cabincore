@@ -131,15 +131,16 @@ class LgtPlanAndHubTest extends TestCase
 
         Livewire::actingAs($user)->test(Hub::class)->assertSet('type', 'general')
             ->call('setType', 'lgt')->assertSet('type', 'lgt')->assertSee('Long Ground Time (LGT)')
-            ->call('setType', 'dbi')->assertSee('Daily Beautification (DBI)')
+            ->call('setType', 'gci')->assertSee('General Cleaning Interior (GCI)')
             ->call('setType', 'transit')->assertSee('Transit Cleaning')
             ->call('setType', 'nonsense')->assertSet('type', 'general');
 
-        // the old menu had a link per type; the sidebar now has the hub only
+        // the old menu had a link per type; the sidebar now has the hub only, and DBI moved to Cabin Maintenance
         $sidebar = file_get_contents(resource_path('views/components/layouts/partials/sidebar.blade.php'));
         $this->assertStringNotContainsString("route('modules.cleaning.interior') }}\" wire:navigate", $sidebar);
         $this->assertStringNotContainsString('Team Painting', $sidebar);
         $this->assertStringContainsString("route('modules.cleaning.hub')", $sidebar);
+        $this->assertStringContainsString("route('modules.dbi')", $sidebar);
     }
 
     public function test_employees_have_a_tab_per_division_and_show_the_airport_pass(): void

@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithLogTable;
 use App\Models\DailyJobAssignment;
 use App\Models\DjaSyncReview;
 use App\Models\SyncSetting;
+use App\Models\WoLog;
 use App\Notifications\SystemNotification;
 use App\Services\Dja\ClassificationMemory;
 use App\Services\Dja\DjaIngestor;
@@ -26,7 +27,7 @@ class Index extends Component
     use WithFileUploads, WithLogTable, WithPagination;
 
     /** Roles that may overrule the classification rules. */
-    public const REVIEW_ROLES = [RoleHelper::SUPER_ADMIN, RoleHelper::MANAGER, RoleHelper::ADMIN_CGK];
+    public const REVIEW_ROLES = [RoleHelper::SUPER_ADMIN, RoleHelper::MANAGER, RoleHelper::ADMIN_CGK, RoleHelper::COD, RoleHelper::ADMIN_COD];
 
     /** 'data' = daftar DJA, 'review' = baris yang tidak otomatis diterima, 'sync' = import & sinkronisasi */
     public $activeTab = 'data';
@@ -128,6 +129,22 @@ class Index extends Component
     public function mount(): void
     {
         $this->sheetUrl = SyncSetting::for(SyncSetting::Dja)->sheetUrl() ?? '';
+
+        $hour = now()->hour;
+        if ($hour >= 7 && $hour <= 9) {
+            $activeDate = now()->hour >= 18 ? now()->format('Y-m-d') : now()->subDays(1)->format('Y-m-d');
+            $missingCount = WoLog::where('is_submitted', false)->where('status', '!=', 'Closed')
+                ->whereDate('date', '<=', $activeDate)
+                ->where(fn ($q) => $q->whereNull('hold_reason_category')->orWhere('hold_reason_category', ''))
+                ->count();
+            if ($missingCount > 0) {
+                $this->dispatch('swal:modal', [
+                    'title' => 'Pengingat Pukul 07:00 - 09:00',
+                    'text' => "Terdapat {$missingCount} log DJA berstatus Open yang belum dilengkapi alasan (reason). Harap segera dilengkapi sebelum batas waktu.",
+                    'icon' => 'warning',
+                ]);
+            }
+        }
     }
 
     public function syncNow(GoogleSheetsSyncService $syncService)

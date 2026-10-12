@@ -10,10 +10,30 @@
         $fields = $cfg['fields'];
         $cols = $cfg['columns'];
         $colCount = count($cols) + 1 + ($hasDue ? 1 : 0) + ($canManage ? 1 : 0);
-        $fmt = function ($key, $value) use ($fields) {
+        $fmt = function ($key, $value, $record = null) use ($fields) {
             if ($value === null || $value === '') return '-';
-            if (($fields[$key][1] ?? '') === 'date') { try { return \Carbon\Carbon::parse($value)->format('d M Y'); } catch (\Throwable $e) { return $value; } }
-            return $value;
+            if (($fields[$key][1] ?? '') === 'date') {
+                try { return \Carbon\Carbon::parse($value)->format('d M Y'); } catch (\Throwable $e) { return $value; }
+            }
+            if ($key === 'attendance_status') {
+                $tone = match ($value) {
+                    'Hadir' => ['#34d399', 'rgba(52,211,153,.15)'],
+                    'Tidak Hadir' => ['#ef4444', 'rgba(239,68,68,.16)'],
+                    default => ['#60a5fa', 'rgba(96,165,250,.16)'],
+                };
+                return '<span style="display:inline-block;padding:.15rem .55rem;border-radius:999px;font-size:.75rem;font-weight:700;color:'.$tone[0].';background:'.$tone[1].';">'.e($value).'</span>';
+            }
+            if ($key === 'absence_reason') {
+                $tone = match ($value) {
+                    'Sakit' => ['#ef4444', 'rgba(239,68,68,.16)'],
+                    'Others' => ['#f59e0b', 'rgba(245,158,11,.17)'],
+                    default => ['#94a3b8', 'rgba(148,163,184,.13)'],
+                };
+                $notes = $record?->data['absence_notes'] ?? null;
+                $extra = $notes ? '<div style="font-size:.7rem;color:var(--cbm-text-muted);margin-top:.15rem;">'.e($notes).'</div>' : '';
+                return '<span style="display:inline-block;padding:.15rem .55rem;border-radius:999px;font-size:.75rem;font-weight:700;color:'.$tone[0].';background:'.$tone[1].';">'.e($value).'</span>'.$extra;
+            }
+            return e($value);
         };
     @endphp
 
@@ -47,7 +67,24 @@
                     </div>
                 @endif
             </div>
-            <div class="mod-meta"><span class="mod-record-count">{{ number_format($records->total()) }} data</span></div>
+            <div class="mod-meta" style="display:flex;align-items:center;gap:.5rem;">
+                <button type="button" wire:click="exportExcel" wire:loading.attr="disabled" class="mod-btn-outline" style="padding:.4rem .75rem;font-size:.8rem;display:inline-flex;align-items:center;gap:.35rem;" title="Download Excel dengan Pivot & Rekapitulasi">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;color:var(--cbm-green,#10b981);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span wire:loading.remove wire:target="exportExcel">Export (Pivot)</span>
+                    <span wire:loading wire:target="exportExcel">...</span>
+                </button>
+                @if($canManage)
+                    <button type="button" wire:click="openImportModal" class="mod-btn-outline" style="padding:.4rem .75rem;font-size:.8rem;display:inline-flex;align-items:center;gap:.35rem;" title="Import Data Excel / CSV">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;color:var(--cbm-blue,#3b82f6);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>Import</span>
+                    </button>
+                @endif
+                <span class="mod-record-count">{{ number_format($records->total()) }} data</span>
+            </div>
         </div>
 
         <div class="mod-table-wrap">
@@ -66,7 +103,7 @@
                         <tr wire:key="rec-{{ $r->id }}">
                             <td>{{ $r->division?->name ?? '-' }}</td>
                             @foreach($cols as $c)
-                                <td>{{ $fmt($c, $r->data[$c] ?? null) }}</td>
+                                <td>{!! $fmt($c, $r->data[$c] ?? null, $r) !!}</td>
                             @endforeach
                             @if($hasDue)
                                 <td>
@@ -117,6 +154,11 @@
             </div>
             @foreach($fields as $key => $def)
                 @if($def[1] !== 'textarea')
+                    @if($module === 'training' && $key === 'attendance_status')
+                        <div style="grid-column:1/-1;margin-top:.4rem;padding-top:.7rem;border-top:1px solid var(--cbm-divider);font-size:.85rem;font-weight:700;color:var(--cbm-text);display:flex;align-items:center;gap:.4rem;">
+                            <span>📋</span> Status Kehadiran & Alasan Tidak Datang
+                        </div>
+                    @endif
                     <div class="cbm-form-group">
                         <label class="cbm-form-label" for="rg-{{ $key }}">{{ $def[0] }}{{ $def[2] ? ' *' : '' }}</label>
                         @if($def[1] === 'select')
@@ -144,4 +186,31 @@
             @endif
         @endforeach
     </x-master.modal>
+
+    {{-- Import Modal --}}
+    @if($isImportModalOpen)
+        <div style="position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem;">
+            <div class="mod-card" style="width:100%;max-width:32rem;padding:1.5rem;box-shadow:0 20px 25px -5px rgba(0,0,0,.5);border:1px solid var(--cbm-divider);background:var(--cbm-card-bg,#1e293b);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid var(--cbm-divider);padding-bottom:.75rem;">
+                    <div style="font-size:1.1rem;font-weight:700;color:var(--cbm-text);">Import Data {{ $cfg['label'] }}</div>
+                    <button type="button" wire:click="closeImportModal" style="background:none;border:none;color:var(--cbm-text-muted);cursor:pointer;font-size:1.25rem;">✕</button>
+                </div>
+                <div style="font-size:.85rem;color:var(--cbm-text-muted);margin-bottom:1.2rem;line-height:1.4;">
+                    Unggah file Excel (.xlsx, .xls) atau CSV. Baris pertama wajib memuat header kolom yang sesuai dengan modul ini (misal: <em>{{ implode(', ', array_map(fn($f) => $f[0], array_slice($fields, 0, 4))) }}</em>).
+                </div>
+                <div class="cbm-form-group" style="margin-bottom:1.2rem;">
+                    <label class="cbm-form-label">Pilih File Spreadsheet</label>
+                    <input type="file" wire:model="importFile" class="cbm-form-input" accept=".xlsx,.xls,.csv" style="padding:.5rem;">
+                    @error('importFile') <span class="mod-field-error" style="color:#ef4444;font-size:.78rem;margin-top:.25rem;display:block;">{{ $message }}</span> @enderror
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:.5rem;">
+                    <button type="button" wire:click="closeImportModal" class="mod-btn-outline">Batal</button>
+                    <button type="button" wire:click="importExcel" wire:loading.attr="disabled" class="mod-btn-primary" style="display:inline-flex;align-items:center;gap:.35rem;">
+                        <span wire:loading.remove wire:target="importExcel">Mulai Import</span>
+                        <span wire:loading wire:target="importExcel">Memproses...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

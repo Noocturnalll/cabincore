@@ -1,7 +1,7 @@
 @push('styles')
 <style>
 /* ============================================================
-   CABIN CORE LOGIN — Calm, Clean, Colorful
+   CABIN TECHNICIAN LOGIN — Calm, Clean, Colorful
    All selectors scoped under .cl to avoid Tailwind conflicts
 ============================================================ */
 
@@ -266,9 +266,9 @@
         <div class="cl-left" style="background-image: url('{{ asset('images/cabin-bg.jpg') }}');">
             <div class="cl-left-in">
                 <div class="cl-brand">
-                    <div class="cl-brand-logo"><img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Core"></div>
+                    <div class="cl-brand-logo"><img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Technician"></div>
                     <div>
-                        <div class="cl-brand-name">Cabin Core</div>
+                        <div class="cl-brand-name">Cabin Technician</div>
                         <div class="cl-brand-sub">Batam Aero Technic</div>
                     </div>
                 </div>
@@ -286,7 +286,7 @@
                     </div>
                 </div>
 
-                <div class="cl-foot">&copy; {{ date('Y') }} Cabin Core &mdash; All rights reserved.</div>
+                <div class="cl-foot">&copy; {{ date('Y') }} Cabin Technician &mdash; All rights reserved.</div>
             </div>
         </div>
 
@@ -294,8 +294,8 @@
         <div class="cl-right">
 
             <div class="cl-mob">
-                <div class="cl-mob-logo"><img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Core"></div>
-                <div class="cl-mob-name">Cabin Core</div>
+                <div class="cl-mob-logo"><img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Technician"></div>
+                <div class="cl-mob-name">Cabin Technician</div>
                 <div class="cl-mob-sub">Batam Aero Technic</div>
             </div>
 

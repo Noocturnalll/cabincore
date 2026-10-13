@@ -1,4 +1,4 @@
-# ERD — Cabin Core
+# ERD — Cabin Technician
 
 Relasi data utama. Tabel yang lahir dari relasi **many-to-many** ditandai ⇄ dan semuanya ditampilkan di aplikasi
 (kolom "Tampil di" menunjuk halamannya), karena hasilnya dipakai untuk review.

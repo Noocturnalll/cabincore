@@ -6,7 +6,7 @@
                 <img src="{{ asset('images/lion-logo.png') }}" alt="Lion Logo" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
             <div class="cbm-sidebar-brand">
-                <div class="cbm-sidebar-brand-name">Cabin Core</div>
+                <div class="cbm-sidebar-brand-name">Cabin Technician</div>
                 <div class="cbm-sidebar-brand-sub">Batam Aero Technic</div>
             </div>
         </div>

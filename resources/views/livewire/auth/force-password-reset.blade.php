@@ -1,7 +1,7 @@
 @push('styles')
 <style>
 /* ============================================================
-   CABIN CORE — Force Password Reset (Modern Enterprise Theme)
+   CABIN TECHNICIAN — Force Password Reset (Modern Enterprise Theme)
    Scoped under .cl to avoid CSS collisions
 ============================================================ */
 
@@ -351,10 +351,10 @@
             <div class="cl-left-in">
                 <div class="cl-brand">
                     <div class="cl-brand-logo">
-                        <img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Core" onerror="this.style.display='none'">
+                        <img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Technician" onerror="this.style.display='none'">
                     </div>
                     <div>
-                        <div class="cl-brand-name">Cabin Core</div>
+                        <div class="cl-brand-name">Cabin Technician</div>
                         <div class="cl-brand-sub">Batam Aero Technic</div>
                     </div>
                 </div>
@@ -411,7 +411,7 @@
                     </div>
                 </div>
 
-                <div class="cl-foot">&copy; {{ date('Y') }} Cabin Core &mdash; Batam Aero Technic. All rights reserved.</div>
+                <div class="cl-foot">&copy; {{ date('Y') }} Cabin Technician &mdash; Batam Aero Technic. All rights reserved.</div>
             </div>
         </div>
 
@@ -421,9 +421,9 @@
             {{-- Mobile branding --}}
             <div class="cl-mob">
                 <div class="cl-mob-logo">
-                    <img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Core" onerror="this.style.display='none'">
+                    <img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Technician" onerror="this.style.display='none'">
                 </div>
-                <div class="cl-mob-name">Cabin Core</div>
+                <div class="cl-mob-name">Cabin Technician</div>
                 <div class="cl-mob-sub">Pembaruan Password Akun</div>
             </div>
 

@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Cabin Core — Aviation Maintenance Management System">
-    <title>{{ $title ?? 'Cabin Core — Login' }}</title>
+    <meta name="description" content="Cabin Technician — Aviation Maintenance Management System">
+    <title>{{ $title ?? 'Cabin Technician — Login' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/lion-logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

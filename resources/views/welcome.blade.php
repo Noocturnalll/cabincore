@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cabin Core — Cabin Maintenance System</title>
+    <title>Cabin Technician — Cabin Maintenance System</title>
     <meta name="description" content="Platform terpadu untuk monitoring, pelaporan, dan pengelolaan pekerjaan perawatan kabin pesawat secara real-time di seluruh station.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -418,7 +418,7 @@
             <a href="/" class="nav-brand">
                 <div class="nav-logo">C</div>
                 <div>
-                    <div class="nav-title">Cabin Core</div>
+                    <div class="nav-title">Cabin Technician</div>
                     <div class="nav-sub">Batam Aero Technic</div>
                 </div>
             </a>
@@ -586,7 +586,7 @@
 
         <!-- FOOTER -->
         <footer>
-            <p>&copy; {{ date('Y') }} <b>Cabin Core</b> — Batam Aero Technic. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} <b>Cabin Technician</b> — Batam Aero Technic. All rights reserved.</p>
             <p style="font-size: 0.75rem;">Cabin Maintenance System v{{ app()->version() }}</p>
         </footer>
     </div>

@@ -34,7 +34,7 @@ class ForcePasswordReset extends Component
         $user->is_default_password = false;
         $user->save();
 
-        return redirect()->route('dashboard')->with('status', 'Password berhasil diperbarui. Selamat datang di Cabin Core!');
+        return redirect()->route('dashboard')->with('status', 'Password berhasil diperbarui. Selamat datang di Cabin Technician!');
     }
 
     public function logout()
@@ -49,6 +49,6 @@ class ForcePasswordReset extends Component
     public function render()
     {
         return view('livewire.auth.force-password-reset')
-            ->layout('components.layouts.bare', ['title' => 'Cabin Core — Ganti Password Default']);
+            ->layout('components.layouts.bare', ['title' => 'Cabin Technician — Ganti Password Default']);
     }
 }

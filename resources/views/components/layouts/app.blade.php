@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="Cabin Core Dashboard - Batam Aero Technic">
-    <title>{{ $title ?? 'Dashboard' }} — Cabin Core - Batam Aero Technic</title>
+    <meta name="description" content="Cabin Technician Dashboard - Batam Aero Technic">
+    <title>{{ $title ?? 'Dashboard' }} — Cabin Technician - Batam Aero Technic</title>
     <link rel="icon" type="image/png" href="{{ asset('images/lion-logo.png') }}">
 
     <!-- Fonts -->

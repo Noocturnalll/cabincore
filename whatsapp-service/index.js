@@ -13,24 +13,30 @@ const client = new Client({
 });
 
 let isClientReady = false;
+let latestQr = null;
 
 client.on('qr', (qr) => {
     console.log('SCAN THIS QR CODE WITH YOUR WHATSAPP:');
+    latestQr = qr;
     qrcode.generate(qr, { small: true });
 });
 
 client.on('ready', () => {
     console.log('WhatsApp Client is ready!');
     isClientReady = true;
+    latestQr = null;
 });
 
 client.on('auth_failure', msg => {
     console.error('AUTHENTICATION FAILURE', msg);
+    isClientReady = false;
+    latestQr = null;
 });
 
 client.on('disconnected', (reason) => {
     console.log('Client was logged out', reason);
     isClientReady = false;
+    latestQr = null;
 });
 
 client.on('message_create', async msg => {
@@ -58,8 +64,25 @@ client.initialize();
 app.get('/status', (req, res) => {
     return res.status(200).json({
         ready: isClientReady,
-        message: isClientReady ? 'WhatsApp client is connected.' : 'WhatsApp client is connecting or disconnected.'
+        qr: latestQr,
+        message: isClientReady 
+            ? 'WhatsApp client is connected.' 
+            : (latestQr ? 'Silakan scan QR code dengan WhatsApp di ponsel Anda.' : 'WhatsApp client is connecting or disconnected.')
     });
+});
+
+// Restart endpoint to trigger re-pairing
+app.post('/restart', async (req, res) => {
+    try {
+        isClientReady = false;
+        latestQr = null;
+        await client.destroy();
+        client.initialize();
+        return res.status(200).json({ status: 'success', message: 'Client re-initializing...' });
+    } catch (err) {
+        console.error('Failed to restart client:', err);
+        return res.status(500).json({ status: 'error', message: err.message });
+    }
 });
 
 // API Endpoint to get all WhatsApp groups

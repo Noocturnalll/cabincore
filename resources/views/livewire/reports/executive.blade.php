@@ -13,18 +13,34 @@
                 Konsolidasi hasil produksi Cabin Maintenance, Aircraft Painting, dan Aircraft Cleaning (AIEC) berbasis data DJA terverifikasi
             </p>
         </div>
-        <div class="mod-actions">
+        <div class="mod-actions" style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;">
+            {{-- 1-Click WhatsApp Report --}}
+            <button type="button" wire:click="openWaModal" class="mod-btn-primary" style="background:#238636;border-color:#2ea043;display:inline-flex;align-items:center;gap:.4rem;box-shadow:0 3px 10px rgba(35,134,54,.25);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.1rem;height:1.1rem;">
+                    <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.251.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" />
+                </svg>
+                📲 Kirim Laporan WA
+            </button>
+
+            {{-- Official PDF Export --}}
+            <a href="{{ route('reports.executive.pdf', ['from' => $startDate, 'to' => $endDate, 'sta' => $station]) }}" target="_blank" class="mod-btn-outline" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#60a5fa;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+                📄 Export PDF Resmi
+            </a>
+
             <button type="button" onclick="window.print()" class="mod-btn-outline" style="display:inline-flex;align-items:center;gap:.4rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.656l10.5 0z" />
                 </svg>
-                Mode Presentasi / Print
+                Print View
             </button>
-            <a href="{{ route('reports.nsrdi-pivot') }}" wire:navigate class="mod-btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;">
+            <a href="{{ route('reports.nsrdi-pivot') }}" wire:navigate class="mod-btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
                 </svg>
-                Pivot Mingguan NSRDI (Kamis)
+                Pivot NSRDI
             </a>
         </div>
     </div>

@@ -52,6 +52,16 @@ class Executive extends Component
         $this->activePillar = in_array($pillar, ['all', 'cbm', 'painting', 'cleaning'], true) ? $pillar : 'all';
     }
 
+    public function openWaModal(): void
+    {
+        $this->dispatch('open-wa-report-modal',
+            module: 'executive',
+            startDate: $this->startDate,
+            endDate: $this->endDate,
+            station: $this->station
+        );
+    }
+
     public function resetFilters(): void
     {
         $this->station = '';

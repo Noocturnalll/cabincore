@@ -1,6 +1,7 @@
 <?php
 
 use App\Helpers\RoleHelper;
+use App\Http\Controllers\ExecutivePdfReportController;
 use App\Http\Controllers\ImportController;
 use App\Livewire\Aircraft\History;
 use App\Livewire\Auth\ForcePasswordReset;
@@ -130,6 +131,7 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/reports/summary', Summary::class)->middleware('permission:menu.analytics')->name('reports.summary');
     Route::get('/reports/kpi', Kpi::class)->middleware('permission:menu.analytics')->name('reports.kpi');
     Route::get('/reports/executive', Executive::class)->middleware('role:Super Admin|Manager|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing|Admin CGK|COD')->name('reports.executive');
+    Route::get('/reports/executive/pdf', ExecutivePdfReportController::class)->middleware('role:Super Admin|Manager|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing|Admin CGK|COD')->name('reports.executive.pdf');
     Route::get('/aircraft/history', History::class)->middleware('role:Super Admin|Manager|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing')->name('aircraft.history');
 
     // Sistem & Keamanan

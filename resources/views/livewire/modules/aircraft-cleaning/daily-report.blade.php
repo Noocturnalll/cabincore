@@ -6,7 +6,13 @@
             <h1 class="mod-title">AIEC Report &amp; Capacity Hub</h1>
             <p class="mod-subtitle">Monitoring log aktivitas harian, matriks kapabilitas stasiun, dan rekapitulasi pivot 2026</p>
         </div>
-        <div class="mod-actions">
+        <div class="mod-actions" style="display:flex;gap:.5rem;align-items:center;">
+            <button type="button" wire:click="openWaModal" class="mod-btn-primary" style="background:#238636;border-color:#2ea043;display:inline-flex;align-items:center;gap:.4rem;box-shadow:0 3px 10px rgba(35,134,54,.25);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.1rem;height:1.1rem;">
+                    <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.251.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" />
+                </svg>
+                📲 Kirim Laporan WA
+            </button>
             <button type="button" wire:click="$set('isImportModalOpen', true)" class="mod-btn-outline">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />

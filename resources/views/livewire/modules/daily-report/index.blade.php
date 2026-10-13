@@ -60,7 +60,13 @@
                     </span>
                 </span>
             </button>
-            <button wire:click="generateCodReport" class="mod-btn-primary" wire:loading.attr="disabled" wire:target="generateCodReport" style="display:inline-flex;align-items:center;justify-content:center;gap:.4rem;">
+            <button type="button" wire:click="openWaModal" class="mod-btn-primary" style="background:#238636;border-color:#2ea043;display:inline-flex;align-items:center;gap:.4rem;box-shadow:0 3px 10px rgba(35,134,54,.25);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1.1rem;height:1.1rem;">
+                    <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.251.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" />
+                </svg>
+                📲 Kirim Laporan WA
+            </button>
+            <button wire:click="generateCodReport" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="generateCodReport" style="display:inline-flex;align-items:center;justify-content:center;gap:.4rem;">
                 <span wire:loading.remove wire:target="generateCodReport">
                     <span style="display:inline-flex;align-items:center;gap:.4rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:1.2rem;height:1.2rem;"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>

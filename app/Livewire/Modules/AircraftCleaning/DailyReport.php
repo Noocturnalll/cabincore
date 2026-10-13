@@ -69,6 +69,17 @@ class DailyReport extends Component
         $this->resetPage();
     }
 
+    public function openWaModal(): void
+    {
+        $date = $this->dateFilter ?: now()->toDateString();
+        $this->dispatch('open-wa-report-modal',
+            module: 'cleaning',
+            startDate: $date,
+            endDate: $date,
+            station: $this->stationFilter ?: null
+        );
+    }
+
     public function resetFilters(): void
     {
         $this->reset(['cleaningType', 'monthFilter', 'dateFilter', 'stationFilter', 'shiftFilter', 'operatorFilter', 'statusFilter', 'search']);

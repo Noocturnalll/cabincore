@@ -108,6 +108,17 @@ class Index extends Component
         ]);
     }
 
+    public function openWaModal(): void
+    {
+        $date = $this->dateFilter ?: CodReportService::getDefaultOperationalDate();
+        $this->dispatch('open-wa-report-modal',
+            module: 'cbm',
+            startDate: $date,
+            endDate: $date,
+            station: $this->stationFilter ?: null
+        );
+    }
+
     public function generateCodReport(?string $targetDate = null)
     {
         $codService = app(CodReportService::class);

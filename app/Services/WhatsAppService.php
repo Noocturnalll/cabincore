@@ -20,7 +20,7 @@ class WhatsAppService
     /**
      * Check if WhatsApp service is running and ready.
      *
-     * @return array{ready: bool, message: string}
+     * @return array{ready: bool, message: string, qr: ?string}
      */
     public function getStatus(): array
     {
@@ -29,13 +29,33 @@ class WhatsAppService
             if ($response->successful()) {
                 return [
                     'ready' => (bool) $response->json('ready'),
+                    'qr' => $response->json('qr'),
                     'message' => (string) $response->json('message'),
                 ];
             }
 
-            return ['ready' => false, 'message' => 'Layanan WhatsApp tidak merespons (HTTP '.$response->status().')'];
+            return ['ready' => false, 'qr' => null, 'message' => 'Layanan WhatsApp tidak merespons (HTTP '.$response->status().')'];
         } catch (\Exception $e) {
-            return ['ready' => false, 'message' => 'Layanan WhatsApp offline: '.$e->getMessage()];
+            return ['ready' => false, 'qr' => null, 'message' => 'Layanan WhatsApp offline: '.$e->getMessage()];
+        }
+    }
+
+    /**
+     * Request WhatsApp service to restart client for re-pairing.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function restart(): array
+    {
+        try {
+            $response = Http::timeout(6)->post($this->getBaseUrl().'/restart');
+            if ($response->successful()) {
+                return ['success' => true, 'message' => 'Client WhatsApp di-restart, silakan tunggu QR code.'];
+            }
+
+            return ['success' => false, 'message' => 'Gagal restart service (HTTP '.$response->status().')'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Gagal terhubung ke service: '.$e->getMessage()];
         }
     }
 

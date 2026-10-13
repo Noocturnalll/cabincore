@@ -1403,6 +1403,9 @@
     </div>
 </div>
 
+{{-- Global WhatsApp Report Dispatcher & QR Modal --}}
+@livewire('components.whats-app-report-modal')
+
 @livewireScripts
 
 @include('components.layouts.partials.scripts')

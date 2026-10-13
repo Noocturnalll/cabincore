@@ -35,6 +35,20 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function openWaModal(): void
+    {
+        $startDate = $this->filters['start_date'] ?? now()->startOfMonth()->toDateString();
+        $endDate = $this->filters['end_date'] ?? now()->toDateString();
+        $station = $this->filters['station'] ?? null;
+
+        $this->dispatch('open-wa-report-modal',
+            module: 'cml',
+            startDate: $startDate,
+            endDate: $endDate,
+            station: $station
+        );
+    }
+
     public function importCml()
     {
         $this->validate([

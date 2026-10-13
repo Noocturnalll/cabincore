@@ -42,6 +42,17 @@ class DailyReport extends Component
         $this->resetPage();
     }
 
+    public function openWaModal(): void
+    {
+        $date = $this->dateFilter ?: now()->toDateString();
+        $this->dispatch('open-wa-report-modal',
+            module: 'painting',
+            startDate: $date,
+            endDate: $date,
+            station: null
+        );
+    }
+
     public function exportExcel()
     {
         return Excel::download(

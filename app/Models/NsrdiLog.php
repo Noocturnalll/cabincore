@@ -41,6 +41,48 @@ class NsrdiLog extends Model
         'import_source',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (NsrdiLog $log) {
+            $log->category = static::determineCategory(
+                $log->category,
+                $log->description,
+                $log->work_group
+            );
+        });
+    }
+
+    /**
+     * Determines whether an NSRDI record belongs to Aircraft Painting or Cabin Maintenance (CBM).
+     */
+    public static function determineCategory(?string $category, ?string $description = null, ?string $workGroup = null): string
+    {
+        $cat = strtoupper(trim((string) $category));
+
+        if (
+            in_array($cat, ['PAINTING', 'AIRCRAFT PAINTING', 'PAINT', 'PPO', 'PENGECATAN', 'CAT PAINTING'], true) ||
+            str_contains($cat, 'PAINT') ||
+            str_contains($cat, 'PENGECATAN')
+        ) {
+            return 'PAINTING';
+        }
+
+        $text = strtolower(trim(($category ?? '').' '.($description ?? '').' '.($workGroup ?? '')));
+
+        if (
+            str_contains($text, 'paint') ||
+            str_contains($text, 'pengecatan') ||
+            str_contains($text, 'ppo') ||
+            str_contains($text, 'repaint') ||
+            preg_match('/\bcat\s+painting\b/i', $text) ||
+            preg_match('/\baircraft\s+painting\b/i', $text)
+        ) {
+            return 'PAINTING';
+        }
+
+        return 'CBM';
+    }
+
     public function dailyJobAssignment()
     {
         return $this->belongsTo(DailyJobAssignment::class, 'dja_id');

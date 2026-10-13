@@ -80,7 +80,7 @@ class ModuleTilesTest extends TestCase
         $this->assertStringContainsString('Transit 1', $flat['cleaning']['sub']);
         $this->assertSame('100%', $flat['lgt']['value']);
         $this->assertStringContainsString('AIEC 0%', $flat['lgt']['sub']);
-        foreach (['capacity', 'compliance', 'attendance', 'employees', 'assets', 'ims', 'documents', 'sources', 'ict', 'rotation'] as $module) {
+        foreach (['capacity', 'compliance', 'attendance', 'employees', 'training', 'assets', 'ims', 'documents', 'sources', 'ict', 'rotation'] as $module) {
             $this->assertArrayHasKey($module, $flat, "tile for {$module}");
         }
     }
@@ -100,7 +100,7 @@ class ModuleTilesTest extends TestCase
 
         $nobody = User::factory()->create(['is_default_password' => false, 'status' => 'active']);
         $bare = $this->flat((new ModuleTiles)->build($nobody, $period));
-        foreach (['attendance', 'employees', 'assets', 'lgt', 'compliance', 'sources', 'leader'] as $gated) {
+        foreach (['attendance', 'employees', 'training', 'assets', 'lgt', 'compliance', 'sources', 'leader'] as $gated) {
             $this->assertArrayNotHasKey($gated, $bare, "{$gated} needs its permission");
         }
         $this->assertArrayNotHasKey('wo', $bare, 'production tiles need the production menu');

@@ -17,17 +17,40 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
 {
     use Exportable;
 
-    protected $search;
+    protected string $search;
 
-    protected $dateFilter;
+    protected string $dateFilter;
 
-    protected $activeTab;
+    protected string $activeTab;
 
-    public function __construct($search = '', $dateFilter = '', $activeTab = '')
-    {
+    protected string $monthFilter;
+
+    protected string $stationFilter;
+
+    protected string $shiftFilter;
+
+    protected string $operatorFilter;
+
+    protected string $statusFilter;
+
+    public function __construct(
+        string $search = '',
+        string $dateFilter = '',
+        string $activeTab = '',
+        string $monthFilter = '',
+        string $stationFilter = '',
+        string $shiftFilter = '',
+        string $operatorFilter = '',
+        string $statusFilter = ''
+    ) {
         $this->search = $search;
         $this->dateFilter = $dateFilter;
         $this->activeTab = $activeTab;
+        $this->monthFilter = $monthFilter;
+        $this->stationFilter = $stationFilter;
+        $this->shiftFilter = $shiftFilter;
+        $this->operatorFilter = $operatorFilter;
+        $this->statusFilter = $statusFilter;
     }
 
     public function sheets(): array
@@ -36,8 +59,12 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
 
         $metadata = [
             'Total Record' => number_format($data->count()).' cleaning logs',
-            'Filter Tanggal' => $this->dateFilter ?: 'Semua Periode',
-            'Filter Tipe' => $this->activeTab ? strtoupper($this->activeTab) : 'SEMUA TIPE',
+            'Filter Periode Bulan' => $this->monthFilter ?: 'Semua Bulan',
+            'Filter Tanggal' => $this->dateFilter ?: 'Semua Tanggal',
+            'Filter Jenis Cleaning' => $this->activeTab ?: 'Semua Jenis',
+            'Filter Stasiun' => $this->stationFilter ?: 'Semua Stasiun',
+            'Filter Shift' => $this->shiftFilter ?: 'Semua Shift',
+            'Filter Operator' => $this->operatorFilter ?: 'Semua Operator',
             'Pencarian' => $this->search ?: 'Semua Data',
             'Waktu Ekspor' => now()->translatedFormat('d F Y H:i:s'),
         ];
@@ -47,7 +74,7 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
             $data,
             'station',
             'type',
-            ['DCI', 'DCE', 'GENERAL', 'DBI'],
+            ['DCI', 'DCE', 'Transit', 'General', 'DBI', 'LGT'],
             'Station / Bandara',
             '1. Matriks Rekapitulasi: Station vs Jenis Cleaning'
         );
@@ -57,7 +84,7 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
             $data,
             'station',
             'shift',
-            ['Morning', 'Afternoon', 'Night'],
+            ['Pagi', 'Siang', 'Malam'],
             'Station / Bandara',
             '2. Matriks Rekapitulasi: Station vs Shift Kerja'
         );
@@ -80,32 +107,45 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
 
     public function collection(): Collection
     {
-        $query = AircraftCleaning::query()
-            ->select(['aircraft_registration', 'date', 'shift', 'type', 'station', 'operator', 'status', 'remarks']);
+        $query = AircraftCleaning::query();
 
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
-                    ->orWhere('status', 'like', '%'.$this->search.'%')
+                    ->orWhere('aircraft_type', 'like', '%'.$this->search.'%')
                     ->orWhere('station', 'like', '%'.$this->search.'%')
                     ->orWhere('operator', 'like', '%'.$this->search.'%')
+                    ->orWhere('ref_no', 'like', '%'.$this->search.'%')
                     ->orWhere('remarks', 'like', '%'.$this->search.'%');
             });
         }
 
+        if ($this->monthFilter) {
+            $query->where('date', 'like', $this->monthFilter.'%');
+        }
+
         if ($this->dateFilter) {
             $query->whereDate('date', $this->dateFilter);
-        } elseif (! $this->search && ! $this->activeTab) {
-            // If completely unfiltered across 50,000+ records, limit to recent 30 days for optimal performance
-            $query->where('date', '>=', now()->subDays(30)->toDateString());
+        }
+
+        if ($this->stationFilter) {
+            $query->where('station', $this->stationFilter);
+        }
+
+        if ($this->shiftFilter) {
+            $query->where('shift', $this->shiftFilter);
+        }
+
+        if ($this->operatorFilter) {
+            $query->where('operator', $this->operatorFilter);
+        }
+
+        if ($this->statusFilter) {
+            $query->where('status', $this->statusFilter);
         }
 
         if ($this->activeTab) {
             $query->where('type', $this->activeTab);
-
-            if (in_array($this->activeTab, ['DCI', 'DCE'])) {
-                $query->where('status', 'Closed');
-            }
         }
 
         $rowNumber = 0;
@@ -116,11 +156,17 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
             return [
                 'no' => $rowNumber,
                 'registration' => $row->aircraft_registration,
+                'aircraft_type' => $row->aircraft_type ?: '-',
                 'date' => $row->date ? (is_string($row->date) ? $row->date : $row->date->format('Y-m-d')) : null,
-                'shift' => $row->shift ?: 'Morning',
-                'type' => $row->type ?: 'General',
                 'station' => $row->station ?: 'N/A',
+                'shift' => $row->shift ?: 'Pagi',
                 'operator' => $row->operator ?: 'Lion Group',
+                'type' => $row->type ?: 'General',
+                'ac_status' => $row->ac_status ?: '-',
+                'task_type' => $row->task_type ?: '-',
+                'ref_no' => $row->ref_no ?: '-',
+                'man_power' => $row->man_power ?? 0,
+                'man_hour' => $row->man_hour ? round($row->man_hour, 2) : 0,
                 'status' => $row->status ?: 'Open',
                 'remarks' => $row->remarks,
             ];
@@ -132,11 +178,17 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
         return [
             'NO',
             'AIRCRAFT REGISTRATION',
+            'AIRCRAFT TYPE',
             'DATE',
-            'SHIFT',
-            'TYPE',
             'STATION',
+            'SHIFT',
             'OPERATOR',
+            'TYPE',
+            'A/C STATUS',
+            'TASK TYPE',
+            'REF NO',
+            'TOTAL MP',
+            'ACTUAL MHRS',
             'STATUS',
             'REMARKS',
         ];

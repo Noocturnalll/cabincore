@@ -26,6 +26,7 @@ use App\Livewire\Modules\AircraftCleaning\Interior;
 use App\Livewire\Modules\AircraftCleaning\LongGroundTime;
 use App\Livewire\Modules\AircraftCleaning\Sync;
 use App\Livewire\Modules\Hr\Employees;
+use App\Livewire\Modules\Hr\Training;
 use App\Livewire\Profile\Index;
 use App\Livewire\Reports\DocumentAccuracy;
 use App\Livewire\Reports\Executive;
@@ -68,6 +69,8 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/shift/recap', Recap::class)->middleware('role:Super Admin|Admin CGK')->name('shift.recap');
     Route::get('/tools/equipment', Equipment::class)->middleware('role:Super Admin|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing')->name('tools.equipment');
     Route::get('/hr/employees', Employees::class)->middleware('permission:hr.view')->name('hr.employees');
+    Route::get('/hr/training', Training::class)->middleware('permission:hr.view')->name('hr.training');
+    Route::redirect('/registry/training', '/hr/training');
     Route::get('/registry/{module}', App\Livewire\Modules\Registry\Index::class)->name('registry.index');
     Route::redirect('/modules/aircraft-cleaning/dbi', '/modules/dbi');
     Route::get('/modules/aircraft-cleaning/gci', GeneralInterior::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.gci');
@@ -92,6 +95,8 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/modules/leader-report', App\Livewire\Modules\LeaderReport\Index::class)->middleware('permission:leader.import')->name('modules.leader-report');
     Route::get('/modules/cml', App\Livewire\Modules\CmlLog\Index::class)->middleware('permission:menu.production')->name('modules.cml');
     Route::get('/modules/nsrdi', App\Livewire\Modules\NsrdiLog\Index::class)->middleware('permission:menu.production|menu.painting')->name('modules.nsrdi');
+    Route::get('/modules/painting/nsrdi', App\Livewire\Modules\NsrdiLog\Index::class)->middleware('permission:menu.painting|menu.production')->name('modules.painting.nsrdi');
+    Route::get('/modules/painting/daily-report', App\Livewire\Modules\Painting\DailyReport::class)->middleware('permission:menu.painting|menu.production')->name('modules.painting.daily-report');
     Route::get('/modules/nsrdi-overdue', App\Livewire\Modules\NsrdiOverdue\Index::class)->middleware('permission:menu.nsrdi')->name('modules.nsrdi-overdue');
     Route::get('/modules/nsrdi-no-spare', App\Livewire\Modules\NsrdiNoSpare\Index::class)->middleware('permission:menu.nsrdi')->name('modules.nsrdi-no-spare');
     Route::get('/modules/dmi', App\Livewire\Modules\DmiLog\Index::class)->middleware('permission:menu.production')->name('modules.dmi');
@@ -124,7 +129,7 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     // Analitik
     Route::get('/reports/summary', Summary::class)->middleware('permission:menu.analytics')->name('reports.summary');
     Route::get('/reports/kpi', Kpi::class)->middleware('permission:menu.analytics')->name('reports.kpi');
-    Route::get('/reports/executive', Executive::class)->middleware('role:Super Admin|Manager')->name('reports.executive');
+    Route::get('/reports/executive', Executive::class)->middleware('role:Super Admin|Manager|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing|Admin CGK|COD')->name('reports.executive');
     Route::get('/aircraft/history', History::class)->middleware('role:Super Admin|Manager|PIC CBM|PIC Painting|PIC AIEC|PIC Supporting|PIC Finishing')->name('aircraft.history');
 
     // Sistem & Keamanan

@@ -43,7 +43,7 @@ class Kpi extends Component
         $tables = [
             'WO' => ['wo_logs', 'date'],
             'DMI' => ['dmi_logs', 'date'],
-            'NSRDI' => ['nsrdi_logs', 'refresh_date'],
+            'NSRDI' => ['nsrdi_logs', 'plan_date'],
             'CML' => ['cml_logs', 'date'],
             'Aircraft Cleaning' => ['aircraft_cleanings', 'date'],
         ];

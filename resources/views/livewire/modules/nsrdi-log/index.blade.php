@@ -3,8 +3,14 @@
     <div class="mod-header">
         <div class="mod-title-block">
             <div class="mod-title-accent mod-title-accent-purple">Non-Safety Referred Deferral Item</div>
-            <div class="mod-title">NSRDI</div>
-            <div class="mod-subtitle">Item penundaan terkait non-keselamatan pesawat.</div>
+            <div class="mod-title">NSRDI {{ $isPainting ? 'Aircraft Painting' : 'Cabin Maintenance' }}</div>
+            <div class="mod-subtitle">
+                @if($isPainting)
+                    Item penundaan terkait pengecatan & paint peel-off (PPO) pesawat.
+                @else
+                    Item penundaan terkait cabin maintenance pesawat.
+                @endif
+            </div>
         </div>
         <div class="mod-actions">
                         <button wire:click="exportExcel" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="exportExcel">

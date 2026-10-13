@@ -21,16 +21,20 @@ class EmployeeExport implements Export, WithMultipleSheets
 
     protected ?array $allowedDivisionIds;
 
+    protected string $stationFilter;
+
     public function __construct(
         string $search = '',
         string $divisionFilter = '',
         string $expiryFilter = '',
-        ?array $allowedDivisionIds = null
+        ?array $allowedDivisionIds = null,
+        string $stationFilter = ''
     ) {
         $this->search = $search;
         $this->divisionFilter = $divisionFilter;
         $this->expiryFilter = $expiryFilter;
         $this->allowedDivisionIds = $allowedDivisionIds;
+        $this->stationFilter = $stationFilter;
     }
 
     public function sheets(): array
@@ -52,6 +56,10 @@ class EmployeeExport implements Export, WithMultipleSheets
 
         if ($this->divisionFilter !== '') {
             $query->where('division_id', $this->divisionFilter);
+        }
+
+        if ($this->stationFilter !== '') {
+            $query->where('station', $this->stationFilter);
         }
 
         $windows = fn (string $key) => now()->startOfDay()->addMonthsNoOverflow(config("hr.$key.yellow"))->toDateString();
@@ -84,6 +92,9 @@ class EmployeeExport implements Export, WithMultipleSheets
                 'division_name' => $e->division?->name ?: 'Tanpa Divisi',
                 'position_name' => $e->position?->name ?: ($e->job_title ?: '-'),
                 'station' => $e->station ?: '-',
+                'directorate' => $e->directorate ?: '-',
+                'supervisor_name' => $e->supervisor_name ?: '-',
+                'gender' => $e->gender === 'L' ? 'Laki-laki' : ($e->gender === 'P' ? 'Perempuan' : '-'),
                 'phone' => $e->phone ?: '-',
                 'join_date' => $e->join_date ? $e->join_date->format('Y-m-d') : '-',
                 'status' => $e->status ?: 'Aktif',
@@ -136,6 +147,18 @@ class EmployeeExport implements Export, WithMultipleSheets
             ['PAS Bandara Kritis / Habis (Merah)', $pasRed, 'Pass bandara telah habis / kritis'],
         ];
 
+        // 3. Pivot Table: Station vs Status Karyawan
+        $matrixStationStatus = PivotBuilder::matrix(
+            $mapped,
+            'station',
+            'status',
+            null,
+            'count',
+            [],
+            'Station',
+            '3. Rekapitulasi Station vs Status Karyawan'
+        );
+
         $tables = [
             [
                 'title' => '1. Rekapitulasi Divisi vs Status Karyawan',
@@ -149,8 +172,9 @@ class EmployeeExport implements Export, WithMultipleSheets
                 'rows' => $matrixDivContract['rows'],
                 'totalRow' => $matrixDivContract['totalRow'],
             ],
+            $matrixStationStatus,
             [
-                'title' => '3. Ringkasan Status Kedaluwarsa Dokumen Personel',
+                'title' => '4. Ringkasan Status Kedaluwarsa Dokumen Personel',
                 'headers' => ['Indikator Dokumen', 'Jumlah Personel', 'Keterangan'],
                 'rows' => $expirySummaryRows,
             ],
@@ -160,6 +184,7 @@ class EmployeeExport implements Export, WithMultipleSheets
             'Total Karyawan' => (string) $employees->count(),
             'Filter Pencarian' => $this->search ?: 'Semua',
             'Filter Divisi' => $this->divisionFilter ? ($employees->first()?->division?->name ?: $this->divisionFilter) : 'Semua Divisi',
+            'Filter Station' => $this->stationFilter ?: 'Semua Station',
             'Filter Masa Berlaku' => $this->expiryFilter ?: 'Semua Dokumen',
             'Tanggal Ekspor' => now()->translatedFormat('d F Y H:i'),
         ];
@@ -175,8 +200,11 @@ class EmployeeExport implements Export, WithMultipleSheets
             'Divisi',
             'Jabatan / Posisi',
             'Station',
+            'Direktorat',
+            'Atasan Langsung',
+            'Jenis Kelamin',
             'No Telepon',
-            'Tanggal Masuk',
+            'Tanggal Masuk (TMT)',
             'Status Karyawan',
             'Tipe Kontrak',
             'Kontrak Mulai',
@@ -198,6 +226,9 @@ class EmployeeExport implements Export, WithMultipleSheets
                 $r['division_name'],
                 $r['position_name'],
                 $r['station'],
+                $r['directorate'],
+                $r['supervisor_name'],
+                $r['gender'],
                 $r['phone'],
                 $r['join_date'],
                 $r['status'],

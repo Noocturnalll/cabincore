@@ -75,10 +75,23 @@ class RegistryPermissionSeeder extends Seeder
         }
         // attendance: view = own scope, manage = import presensi; assets: assign = lend / take back; sources = Sumber Data page
         $featurePerms = ['attendance.view', 'attendance.manage', 'asset.view', 'asset.manage', 'asset.assign', 'sources.view', 'sources.sync', 'lgt.view', 'lgt.manage', 'lgt.plan'];
+        $sidebarPerms = [
+            'menu.cabin.dja', 'menu.cabin.cml', 'menu.cabin.nsrdi', 'menu.cabin.dmi', 'menu.cabin.wo', 'menu.cabin.stretcher', 'menu.cabin.dbi', 'menu.cabin.daily_report',
+            'menu.nsrdi.overdue', 'menu.nsrdi.no_spare', 'menu.nsrdi.pivot',
+            'menu.painting.nsrdi', 'menu.painting.daily_report',
+            'menu.cleaning.hub', 'menu.cleaning.daily_report', 'menu.cleaning.sync',
+            'menu.tools_equipment', 'menu.ict.pi', 'menu.ict.tbd',
+            'menu.capacity.index', 'menu.capacity.rotation', 'menu.capacity.movement',
+            'menu.operational.verification', 'menu.operational.shift_recap',
+            'reports.summary.view', 'reports.kpi.view', 'reports.document_accuracy.view', 'reports.lgt.view', 'reports.manpower.view', 'reports.executive.view',
+            'master.airports.view', 'master.aircraft.view', 'master.categories.view', 'master.divisions.view', 'master.positions.view', 'master.capacity.view', 'master.system.view',
+            'security.users.view', 'security.roles.view', 'security.audit.view',
+            'documents.view', 'documents.master.view', 'profile.view',
+        ];
         $core = array_merge(HrPermissionSeeder::PERMISSIONS, ['leader.import', 'compliance.view', 'kpi.view'], $masterView, $masterManage, $featurePerms, array_keys(self::MENUS));
 
         $ims = array_values(array_unique(array_merge(self::IMS_REQUESTER, self::IMS_STORE, self::IMS_MANAGER, ['ims.master.manage', 'ims.user.manage', 'ims.audit.view'])));
-        foreach (array_merge($modulePerms, $core, $ims) as $perm) {
+        foreach (array_merge($modulePerms, $core, $ims, $sidebarPerms) as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
         }
 
@@ -86,9 +99,11 @@ class RegistryPermissionSeeder extends Seeder
         $own = array_values(array_diff($modulePerms, ['registry.view_all']));
         $common = array_merge($own, $masterView, ['hr.view', 'hr.manage', 'leader.import', 'compliance.view', 'kpi.view', 'attendance.view', 'asset.view', 'asset.manage', 'asset.assign', 'sources.view', 'lgt.view', 'lgt.manage']);
 
+        $managerSidebarPerms = array_values(array_diff($sidebarPerms, ['security.roles.view', 'security.users.view']));
+
         $grants = [
-            RoleHelper::SUPER_ADMIN => array_merge($modulePerms, $core, $ims),
-            RoleHelper::MANAGER => array_merge($modulePerms, $core, self::IMS_MANAGER),
+            RoleHelper::SUPER_ADMIN => array_merge($modulePerms, $core, $ims, $sidebarPerms),
+            RoleHelper::MANAGER => array_merge($modulePerms, $core, self::IMS_MANAGER, $managerSidebarPerms),
         ];
         foreach (array_merge(RoleHelper::ALL_PIC, [RoleHelper::ADMIN_CGK, ...RoleHelper::COD_DESK]) as $role) {
             $grants[$role] = array_merge($common, self::IMS_REQUESTER);

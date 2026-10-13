@@ -84,7 +84,7 @@ class DjaRowMapper
             'ac_reg' => [self::AC_REG[0], 2],
             'task_id' => [['TASK ID', 'NSRDI', 'NSRDI NO', 'NSRDI NUMBER'], 3],
             'description' => [self::DESCRIPTION[0], 4],
-            'category' => [['CATEGORY', 'TRADE', 'DIVISI'], 5],
+            'category' => [['CATEGORY', 'CAT', 'KATEGORI', 'TRADE', 'DIVISI'], 5],
             'report_date' => [['REPORT DATE'], 6],
             'due_date' => [['DUE DATE'], 7],
             'part_number' => [['PART NUMBER', 'PN'], 8],

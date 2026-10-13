@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithAdvancedFilter;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\CmlLog;
 use App\Notifications\SystemNotification;
+use App\Services\Reports\ProductionExecutiveService;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -21,9 +22,17 @@ class Index extends Component
 
     public $isImportModalOpen = false;
 
+    public string $activeTab = 'logs'; // 'logs' | 'pivot'
+
     public function mount()
     {
         $this->mountWithAdvancedFilter();
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = in_array($tab, ['logs', 'pivot'], true) ? $tab : 'logs';
+        $this->resetPage();
     }
 
     public function importCml()
@@ -47,7 +56,6 @@ class Index extends Component
 
     public function exportExcel()
     {
-        // Export exactly what the filters on screen select
         return Excel::download(
             new CmlExport($this->search, $this->dateStart, '', $this->dateEnd, $this->filterStation),
             'CmlExport-'.date('Y-m-d').'.xlsx'
@@ -57,12 +65,91 @@ class Index extends Component
     public function render()
     {
         $query = CmlLog::query()->with('dailyJobAssignment');
-
         $searchFields = ['aircraft_registration', 'status', 'doc_type', 'no_doc', 'station', 'operator', 'ac_status', 'description'];
         $query = $this->scopeAdvancedFilter($query, $searchFields);
 
+        $pivotData = [];
+        if ($this->activeTab === 'pivot') {
+            $allRows = (clone $query)->get();
+
+            $total = $allRows->count();
+            $closed = $allRows->where('status', 'Closed')->count();
+            $open = $total - $closed;
+            $rate = $total > 0 ? round(($closed / $total) * 100, 1) : 0;
+
+            // 1. Pivot Station vs Operator
+            $operators = $allRows->pluck('operator')->filter()->unique()->sort()->values()->all();
+            if (empty($operators)) {
+                $operators = ['LION AIR', 'BATIK AIR', 'SUPER AIR JET', 'WINGS AIR'];
+            }
+
+            $stationMatrix = [];
+            foreach ($allRows as $r) {
+                $sta = strtoupper(trim($r->station ?: 'N/A'));
+                $op = strtoupper(trim($r->operator ?: 'OTHER'));
+
+                if (! isset($stationMatrix[$sta])) {
+                    $stationMatrix[$sta] = [
+                        'station' => $sta,
+                        'operators' => array_fill_keys($operators, 0),
+                        'total' => 0,
+                        'closed' => 0,
+                        'open' => 0,
+                    ];
+                }
+
+                if (isset($stationMatrix[$sta]['operators'][$op])) {
+                    $stationMatrix[$sta]['operators'][$op]++;
+                }
+                $stationMatrix[$sta]['total']++;
+                if (($r->status ?? '') === 'Closed') {
+                    $stationMatrix[$sta]['closed']++;
+                } else {
+                    $stationMatrix[$sta]['open']++;
+                }
+            }
+            uasort($stationMatrix, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+            // 2. Pivot Defect Category
+            $categoryCounts = [];
+            foreach ($allRows as $r) {
+                $cat = ProductionExecutiveService::categorizeDefect($r->description ?? '');
+                if (! isset($categoryCounts[$cat])) {
+                    $categoryCounts[$cat] = ['total' => 0, 'closed' => 0, 'open' => 0];
+                }
+                $categoryCounts[$cat]['total']++;
+                if (($r->status ?? '') === 'Closed') {
+                    $categoryCounts[$cat]['closed']++;
+                } else {
+                    $categoryCounts[$cat]['open']++;
+                }
+            }
+            uasort($categoryCounts, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+            // 3. Top Aircraft Affected
+            $acCounts = $allRows->groupBy(fn ($r) => strtoupper(trim($r->aircraft_registration ?: 'N/A')))
+                ->map(fn ($grp, $reg) => [
+                    'reg' => $reg,
+                    'total' => $grp->count(),
+                    'closed' => $grp->where('status', 'Closed')->count(),
+                    'open' => $grp->count() - $grp->where('status', 'Closed')->count(),
+                ])->sortByDesc('total')->take(6)->values()->all();
+
+            $pivotData = [
+                'total' => $total,
+                'closed' => $closed,
+                'open' => $open,
+                'rate' => $rate,
+                'operators' => $operators,
+                'stationMatrix' => $stationMatrix,
+                'categories' => $categoryCounts,
+                'topAircraft' => $acCounts,
+            ];
+        }
+
         return view('livewire.modules.cml-log.index', [
             'logs' => $query->paginate($this->perPage),
-        ])->layout('components.layouts.app', ['title' => 'CML Logs']);
+            'pivotData' => $pivotData,
+        ])->layout('components.layouts.app', ['title' => 'CML Logs & Pivot Defect']);
     }
 }

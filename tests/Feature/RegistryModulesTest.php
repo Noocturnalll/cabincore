@@ -48,6 +48,11 @@ class RegistryModulesTest extends TestCase
         foreach ([RoleHelper::MANAGER, RoleHelper::PIC_PAINTING, RoleHelper::PIC_IRREG, RoleHelper::PIC_AIEC, RoleHelper::ADMIN_CGK] as $role) {
             $u = $this->user($role, 'Painting');
             foreach (array_keys(config('registry.modules')) as $key) {
+                if ($key === 'training') {
+                    $this->actingAs($u)->get("/registry/$key")->assertRedirect('/hr/training');
+
+                    continue;
+                }
                 $this->actingAs($u)->get("/registry/$key")->assertOk();
             }
         }

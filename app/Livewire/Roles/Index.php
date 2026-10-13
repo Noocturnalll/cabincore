@@ -31,6 +31,8 @@ class Index extends Component
 
     public string $matrixRoleName = '';
 
+    public string $permissionSearch = '';
+
     /** @var array<string, bool> */
     public array $selectedPermissions = [];
 
@@ -48,7 +50,7 @@ class Index extends Component
 
     private function authorizeSuperAdmin(): void
     {
-        abort_unless(auth()->user()?->hasRole(RoleHelper::SUPER_ADMIN), 403, 'Hanya Super Admin yang dapat mengelola hak akses peran.');
+        abort_unless(auth()->user()?->can('security.roles.view'), 403, 'Hanya pengguna dengan izin pengelolaan peran yang dapat mengelola hak akses peran.');
     }
 
     public function mount(): void
@@ -145,6 +147,7 @@ class Index extends Component
         $role = Role::with('permissions')->findOrFail($roleId);
         $this->matrixRoleId = $role->id;
         $this->matrixRoleName = $role->name;
+        $this->permissionSearch = '';
 
         // Populate array of active permissions with data_set
         $selected = [];
@@ -156,9 +159,18 @@ class Index extends Component
         $this->isMatrixModalOpen = true;
     }
 
+    public function toggleAll(bool $enable): void
+    {
+        foreach ($this->allPermissionGroups() as $group) {
+            foreach (array_keys($group['items']) as $permName) {
+                data_set($this->selectedPermissions, $permName, $enable);
+            }
+        }
+    }
+
     public function toggleCategory(string $categoryKey, bool $enable): void
     {
-        $groups = $this->permissionGroups();
+        $groups = $this->allPermissionGroups();
         if (! isset($groups[$categoryKey])) {
             return;
         }
@@ -183,7 +195,7 @@ class Index extends Component
 
         session()->flash('message', "Hak akses untuk role '{$role->name}' (".count($activePerms).' izin) berhasil diperbarui.');
         $this->isMatrixModalOpen = false;
-        $this->reset(['matrixRoleId', 'matrixRoleName', 'selectedPermissions']);
+        $this->reset(['matrixRoleId', 'matrixRoleName', 'selectedPermissions', 'permissionSearch']);
     }
 
     private function flattenPermissions(array $array, string $prefix = ''): array
@@ -205,36 +217,90 @@ class Index extends Component
     {
         $this->isRoleModalOpen = false;
         $this->isMatrixModalOpen = false;
-        $this->reset(['roleName', 'editingRoleId', 'isEditRoleMode', 'matrixRoleId', 'matrixRoleName', 'selectedPermissions']);
+        $this->reset(['roleName', 'editingRoleId', 'isEditRoleMode', 'matrixRoleId', 'matrixRoleName', 'selectedPermissions', 'permissionSearch']);
         $this->resetValidation();
     }
 
+    public function permissionGroups(): array
+    {
+        $all = $this->allPermissionGroups();
+        $query = trim(strtolower($this->permissionSearch));
+
+        if ($query === '') {
+            return $all;
+        }
+
+        $filtered = [];
+        foreach ($all as $key => $group) {
+            $matchingItems = array_filter(
+                $group['items'],
+                fn ($label, $permKey) => str_contains(strtolower($label), $query) || str_contains(strtolower($permKey), $query),
+                ARRAY_FILTER_USE_BOTH
+            );
+
+            if (! empty($matchingItems)) {
+                $group['items'] = $matchingItems;
+                $filtered[$key] = $group;
+            }
+        }
+
+        return $filtered;
+    }
+
     /**
-     * Group permissions with human-readable titles and descriptions.
+     * Complete permission groups organized by Department / Division.
      *
      * @return array<string, array{title: string, desc: string, items: array<string, string>}>
      */
-    public function permissionGroups(): array
+    public function allPermissionGroups(): array
     {
         return [
-            'menus' => [
-                'title' => 'Menu Utama & Sidebar',
-                'desc' => 'Menentukan blok navigasi mana saja yang tampil di sidebar pengguna.',
+            'cabin' => [
+                'title' => 'Divisi Cabin Maintenance (CBM)',
+                'desc' => 'DJA, log teknis kabin, tracking stretcher, daily report, dan pengawasan NSRDI.',
                 'items' => [
-                    'menu.production' => 'Cabin Maintenance (DJA, WO, DMI, CML, Daily Report)',
-                    'menu.painting' => 'Aircraft Painting (NSRDI Logs)',
-                    'menu.cleaning' => 'Aircraft Cleaning (Pembersihan Pesawat)',
-                    'menu.nsrdi' => 'NSRDI Management (Overdue, No Spare, Pivot)',
-                    'menu.ict' => 'Finding ICT (Pencatatan Temuan ICT)',
-                    'menu.capacity' => 'Capacity, Aircraft Rotation & Movement',
-                    'menu.inventory' => 'Inventory & Gudang (IMS)',
-                    'menu.analytics' => 'Analitik & KPI Dashboard',
+                    'menu.production' => 'Akses Induk Modul Cabin Maintenance',
+                    'menu.cabin.dja' => 'DJA (Daily Job Assignment)',
+                    'menu.cabin.cml' => 'CML Logs (Cabin Maintenance Log)',
+                    'menu.cabin.nsrdi' => 'NSRDI Logs (Non-Routine Defects)',
+                    'menu.cabin.dmi' => 'DMI Logs (Deferred Maintenance Item)',
+                    'menu.cabin.wo' => 'WO Logs (Work Order)',
+                    'menu.cabin.stretcher' => 'Stretcher Tracking (Pemasangan & Pelepasan)',
+                    'menu.cabin.dbi' => 'Daily Beautification (DBI)',
+                    'menu.cabin.daily_report' => 'Daily Report Cabin Maintenance',
+                    'lgt.view' => 'Long Ground Time (LGT) Monitoring',
+                    'lgt.plan' => 'Buat & Edit Draft Rencana LGT',
+                    'lgt.manage' => 'Update Penutupan Pekerjaan LGT',
+                    'leader.import' => 'Laporan Leader & Closing DJA',
+                    'menu.nsrdi.overdue' => 'NSRDI Overdue Monitoring',
+                    'menu.nsrdi.no_spare' => 'NSRDI No Spare',
+                    'menu.nsrdi.pivot' => 'Pivot Analisis per AOC',
                 ],
             ],
-            'ims' => [
-                'title' => 'Gudang & Inventory (IMS)',
-                'desc' => 'Alur permintaan barang, persetujuan, serah terima, dan stok opname.',
+            'painting' => [
+                'title' => 'Divisi Aircraft Painting',
+                'desc' => 'Pekerjaan pengecatan eksterior/interior pesawat, NSRDI khusus painting & daily report.',
                 'items' => [
+                    'menu.painting' => 'Akses Induk Modul Aircraft Painting',
+                    'menu.painting.nsrdi' => 'NSRDI Logs Painting',
+                    'menu.painting.daily_report' => 'Daily Report Painting',
+                ],
+            ],
+            'cleaning' => [
+                'title' => 'Divisi Aircraft Cleaning (AIEC)',
+                'desc' => 'Pembersihan interior, eksterior, 7 tipe cleaning log, sinkronisasi dan laporan.',
+                'items' => [
+                    'menu.cleaning' => 'Akses Induk Modul Aircraft Cleaning',
+                    'menu.cleaning.hub' => 'Cleaning Logs (7 Jenis: General, Interior, Exterior, GCI, GCE, LGT, Transit)',
+                    'menu.cleaning.daily_report' => 'Daily Report Aircraft Cleaning',
+                    'menu.cleaning.sync' => 'Cleaning Data Sync',
+                ],
+            ],
+            'inventory' => [
+                'title' => 'Divisi Supporting & Inventory (IMS & Asset)',
+                'desc' => 'Manajemen stok gudang suku cadang, permintaan, persetujuan, repair, serta inventaris aset.',
+                'items' => [
+                    'menu.inventory' => 'Akses Induk Inventory Management (IMS)',
                     'ims.catalog.view' => 'Lihat Katalog Barang & Ketersediaan Stok',
                     'ims.request.create' => 'Ajukan Permintaan Pengambilan Barang',
                     'ims.request.view_own' => 'Lihat Riwayat Permintaan Sendiri',
@@ -250,40 +316,106 @@ class Index extends Component
                     'ims.report.view' => 'Lihat Laporan Mutasi & Stok Gudang',
                     'ims.report.export' => 'Export Laporan Gudang (Excel/PDF)',
                     'ims.master.manage' => 'Kelola Master Barang, Kategori, & Rak IMS',
+                    'asset.view' => 'Lihat Daftar Data Asset Perusahaan',
+                    'asset.manage' => 'Tambah, Edit & Hapus Data Asset',
+                    'asset.assign' => 'Peminjaman & Pengembalian Asset',
+                    'menu.tools_equipment' => 'Tools & Equipment Operasional',
+                    'compliance.view' => 'Briefing, Attlist & 5R',
                 ],
             ],
-            'production' => [
-                'title' => 'Produksi & Operasional Pesawat',
-                'desc' => 'Laporan leader, draft LGT, dan pencatatan pekerjaan pesawat.',
+            'ict' => [
+                'title' => 'Divisi ICT & IFE',
+                'desc' => 'Pencatatan dan tindak lanjut temuan Passenger Information (PI) dan status perbaikan.',
                 'items' => [
-                    'leader.import' => 'Impor Laporan Leader & Closing DJA',
-                    'lgt.view' => 'Lihat Monitoring Long Ground Time (LGT)',
-                    'lgt.plan' => 'Buat Draft Rencana Pesawat LGT',
-                    'lgt.manage' => 'Isi Pekerjaan & Penutupan LGT',
+                    'menu.ict' => 'Akses Induk Modul Finding ICT',
+                    'menu.ict.pi' => 'Findings ICT PI (Passenger Information)',
+                    'menu.ict.tbd' => 'Findings ICT (TBD)',
+                ],
+            ],
+            'capacity' => [
+                'title' => 'Capacity & Planning',
+                'desc' => 'Monitoring kapasitas stasiun, target, pergerakan armada (AC Movement) & rotasi pesawat.',
+                'items' => [
+                    'menu.capacity' => 'Akses Induk Capacity Management',
+                    'menu.capacity.index' => 'Capacity Stasiun & Target',
+                    'menu.capacity.rotation' => 'Aircraft Rotation (Rotasi Jadwal Pesawat)',
+                    'menu.capacity.movement' => 'AC Movement (Pergerakan Armada Pesawat)',
                 ],
             ],
             'people' => [
-                'title' => 'Human Capital & Disiplin',
-                'desc' => 'Database karyawan, presensi harian, dan briefing 5R.',
+                'title' => 'Human Capital & Development (HR / GA)',
+                'desc' => 'Database profil karyawan, rekap presensi, tracking PAS bandara, dan training berkala.',
                 'items' => [
                     'hr.view' => 'Lihat Database Karyawan (Lingkup Divisi)',
                     'hr.view_all' => 'Lihat Database Karyawan (Semua Divisi)',
-                    'hr.manage' => 'Tambah, Edit & Hapus Karyawan',
+                    'hr.manage' => 'Tambah, Edit & Hapus Data Karyawan',
                     'attendance.view' => 'Lihat Rekap Presensi & Disiplin',
                     'attendance.manage' => 'Impor & Kelola Data Presensi',
-                    'compliance.view' => 'Lihat Briefing, Attlist & 5R',
+                    'registry.pas.view' => 'Lihat Data PAS Bandara',
+                    'registry.pas.manage' => 'Kelola Data PAS Bandara',
+                    'registry.training.view' => 'Lihat Data Training & Sertifikasi',
+                    'registry.training.manage' => 'Kelola Data Training Karyawan',
+                    'registry.assess_internal.view' => 'Lihat Assessment Internal',
+                    'registry.assess_internal.manage' => 'Kelola Assessment Internal',
+                    'registry.assess_hc.view' => 'Lihat Assessment Human Capital',
+                    'registry.assess_hc.manage' => 'Kelola Assessment Human Capital',
+                    'registry.form.view' => 'Lihat Form Kerja Karyawan',
+                    'registry.form.manage' => 'Kelola Form Kerja Karyawan',
                 ],
             ],
-            'assets_docs' => [
-                'title' => 'Asset, Dokumen & Kepatuhan',
-                'desc' => 'Inventaris modal, pusat regulasi SOP, dan sinkronisasi data.',
+            'operational' => [
+                'title' => 'Operasional & Dispatch',
+                'desc' => 'Antrean verifikasi hasil pekerjaan teknisi dan rekap giliran kerja shift.',
                 'items' => [
-                    'asset.view' => 'Lihat Daftar Data Asset',
-                    'asset.manage' => 'Tambah & Edit Data Asset',
-                    'asset.assign' => 'Peminjaman & Pengembalian Asset',
+                    'menu.operational.verification' => 'Verification Queue Hasil Pekerjaan',
+                    'menu.operational.shift_recap' => 'Shift Recap Operasional',
+                ],
+            ],
+            'analytics' => [
+                'title' => 'Analitik & Reporting',
+                'desc' => 'Statistik performa armada, ringkasan eksekutif, akurasi dokumen, dan KPI harian.',
+                'items' => [
+                    'menu.analytics' => 'Akses Induk Menu Analitik',
+                    'reports.summary.view' => 'Summary Performa Operasional',
+                    'reports.kpi.view' => 'KPI & Man Hours Karyawan',
+                    'kpi.view' => 'Kartu KPI Dashboard & Performa Stasiun',
+                    'reports.document_accuracy.view' => 'KPI Document Accuracy',
+                    'reports.lgt.view' => 'LGT Monitoring Report',
+                    'reports.manpower.view' => 'Manpower Harian Karyawan',
+                    'reports.executive.view' => 'Executive Reports (Ringkasan Manajemen)',
+                ],
+            ],
+            'master_data' => [
+                'title' => 'Data Master & Sistem',
+                'desc' => 'Master referensi bandara, registrasi pesawat, jabatan, divisi, dan sinkronisasi sumber data.',
+                'items' => [
+                    'master.airports.view' => 'Master Bandara / Station',
+                    'master.aircraft.view' => 'Master Registrasi Pesawat',
+                    'master.categories.view' => 'Master Kategori Pekerjaan',
+                    'master.divisions.view' => 'Master Divisi Perusahaan',
+                    'master.positions.view' => 'Master Jabatan / Posisi',
+                    'master.capacity.view' => 'Master Kapasitas Stasiun & Target',
+                    'master.system.view' => 'Master Data Sistem (Kustom)',
                     'sources.view' => 'Lihat Status Sumber Data',
-                    'sources.sync' => 'Jalankan Sinkronisasi Sumber Data',
-                    'kpi.view' => 'Lihat Kartu KPI & Performa Stasiun',
+                    'sources.sync' => 'Jalankan Sinkronisasi Sumber Data Manual',
+                ],
+            ],
+            'security' => [
+                'title' => 'Sistem & Keamanan',
+                'desc' => 'Manajemen akun pengguna, konfigurasi matriks peran (roles), dan audit trail.',
+                'items' => [
+                    'security.users.view' => 'User Management (Kelola Akun)',
+                    'security.roles.view' => 'Peran & Hak Akses (Role Matrix)',
+                    'security.audit.view' => 'Audit Trail (Jejak Log Aktivitas)',
+                ],
+            ],
+            'documents' => [
+                'title' => 'Pusat Dokumen & Profil',
+                'desc' => 'Dokumentasi SOP, CMPM, regulasi teknis, dan pengaturan akun.',
+                'items' => [
+                    'documents.view' => 'Pusat Dokumen (CMPM, SOP & Regulasi)',
+                    'documents.master.view' => 'Master Data Kategori & File Dokumen',
+                    'profile.view' => 'Pengaturan Profil Pengguna',
                 ],
             ],
         ];

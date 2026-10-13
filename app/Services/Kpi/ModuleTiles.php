@@ -7,6 +7,7 @@ use App\Models\Asset;
 use App\Models\AssetAssignment;
 use App\Models\Document;
 use App\Models\Employee;
+use App\Models\EmployeeTraining;
 use App\Models\LeaderReportImport;
 use App\Models\LgtRecord;
 use App\Models\RegistryRecord;
@@ -96,7 +97,7 @@ class ModuleTiles
         }, 'menu.production');
         $add('production', 'unplanned', function () use ($from, $to, $station) {
             $n = $total = 0;
-            foreach ([['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'refresh_date']] as [$t, $c]) {
+            foreach ([['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'plan_date']] as [$t, $c]) {
                 $q = $station(DB::table($t)->whereNull('dja_id')->whereDate($c, '>=', $from)->whereDate($c, '<=', $to), 'COALESCE(act_station, plan_station)');
                 $total += (clone $q)->count();
                 $n += (clone $q)->whereRaw("LOWER(status) = 'closed'")->count();
@@ -197,6 +198,25 @@ class ModuleTiles
             $total = $contract + $passport + $pas;
 
             return ['title' => 'Karyawan', 'value' => number_format($e->count()), 'sub' => $total ? "$contract kontrak · $passport paspor · $pas PAS segera habis" : 'tidak ada dokumen mendekati habis', 'tone' => $total ? 'yellow' : 'green', 'route' => 'hr.employees'];
+        }, 'hr.view');
+        $add('people', 'training', function () use ($stations) {
+            $q = EmployeeTraining::query()->when($stations, fn ($sq) => $sq->whereIn('station', $stations));
+            $total = (clone $q)->count();
+            $valid = (clone $q)->where('status', 'valid')->count();
+            $expired = (clone $q)->where('status', 'expired')->count();
+            $expiring = (clone $q)->where('status', 'expiring_soon')->count();
+            $rate = $total > 0 ? round(($valid / $total) * 100, 1) : null;
+            $attn = $expired + $expiring;
+
+            return [
+                'title' => 'Training & Kualifikasi',
+                'value' => $rate !== null ? "{$rate}%" : '–',
+                'sub' => $attn > 0
+                    ? "{$expired} expired · {$expiring} segera habis"
+                    : ($total > 0 ? "{$valid} dari {$total} valid" : 'belum ada data'),
+                'tone' => $expired > 0 ? 'red' : ($expiring > 0 ? 'yellow' : ($total > 0 ? 'green' : 'none')),
+                'route' => 'hr.training',
+            ];
         }, 'hr.view');
 
         // ── Asset & inventory ──

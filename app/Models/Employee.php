@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\ExpiryStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Employee extends Model
@@ -32,6 +33,11 @@ class Employee extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
+    }
+
+    public function trainings(): HasMany
+    {
+        return $this->hasMany(EmployeeTraining::class, 'employee_nik', 'nik');
     }
 
     /** Permanent staff (PKWTT) have no contract end date to watch. */

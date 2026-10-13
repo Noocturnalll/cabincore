@@ -27,9 +27,13 @@ class Employees extends Component
 
     public bool $isImportOpen = false;
 
+    public bool $updateExisting = true;
+
     public string $search = '';
 
     public string $divisionFilter = '';
+
+    public string $stationFilter = '';
 
     public string $expiryFilter = '';   // '', contract, passport, any
 
@@ -82,6 +86,11 @@ class Employees extends Component
         $this->resetPage();
     }
 
+    public function updatingStationFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingExpiryFilter(): void
     {
         $this->resetPage();
@@ -90,6 +99,21 @@ class Employees extends Component
     public function setDivision(string $id): void
     {
         $this->divisionFilter = $id;
+        $this->resetPage();
+    }
+
+    public function setStation(string $station): void
+    {
+        $this->stationFilter = $station;
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->divisionFilter = '';
+        $this->stationFilter = '';
+        $this->expiryFilter = '';
         $this->resetPage();
     }
 
@@ -227,7 +251,7 @@ class Employees extends Component
         $filename = 'karyawan_pivot_'.date('Y-m-d').'.xlsx';
 
         return Excel::download(
-            new EmployeeExport($this->search, $this->divisionFilter, $this->expiryFilter, $allowedDivisions),
+            new EmployeeExport($this->search, $this->divisionFilter, $this->expiryFilter, $allowedDivisions, $this->stationFilter),
             $filename
         );
     }
@@ -254,12 +278,14 @@ class Employees extends Component
         ]);
 
         $path = $this->importFile->getRealPath();
-        $stats = $importer->importEmployees($path, false, true);
+        $stats = $importer->importEmployees($path, false, ! $this->updateExisting);
 
         $this->closeImport();
         $this->resetPage();
 
-        $message = "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['skipped']} data lama dipertahankan (tidak ditimpa).";
+        $message = $this->updateExisting
+            ? "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['updated']} data karyawan diperbarui."
+            : "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['skipped']} data lama dipertahankan (tidak ditimpa).";
         $this->dispatch('swal:modal', [
             'type' => 'success',
             'title' => 'Import Karyawan Berhasil',
@@ -292,6 +318,7 @@ class Employees extends Component
                 ->orWhere('station', 'like', "%{$this->search}%")
                 ->orWhere('passport_no', 'like', "%{$this->search}%")))
             ->when($this->divisionFilter !== '', fn ($q) => $q->where('division_id', $this->divisionFilter))
+            ->when($this->stationFilter !== '', fn ($q) => $q->where('station', $this->stationFilter))
             ->orderBy('name');
 
         // Expiry filters are evaluated against the same month windows used for the colour markers.
@@ -315,12 +342,16 @@ class Employees extends Component
         $pasByNik = $pasRows->keyBy(fn ($r) => (string) ($r->data['nik'] ?? ''));
         $pasStates = $pasRows->map->expiryStatus()->countBy();
         $tabCounts = $all->groupBy('division_id')->map->count();
+        $stationCounts = $all->whereNotNull('station')->where('station', '!=', '')->groupBy('station')->map->count();
+        $stations = $all->pluck('station')->filter()->unique()->sort()->values();
         $count = fn (string $method, string $state) => $all->filter(fn (Employee $e) => $e->$method() === $state)->count();
 
         return view('livewire.modules.hr.employees', [
             'employees' => $paged,
             'pasByNik' => $pasByNik,
             'tabCounts' => $tabCounts,
+            'stationCounts' => $stationCounts,
+            'stations' => $stations,
             'divisions' => Division::where('status', 'Aktif')->orderBy('name')->get(),
             'positions' => Position::where('status', 'Aktif')->orderBy('name')->get(),
             'canManage' => $this->canManage(),

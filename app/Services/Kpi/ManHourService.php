@@ -71,7 +71,7 @@ class ManHourService
         $logs = [
             'wo' => ['WO', 'wo_logs', 'date'],
             'dmi' => ['DMI', 'dmi_logs', 'date'],
-            'nsrdi' => ['NSRDI', 'nsrdi_logs', 'refresh_date'],
+            'nsrdi' => ['NSRDI', 'nsrdi_logs', 'plan_date'],
             'cml' => ['CML', 'cml_logs', 'date'],
         ];
         foreach ($logs as $key => [$label, $table, $dateColumn]) {

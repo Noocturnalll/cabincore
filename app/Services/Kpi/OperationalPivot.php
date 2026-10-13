@@ -68,7 +68,7 @@ class OperationalPivot
         // ── Unplanned: the same logs when no DJA task is behind them
         if ($can('menu.production|menu.painting')) {
             try {
-                $sources = $can('menu.production') ? [['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'refresh_date']] : [['nsrdi_logs', 'refresh_date']];
+                $sources = $can('menu.production') ? [['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'plan_date']] : [['nsrdi_logs', 'plan_date']];
                 foreach ($sources as [$table, $dateCol]) {
                     $q = DB::table($table)->whereNull('dja_id')->whereDate($dateCol, '>=', $from)->whereDate($dateCol, '<=', $to);
                     $q = $stationFilter($q, 'COALESCE(act_station, plan_station)');

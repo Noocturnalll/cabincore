@@ -32,39 +32,74 @@
         </button>
     </div>
 
-    {{-- One tab per division --}}
-    <div class="emp-tabs" role="tablist" aria-label="Divisi">
-        <button type="button" role="tab" wire:click="setDivision('')" class="emp-tab {{ $divisionFilter === '' ? 'on' : '' }}">Semua <span>{{ $summary['total'] }}</span></button>
-        @foreach($divisions as $d)
-            @if(($tabCounts[$d->id] ?? 0) > 0 || (string) $divisionFilter === (string) $d->id)
-                <button type="button" role="tab" wire:click="setDivision('{{ $d->id }}')" class="emp-tab {{ (string) $divisionFilter === (string) $d->id ? 'on' : '' }}">{{ $d->name }} <span>{{ $tabCounts[$d->id] ?? 0 }}</span></button>
-            @endif
-        @endforeach
+    {{-- Tabs per Divisi --}}
+    <div style="margin-bottom:.5rem;">
+        <div style="font-size:.76rem;font-weight:700;color:var(--cbm-text-muted);margin-bottom:.3rem;letter-spacing:.02em;">
+            🏢 FILTER DIVISI:
+        </div>
+        <div class="emp-tabs" role="tablist" aria-label="Divisi">
+            <button type="button" role="tab" wire:click="setDivision('')" class="emp-tab {{ $divisionFilter === '' ? 'on' : '' }}">Semua Divisi <span>{{ $summary['total'] }}</span></button>
+            @foreach($divisions as $d)
+                @if(($tabCounts[$d->id] ?? 0) > 0 || (string) $divisionFilter === (string) $d->id)
+                    <button type="button" role="tab" wire:click="setDivision('{{ $d->id }}')" class="emp-tab {{ (string) $divisionFilter === (string) $d->id ? 'on' : '' }}">{{ $d->name }} <span>{{ $tabCounts[$d->id] ?? 0 }}</span></button>
+                @endif
+            @endforeach
+        </div>
+    </div>
+
+    {{-- Tabs per Station --}}
+    <div style="margin-bottom:.9rem;">
+        <div style="font-size:.76rem;font-weight:700;color:var(--cbm-text-muted);margin-bottom:.3rem;letter-spacing:.02em;">
+            📍 FILTER STATION:
+        </div>
+        <div class="emp-tabs" role="tablist" aria-label="Station">
+            <button type="button" role="tab" wire:click="setStation('')" class="emp-tab {{ $stationFilter === '' ? 'on' : '' }}">Semua Station <span>{{ $summary['total'] }}</span></button>
+            @foreach($stations as $stn)
+                @if(($stationCounts[$stn] ?? 0) > 0 || $stationFilter === $stn)
+                    <button type="button" role="tab" wire:click="setStation('{{ $stn }}')" class="emp-tab {{ $stationFilter === $stn ? 'on' : '' }}">{{ $stn }} <span>{{ $stationCounts[$stn] ?? 0 }}</span></button>
+                @endif
+            @endforeach
+        </div>
     </div>
     <style>
-        .emp-tabs { display:flex; gap:.4rem; overflow-x:auto; padding-bottom:.35rem; margin-bottom:.9rem; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+        .emp-tabs { display:flex; gap:.4rem; overflow-x:auto; padding-bottom:.35rem; margin-bottom:.3rem; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
         .emp-tabs::-webkit-scrollbar { display:none; }
-        .emp-tab { flex:0 0 auto; border:1px solid var(--cbm-input-border); background:var(--cbm-input-bg); color:var(--cbm-text-muted); border-radius:999px; padding:.45rem .95rem; font-size:.85rem; font-weight:600; cursor:pointer; transition:background .15s,color .15s; }
-        .emp-tab span { margin-left:.3rem; opacity:.7; font-weight:700; }
+        .emp-tab { flex:0 0 auto; border:1px solid var(--cbm-input-border); background:var(--cbm-input-bg); color:var(--cbm-text-muted); border-radius:999px; padding:.4rem .85rem; font-size:.82rem; font-weight:600; cursor:pointer; transition:background .15s,color .15s; }
+        .emp-tab span { margin-left:.3rem; opacity:.75; font-weight:700; background:rgba(255,255,255,.08); padding:1px 6px; border-radius:99px; font-size:.75rem; }
         .emp-tab.on { background:var(--cbm-nav-active); color:var(--cbm-nav-active-t); border-color:transparent; }
     </style>
 
     <div class="mod-card mod-card-accent-blue">
         <div class="mod-toolbar">
-            <div class="mod-filters">
+            <div class="mod-filters" style="flex-wrap:wrap;gap:.5rem;">
                 <div class="mod-field mod-field-search">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                     <input wire:model.live.debounce.300ms="search" class="mod-search-input" type="search" placeholder="Cari nama / ID / jabatan / station / no. paspor..." aria-label="Cari karyawan">
                 </div>
 
                 <div class="cbm-select-wrap">
+                    <select wire:model.live="stationFilter" class="cbm-form-select" aria-label="Filter station">
+                        <option value="">Semua Station</option>
+                        @foreach($stations as $stn)
+                            <option value="{{ $stn }}">{{ $stn }} ({{ $stationCounts[$stn] ?? 0 }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="cbm-select-wrap">
                     <select wire:model.live="expiryFilter" class="cbm-form-select" aria-label="Filter masa berlaku">
-                        <option value="">Semua</option>
+                        <option value="">Semua Dokumen</option>
                         <option value="any">Kontrak/paspor mendekati habis</option>
                         <option value="contract">Kontrak mendekati habis</option>
                         <option value="passport">Paspor mendekati habis</option>
                     </select>
                 </div>
+
+                @if($search || $divisionFilter || $stationFilter || $expiryFilter)
+                    <button type="button" wire:click="resetFilters" class="kd-act-btn" style="background:var(--cbm-input-bg);color:var(--cbm-text-muted);border:1px solid var(--cbm-input-border);border-radius:6px;padding:.38rem .7rem;font-size:.78rem;font-weight:600;cursor:pointer;">
+                        ✕ Reset
+                    </button>
+                @endif
             </div>
             <div class="mod-meta" style="display:flex;align-items:center;gap:.75rem;">
                 @if($canManage)
@@ -94,7 +129,19 @@
                         <tr wire:key="emp-{{ $e->id }}">
                             <td>{{ $e->nik }}</td>
                             <td><div class="mod-aircraft-name">{{ $e->name }}</div>@if($e->phone)<div class="mod-subtitle">{{ $e->phone }}</div>@endif</td>
-                            <td>{{ $e->division?->name ?? '-' }}@if($e->station) · {{ $e->station }}@endif<div class="mod-subtitle">{{ $e->job_title ?? $e->position?->name ?? '-' }}</div></td>
+                            <td>
+                                <div>
+                                    <strong>{{ $e->station ?: ($e->division?->name ?? '-') }}</strong>
+                                    @if($e->directorate) <span style="font-size:.72rem;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;margin-left:3px;font-weight:600;">{{ $e->directorate }}</span>@endif
+                                </div>
+                                <div class="mod-subtitle" style="font-size:.78rem;">{{ $e->job_title ?? $e->position?->name ?? '-' }}</div>
+                                @if($e->supervisor_name)
+                                    <div style="font-size:.72rem;color:var(--cbm-text-muted);">Atasan: {{ $e->supervisor_name }}</div>
+                                @endif
+                                @if($e->join_date)
+                                    <div style="font-size:.72rem;color:var(--cbm-text-muted);">TMT: {{ $e->join_date->format('d/m/Y') }}</div>
+                                @endif
+                            </td>
                             <td>
                                 @if($e->contract_type === 'PKWTT')
                                     <span class="mod-subtitle">Tetap (PKWTT)</span>
@@ -261,8 +308,15 @@
                         @error('importFile') <span class="mod-field-error" style="color:#ef4444;font-size:0.75rem;display:block;margin-top:0.375rem;">{{ $message }}</span> @enderror
                     </div>
 
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.82rem;color:var(--cbm-text);user-select:none;">
+                            <input type="checkbox" wire:model="updateExisting" style="accent-color:#2563eb;width:1.1rem;height:1.1rem;cursor:pointer;">
+                            <span><strong>Perbarui data lama jika ID/NIK cocok</strong> (update station, atasan langsung, direktorat, dan TMT)</span>
+                        </label>
+                    </div>
+
                     <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:0.5rem;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.75rem;color:#93c5fd;line-height:1.4;">
-                        <strong>Catatan Alur:</strong> Sistem akan mencocokkan ID/NIK karyawan. NIK yang telah tercatat sebelumnya akan diabaikan (dipertahankan), dan hanya data karyawan baru yang ditambahkan secara otomatis.
+                        <strong>Informasi Alur:</strong> Sistem akan mencocokkan ID/NIK karyawan dari file Excel. Jika opsi perbarui dicentang, data karyawan lama akan disegarkan dengan data terbaru dari Excel tanpa menghapus histori kontrak atau paspor yang telah diinput.
                     </div>
 
                     <div style="display:flex;justify-content:flex-end;gap:0.75rem;">

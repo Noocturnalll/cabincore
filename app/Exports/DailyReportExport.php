@@ -201,15 +201,17 @@ class DailyReportExport implements Export, FromCollection, WithHeadings, WithMul
                 });
 
             case 'dja-nsrdi':
-                $query = NsrdiLog::where('is_submitted', true)->where(function ($q) use ($activeDate) {
-                    $q->where(function ($x) use ($activeDate) {
-                        $x->whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
-                            $d->whereDate('date', '<', $activeDate);
+                $query = NsrdiLog::where('is_submitted', true)
+                    ->where(fn ($q) => $q->where('category', 'CBM')->orWhereNull('category'))
+                    ->where(function ($q) use ($activeDate) {
+                        $q->where(function ($x) use ($activeDate) {
+                            $x->whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
+                                $d->whereDate('date', '<', $activeDate);
+                            });
+                        })->orWhere(function ($x) use ($activeDate) {
+                            $x->whereNull('dja_id')->where('import_source', 'dja')->whereDate('plan_date', '<', $activeDate);
                         });
-                    })->orWhere(function ($x) use ($activeDate) {
-                        $x->whereNull('dja_id')->where('import_source', 'dja')->whereDate('plan_date', '<', $activeDate);
                     });
-                });
                 if ($this->search) {
                     $query->where(function ($q) {
                         $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
@@ -246,6 +248,7 @@ class DailyReportExport implements Export, FromCollection, WithHeadings, WithMul
 
             case 'unplanned-nsrdi':
                 $query = NsrdiLog::whereNull('dja_id')->where('is_submitted', true)
+                    ->where(fn ($q) => $q->where('category', 'CBM')->orWhereNull('category'))
                     ->where(function ($q) {
                         $q->whereNull('import_source')->orWhere('import_source', 'unplanned');
                     })

@@ -137,11 +137,11 @@ class StationKpiService
         if ($cbm) {
             $add('WO', 'CBM', $range('wo_logs', 'date'), 'COALESCE(act_station, plan_station)');
             $add('DMI', 'CBM', $range('dmi_logs', 'date'), 'COALESCE(act_station, plan_station)');
-            $add('NSRDI', 'CBM', $range('nsrdi_logs', 'refresh_date')->whereRaw("COALESCE(category,'') <> 'PAINTING'"), 'COALESCE(act_station, plan_station)');
+            $add('NSRDI', 'CBM', $range('nsrdi_logs', 'plan_date')->whereRaw("COALESCE(category,'') <> 'PAINTING'"), 'COALESCE(act_station, plan_station)');
             $add('CML', 'CBM', $range('cml_logs', 'date'), 'station');
         }
         if ($painting) {
-            $add('NSRDI Painting', 'PAINTING', $range('nsrdi_logs', 'refresh_date')->where('category', 'PAINTING'), 'COALESCE(act_station, plan_station)');
+            $add('NSRDI Painting', 'PAINTING', $range('nsrdi_logs', 'plan_date')->where('category', 'PAINTING'), 'COALESCE(act_station, plan_station)');
         }
         if ($aiec) {
             $add('Cleaning', 'AIEC', $range('aircraft_cleanings', 'date'), 'station');

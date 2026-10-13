@@ -344,16 +344,18 @@ class Index extends Component
                 $logs = $query->orderBy('date', 'desc')->orderByDesc('id')->paginate($this->perPage);
                 break;
             case 'dja-nsrdi':
-                // Data dari modul DJA (dja_id terisi) ATAU hasil import sheet DJA (import_source = 'dja').
-                $query = NsrdiLog::where('is_submitted', true)->where(function ($q) use ($activeDate) {
-                    $q->where(function ($x) use ($activeDate) {
-                        $x->whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
-                            $d->whereDate('date', '<', $activeDate);
+                // Data dari modul DJA (dja_id terisi) ATAU hasil import sheet DJA (import_source = 'dja') khusus CBM.
+                $query = NsrdiLog::where('is_submitted', true)
+                    ->where(fn ($q) => $q->where('category', 'CBM')->orWhereNull('category'))
+                    ->where(function ($q) use ($activeDate) {
+                        $q->where(function ($x) use ($activeDate) {
+                            $x->whereNotNull('dja_id')->whereHas('dailyJobAssignment', function ($d) use ($activeDate) {
+                                $d->whereDate('date', '<', $activeDate);
+                            });
+                        })->orWhere(function ($x) use ($activeDate) {
+                            $x->whereNull('dja_id')->where('import_source', 'dja')->whereDate('plan_date', '<', $activeDate);
                         });
-                    })->orWhere(function ($x) use ($activeDate) {
-                        $x->whereNull('dja_id')->where('import_source', 'dja')->whereDate('plan_date', '<', $activeDate);
                     });
-                });
                 if ($this->search) {
                     $query->where(function ($q) {
                         $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
@@ -376,8 +378,9 @@ class Index extends Component
                 $logs = $query->orderByRaw('COALESCE(plan_date, created_at) DESC')->orderBy('id')->paginate($this->perPage);
                 break;
             case 'unplanned-nsrdi':
-                // Tanggal unplanned = plan_date (hasil import) atau report_date (data manual lama).
+                // Tanggal unplanned = plan_date (hasil import) atau report_date (data manual lama) khusus CBM.
                 $query = NsrdiLog::whereNull('dja_id')->where('is_submitted', true)
+                    ->where(fn ($q) => $q->where('category', 'CBM')->orWhereNull('category'))
                     ->where(function ($q) {
                         $q->whereNull('import_source')->orWhere('import_source', 'unplanned');
                     })
@@ -418,7 +421,7 @@ class Index extends Component
                 // Base filter logic matching other tabs
                 $woQuery = WoLog::where('is_submitted', true);
                 $dmiQuery = DmiLog::where('is_submitted', true);
-                $nsrdiQuery = NsrdiLog::where('is_submitted', true);
+                $nsrdiQuery = NsrdiLog::where('is_submitted', true)->where(fn ($q) => $q->where('category', 'CBM')->orWhereNull('category'));
                 $cmlQuery = CmlLog::query();
 
                 // Adjust for date boundaries (same as other tabs: before activeDate, or exact dateFilter)

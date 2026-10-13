@@ -142,38 +142,68 @@
     </x-master.modal>
 
     {{-- Modal Matrix Checklist Hak Akses --}}
-    <x-master.modal wire:model="isMatrixModalOpen" title="Matriks Hak Akses: {{ $matrixRoleName }}" save-label="Simpan Hak Akses" save-method="savePermissions" width="max-w-4xl">
-        <div style="display:flex;flex-direction:column;gap:1.5rem;max-height:68vh;overflow-y:auto;padding-right:.35rem;">
-            <div class="mod-hint mod-hint-ok" style="margin:0;">
-                Centang izin fitur apa saja yang boleh diakses oleh pengguna dengan role <strong>{{ $matrixRoleName }}</strong>. Perubahan akan langsung aktif seketika setelah disimpan.
+    <x-master.modal wire:model="isMatrixModalOpen" title="Matriks Hak Akses: {{ $matrixRoleName }}" save-label="Simpan Hak Akses" save-method="savePermissions" width="max-w-5xl">
+        <div style="display:flex;flex-direction:column;gap:1.25rem;max-height:72vh;overflow-y:auto;padding-right:.35rem;">
+            <div class="mod-hint mod-hint-ok" style="margin:0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
+                <div>
+                    Centang izin fitur apa saja yang boleh diakses oleh pengguna dengan role <strong>{{ $matrixRoleName }}</strong>. Setiap menu dan sub-menu sidebar dapat diatur secara spesifik.
+                </div>
+                <span class="mod-badge-closed" style="background:rgba(168,85,247,.15);color:var(--cbm-purple,#a855f7);border-color:rgba(168,85,247,.3);font-size:.8rem;font-weight:700;">
+                    {{ count(array_filter($selectedPermissions)) }} hak akses aktif
+                </span>
             </div>
 
-            @foreach($groups as $groupKey => $group)
-                <div style="background:var(--cbm-bg-subtle, rgba(255,255,255,.03));border:1px solid var(--cbm-card-border);border-radius:1rem;padding:1.15rem;display:flex;flex-direction:column;gap:.85rem;">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--cbm-card-border);padding-bottom:.75rem;">
+            {{-- Toolbar: Search & Global Actions --}}
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:.75rem 1rem;background:var(--cbm-card-bg);border:1px solid var(--cbm-card-border);border-radius:.875rem;">
+                <div class="mod-field mod-field-search" style="flex:1;min-width:16rem;max-width:28rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    <input wire:model.live.debounce.250ms="permissionSearch" class="mod-search-input" type="search" placeholder="Cari menu, sub-menu, atau kode izin..." aria-label="Cari hak akses">
+                </div>
+                <div style="display:flex;gap:.5rem;align-items:center;">
+                    <button type="button" wire:click="toggleAll(true)" class="mod-action-btn" style="font-size:.78rem;font-weight:700;color:var(--cbm-purple,#a855f7);background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.25);">
+                        Centang Semua Sistem
+                    </button>
+                    <button type="button" wire:click="toggleAll(false)" class="mod-action-btn" style="font-size:.78rem;font-weight:700;color:#ef4444;background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.25);">
+                        Batalkan Semua
+                    </button>
+                </div>
+            </div>
+
+            @forelse($groups as $groupKey => $group)
+                @php
+                    $groupTotal = count($group['items']);
+                    $groupChecked = count(array_filter(array_intersect_key($selectedPermissions, $group['items'])));
+                @endphp
+                <div style="background:var(--cbm-bg-subtle, rgba(255,255,255,.02));border:1px solid var(--cbm-card-border);border-radius:1rem;padding:1.15rem;display:flex;flex-direction:column;gap:.85rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--cbm-card-border);padding-bottom:.75rem;">
                         <div>
-                            <div style="font-weight:800;font-size:.95rem;color:var(--cbm-text);">{{ $group['title'] }}</div>
-                            <div style="font-size:.8rem;color:var(--cbm-text-muted);margin-top:.15rem;">{{ $group['desc'] }}</div>
+                            <div style="display:flex;align-items:center;gap:.6rem;">
+                                <div style="font-weight:800;font-size:.95rem;color:var(--cbm-text);">{{ $group['title'] }}</div>
+                                <span class="mod-badge-progress" style="font-size:.7rem;padding:.15rem .5rem;background:rgba(59,130,246,.1);color:var(--cbm-blue);border-color:rgba(59,130,246,.25);">
+                                    {{ $groupChecked }} / {{ $groupTotal }} aktif
+                                </span>
+                            </div>
+                            <div style="font-size:.8rem;color:var(--cbm-text-muted);margin-top:.2rem;">{{ $group['desc'] }}</div>
                         </div>
                         <div style="display:flex;gap:.5rem;">
                             <button type="button" wire:click="toggleCategory('{{ $groupKey }}', true)" class="mod-action-btn" style="font-size:.75rem;padding:.25rem .6rem;">
-                                Centang Semua
+                                Pilih Semua
                             </button>
                             <button type="button" wire:click="toggleCategory('{{ $groupKey }}', false)" class="mod-action-btn" style="font-size:.75rem;padding:.25rem .6rem;">
-                                Batalkan Semua
+                                Batal Semua
                             </button>
                         </div>
                     </div>
 
                     <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 18rem), 1fr));gap:.65rem;">
                         @foreach($group['items'] as $permKey => $permLabel)
-                            <label style="display:flex;align-items:flex-start;gap:.65rem;padding:.6rem .75rem;border-radius:.625rem;background:var(--cbm-card-bg);border:1px solid var(--cbm-card-border);cursor:pointer;transition:border-color .15s ease;" class="hover:border-purple-500">
-                                <input type="checkbox" wire:model="selectedPermissions.{{ $permKey }}" style="width:1.1rem;height:1.1rem;margin-top:.15rem;accent-color:var(--cbm-purple,#a855f7);border-radius:.3rem;flex-shrink:0;">
-                                <div style="min-width:0;">
+                            <label style="display:flex;align-items:flex-start;gap:.65rem;padding:.65rem .85rem;border-radius:.625rem;background:var(--cbm-card-bg);border:1px solid var(--cbm-card-border);cursor:pointer;transition:all .15s ease;" class="hover:border-purple-500 hover:shadow-sm">
+                                <input type="checkbox" wire:model="selectedPermissions.{{ $permKey }}" style="width:1.15rem;height:1.15rem;margin-top:.15rem;accent-color:var(--cbm-purple,#a855f7);border-radius:.35rem;flex-shrink:0;">
+                                <div style="min-width:0;flex:1;">
                                     <div style="font-weight:700;font-size:.825rem;color:var(--cbm-text);line-height:1.25;">
                                         {{ $permLabel }}
                                     </div>
-                                    <div style="font-size:.72rem;color:var(--cbm-text-muted);margin-top:.2rem;font-family:monospace;">
+                                    <div style="font-size:.7rem;color:var(--cbm-text-muted);margin-top:.25rem;font-family:monospace;word-break:break-all;">
                                         <code>{{ $permKey }}</code>
                                     </div>
                                 </div>
@@ -181,7 +211,11 @@
                         @endforeach
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div style="text-align:center;padding:3rem 1rem;color:var(--cbm-text-muted);">
+                    Tidak ada hak akses yang sesuai dengan pencarian "{{ $permissionSearch }}".
+                </div>
+            @endforelse
         </div>
     </x-master.modal>
 </div>

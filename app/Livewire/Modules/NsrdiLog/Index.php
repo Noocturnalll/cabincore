@@ -3,12 +3,13 @@
 namespace App\Livewire\Modules\NsrdiLog;
 
 use App\Exports\NsrdiExport;
-use App\Imports\NsrdiImport;
 use App\Livewire\Traits\ManagesLogStatus;
 use App\Livewire\Traits\ShowsCarryOver;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\NsrdiLog;
 use App\Notifications\SystemNotification;
+use App\Services\Dja\DjaPersister;
+use App\Services\Nsrdi\NsrdiExcelImporter;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -29,19 +30,35 @@ class Index extends Component
 
     public $dateFilter = '';
 
-    public function importNsrdi()
+    public string $category = 'CBM';
+
+    public function mount(?string $category = null): void
+    {
+        if (request()->routeIs('modules.painting.nsrdi') || $category === 'PAINTING' || request()->query('category') === 'PAINTING') {
+            $this->category = 'PAINTING';
+        } else {
+            $this->category = 'CBM';
+        }
+    }
+
+    public function importNsrdi(NsrdiExcelImporter $importer)
     {
         $this->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            'file' => 'required|mimes:xlsx,xls,csv|max:20480',
         ]);
 
         try {
-            Excel::import(new NsrdiImport, $this->file);
+            $stats = $importer->import(
+                $this->file->getRealPath(),
+                false,
+                $this->category === 'PAINTING' ? 'PAINTING' : null
+            );
             $this->isImportModalOpen = false;
             $this->file = null;
-            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data NSRDI berhasil diimport.']);
-            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => 'Data NSRDI berhasil diimport.']));
-        } catch (\Exception $e) {
+            $message = "Data NSRDI berhasil diimport: {$stats['total']} total ({$stats['dja_count']} planned, {$stats['unplanned_count']} unplanned).";
+            $this->dispatch('notify', ['icon' => 'success', 'message' => $message]);
+            auth()->user()->notify(new SystemNotification(['type' => 'success', 'title' => 'Sistem', 'message' => $message]));
+        } catch (\Throwable $e) {
             session()->flash('error', 'Terjadi kesalahan saat mengimport data: '.$e->getMessage());
         }
     }
@@ -67,13 +84,42 @@ class Index extends Component
         $search = property_exists($this, 'search') ? $this->search : '';
         $dateFilter = property_exists($this, 'dateFilter') ? $this->dateFilter : '';
         $activeTab = property_exists($this, 'activeTab') ? $this->activeTab : '';
+        $prefix = $this->category === 'PAINTING' ? 'NsrdiPaintingExport' : 'NsrdiExport';
 
-        return Excel::download(new NsrdiExport($search, $dateFilter, $activeTab), 'NsrdiExport-'.date('Y-m-d').'.xlsx');
+        return Excel::download(new NsrdiExport($search, $dateFilter, $activeTab, $this->category), $prefix.'-'.date('Y-m-d').'.xlsx');
+    }
+
+    protected function nsrdiCarryOverCount(): int
+    {
+        $query = NsrdiLog::query();
+        if ($this->category === 'PAINTING') {
+            $query->where('category', 'PAINTING');
+        } else {
+            $query->where(function ($q) {
+                $q->where('category', 'CBM')
+                    ->orWhereNull('category')
+                    ->orWhere('category', '!=', 'PAINTING');
+            });
+        }
+        $query->where(fn ($q) => $this->addCarryOver($q, DjaPersister::activeDate(), 'DATE(COALESCE(plan_date, report_date))'));
+
+        return $query->count();
     }
 
     public function render()
     {
         $query = NsrdiLog::query();
+
+        if ($this->category === 'PAINTING') {
+            $query->where('category', 'PAINTING');
+        } else {
+            $query->where(function ($q) {
+                $q->where('category', 'CBM')
+                    ->orWhereNull('category')
+                    ->orWhere('category', '!=', 'PAINTING');
+            });
+        }
+
         if ($this->dateFilter) {
             $query->where(function ($q) {
                 $q->whereHas('dailyJobAssignment', function ($q2) {
@@ -125,9 +171,13 @@ class Index extends Component
             });
         }
 
+        $pageTitle = $this->category === 'PAINTING' ? 'NSRDI Aircraft Painting' : 'NSRDI Cabin Maintenance';
+
         return view('livewire.modules.nsrdi-log.index', [
-            'carryOver' => $this->dateFilter ? 0 : $this->carryOverCount(NsrdiLog::class, 'DATE(COALESCE(plan_date, report_date))'),
+            'carryOver' => $this->dateFilter ? 0 : $this->nsrdiCarryOverCount(),
             'logs' => $query->with('dailyJobAssignment')->paginate($this->perPage),
-        ])->layout('components.layouts.app', ['title' => 'NSRDI Logs']);
+            'isPainting' => $this->category === 'PAINTING',
+            'category' => $this->category,
+        ])->layout('components.layouts.app', ['title' => $pageTitle]);
     }
 }

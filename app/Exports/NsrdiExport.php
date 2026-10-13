@@ -20,18 +20,24 @@ class NsrdiExport implements Export, FromCollection, WithHeadings, WithMultipleS
 
     protected $activeTab; // For planned/unplanned if applicable
 
-    public function __construct($search = '', $dateFilter = '', $activeTab = '')
+    protected $category;
+
+    public function __construct($search = '', $dateFilter = '', $activeTab = '', $category = 'CBM')
     {
         $this->search = $search;
         $this->dateFilter = $dateFilter;
         $this->activeTab = $activeTab;
+        $this->category = $category;
     }
 
     public function sheets(): array
     {
         $data = $this->collection();
 
+        $catLabel = $this->category === 'PAINTING' ? 'Aircraft Painting' : 'Cabin Maintenance';
+
         $metadata = [
+            'Kategori' => $catLabel,
             'Total Record' => number_format($data->count()).' NSRDI items',
             'Filter Tanggal' => $this->dateFilter ?: 'Semua Periode',
             'Filter Tab' => $this->activeTab ? strtoupper($this->activeTab) : 'SEMUA',
@@ -70,7 +76,7 @@ class NsrdiExport implements Export, FromCollection, WithHeadings, WithMultipleS
         $tables = [$matrixStation, $matrixAoc, $breakdownReason];
 
         return [
-            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI & PIVOT NSRDI LOGS', $metadata, $tables),
+            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI & PIVOT NSRDI ('.strtoupper($catLabel).')', $metadata, $tables),
             new DetailDataSheet($data, $this->headings(), 'Data Detail NSRDI'),
         ];
     }
@@ -78,6 +84,16 @@ class NsrdiExport implements Export, FromCollection, WithHeadings, WithMultipleS
     public function collection(): Collection
     {
         $query = NsrdiLog::query();
+
+        if ($this->category === 'PAINTING') {
+            $query->where('category', 'PAINTING');
+        } else {
+            $query->where(function ($q) {
+                $q->where('category', 'CBM')
+                    ->orWhereNull('category')
+                    ->orWhere('category', '!=', 'PAINTING');
+            });
+        }
 
         if ($this->search) {
             $query->where(function ($q) {

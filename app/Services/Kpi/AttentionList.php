@@ -2,6 +2,7 @@
 
 namespace App\Services\Kpi;
 
+use App\Models\EmployeeTraining;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -72,6 +73,20 @@ class AttentionList
             ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('ims_transactions as r')->whereColumn('r.parent_transaction_id', 't.id')->where('r.usage_type', 'loan_return'))->count());
         $add('ims.approval.view', 'Barang di bawah stok minimum', 'ims.catalog', 'yellow', fn () => DB::table('ims_items as i')->leftJoin('ims_stocks as s', 's.item_id', '=', 'i.id')->where('i.is_active', 1)->where('i.min_stock', '>', 0)
             ->groupBy('i.id', 'i.min_stock')->havingRaw('COALESCE(SUM(s.qty_on_hand),0) < i.min_stock')->select('i.id')->get()->count());
+
+        // ── Training & Kualifikasi ──
+        $add('hr.view', 'Sertifikasi / Training telah kedaluwarsa (Expired)', 'hr.training', 'red', function () use ($stations) {
+            return EmployeeTraining::query()
+                ->when($stations, fn ($q) => $q->whereIn('station', $stations))
+                ->where('status', 'expired')
+                ->count();
+        });
+        $add('hr.view', 'Sertifikasi / Training mendekati kedaluwarsa (< 60 hari)', 'hr.training', 'yellow', function () use ($stations) {
+            return EmployeeTraining::query()
+                ->when($stations, fn ($q) => $q->whereIn('station', $stations))
+                ->where('status', 'expiring_soon')
+                ->count();
+        });
 
         // ── System ──
         $add('sources.view', 'Sumber data gagal sinkron', 'sources.index', 'red', fn () => DB::table('sync_settings')->where('last_status', 'failed')->count());

@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="Cabin Technician — Aviation Maintenance Management System">
+    <meta name="description" content="Cluster Cabin Maintenance — Aviation Maintenance Management System">
 
-    <title>Cabin Technician — Login</title>
+    <title>Cluster Cabin Maintenance — Login</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -351,13 +351,13 @@
             <div class="g-brand">
                 <div class="g-brand-logo">
                     @if(file_exists(public_path('images/lion-logo.png')))
-                        <img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Technician">
+                        <img src="{{ asset('images/lion-logo.png') }}" alt="Cluster Cabin Maintenance">
                     @else
                         C
                     @endif
                 </div>
                 <div>
-                    <div class="g-brand-name">Cabin Technician</div>
+                    <div class="g-brand-name">Cluster Cabin Maintenance</div>
                     <div class="g-brand-sub">Batam Aero Technic</div>
                 </div>
             </div>
@@ -414,18 +414,18 @@
                 <div class="g-mobile-brand">
                     <div class="g-mobile-logo">
                         @if(file_exists(public_path('images/lion-logo.png')))
-                            <img src="{{ asset('images/lion-logo.png') }}" alt="Cabin Technician">
+                            <img src="{{ asset('images/lion-logo.png') }}" alt="Cluster Cabin Maintenance">
                         @else
                             C
                         @endif
                     </div>
-                    <div class="g-brand-name" style="text-align:center;">Cabin Technician</div>
+                    <div class="g-brand-name" style="text-align:center;">Cluster Cabin Maintenance</div>
                     <div class="g-brand-sub" style="text-align:center;">Batam Aero Technic</div>
                 </div>
 
                 {{ $slot }}
 
-                <p class="g-copyright">&copy; {{ date('Y') }} <span>Cabin Technician</span> — Built with care.</p>
+                <p class="g-copyright">&copy; {{ date('Y') }} <span>Cluster Cabin Maintenance</span> — Built with care.</p>
             </div>
         </div>
 

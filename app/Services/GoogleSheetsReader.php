@@ -27,7 +27,7 @@ class GoogleSheetsReader
         }
 
         $client = new Client;
-        $client->setApplicationName('Cabin Technician Sync');
+        $client->setApplicationName('Cluster Cabin Maintenance Sync');
         $client->setScopes([Sheets::SPREADSHEETS]);
         $client->setAccessType('offline');
         $client->setAuthConfig($credentialsPath);

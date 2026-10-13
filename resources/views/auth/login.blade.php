@@ -18,7 +18,7 @@
     <div class="g-card">
         <div style="text-align:center; margin-bottom:1.75rem;">
             <h1 class="g-form-title" style="text-align:center; margin-bottom:.375rem;">Selamat Datang</h1>
-            <p class="g-form-sub" style="text-align:center; margin-bottom:0;">Masuk ke akun Cabin Technician Anda</p>
+            <p class="g-form-sub" style="text-align:center; margin-bottom:0;">Masuk ke akun Cluster Cabin Maintenance Anda</p>
         </div>
 
         <form method="POST" action="{{ route('login') }}">

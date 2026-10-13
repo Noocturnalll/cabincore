@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Cabin Technician'),
+    'name' => env('APP_NAME', 'Cluster Cabin Maintenance'),
 
     /*
     |--------------------------------------------------------------------------

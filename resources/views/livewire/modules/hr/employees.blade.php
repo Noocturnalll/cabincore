@@ -295,8 +295,8 @@
             <div class="cbm-modal-card" style="background:var(--cbm-card-bg, #1e293b);border:1px solid var(--cbm-border, rgba(255,255,255,0.1));border-radius:1rem;max-width:32rem;width:100%;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);overflow:hidden;">
                 <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--cbm-border, rgba(255,255,255,0.1));display:flex;align-items:center;justify-content:space-between;">
                     <div>
-                        <h3 style="font-size:1.125rem;font-weight:700;color:var(--cbm-text, #f8fafc);margin:0;">Import Data Karyawan (Excel)</h3>
-                        <p style="font-size:0.75rem;color:var(--cbm-text-muted, #94a3b8);margin:0.25rem 0 0;">Data yang sudah ada tidak akan ditimpa, hanya data baru yang masuk ke database.</p>
+                        <h3 style="font-size:1.125rem;font-weight:700;color:var(--cbm-text, #f8fafc);margin:0;">Import Data Karyawan / Kontrak (Excel)</h3>
+                        <p style="font-size:0.75rem;color:var(--cbm-text-muted, #94a3b8);margin:0.25rem 0 0;">Mendukung format master database karyawan maupun berkas perpanjangan kontrak (KONTRAK KARYAWAN).</p>
                     </div>
                     <button type="button" wire:click="closeImport" style="background:none;border:none;color:var(--cbm-text-muted, #94a3b8);cursor:pointer;font-size:1.25rem;line-height:1;">&times;</button>
                 </div>

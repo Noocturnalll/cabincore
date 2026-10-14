@@ -7,9 +7,9 @@ use Illuminate\Console\Command;
 
 class ImportHrExcel extends Command
 {
-    protected $signature = 'hr:import {type : employees | pasban} {file : path to the Excel file} {--dry-run : only report, change nothing}';
+    protected $signature = 'hr:import {type : employees | pasban | contracts} {file : path to the Excel file} {--dry-run : only report, change nothing}';
 
-    protected $description = 'Imports the employee database or the airport-pass form responses from Excel (re-runnable)';
+    protected $description = 'Imports employee database, contracts, or airport-pass form responses from Excel (re-runnable)';
 
     public function handle(HrExcelImporter $importer): int
     {
@@ -27,6 +27,7 @@ class ImportHrExcel extends Command
             $stats = match ($this->argument('type')) {
                 'employees' => $importer->importEmployees($file, $dry),
                 'pasban' => $importer->importPasban($file, $dry),
+                'contracts' => $importer->importContracts($file, $dry),
                 default => null,
             };
         } catch (\Throwable $e) {
@@ -35,7 +36,7 @@ class ImportHrExcel extends Command
             return self::FAILURE;
         }
         if ($stats === null) {
-            $this->error('Jenis impor harus employees atau pasban.');
+            $this->error('Jenis impor harus employees, pasban, atau contracts.');
 
             return self::FAILURE;
         }

@@ -277,21 +277,37 @@ class Employees extends Component
             'importFile' => 'required|file|mimes:xlsx,xls,csv|max:20480',
         ]);
 
-        $path = $this->importFile->getRealPath();
-        $stats = $importer->importEmployees($path, false, ! $this->updateExisting);
+        try {
+            $path = $this->importFile->getRealPath();
+            $stats = $importer->autoImport($path, false, ! $this->updateExisting);
 
-        $this->closeImport();
-        $this->resetPage();
+            $this->closeImport();
+            $this->resetPage();
 
-        $message = $this->updateExisting
-            ? "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['updated']} data karyawan diperbarui."
-            : "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['skipped']} data lama dipertahankan (tidak ditimpa).";
-        $this->dispatch('swal:modal', [
-            'type' => 'success',
-            'title' => 'Import Karyawan Berhasil',
-            'message' => $message,
-        ]);
-        $this->dispatch('notify', ['icon' => 'success', 'message' => $message]);
+            if (($stats['type'] ?? '') === 'contracts') {
+                $message = "Import kontrak berhasil: {$stats['updated']} data kontrak karyawan diperbarui".($stats['created'] > 0 ? ", {$stats['created']} karyawan baru ditambahkan." : '.');
+            } elseif (($stats['type'] ?? '') === 'pasban') {
+                $message = "Import paspor / pas bandara berhasil: {$stats['pas']} data pas bandara dan {$stats['passports']} nomor paspor diproses.";
+            } else {
+                $message = $this->updateExisting
+                    ? "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['updated']} data karyawan diperbarui."
+                    : "Import berhasil: {$stats['created']} data baru ditambahkan, {$stats['skipped']} data lama dipertahankan (tidak ditimpa).";
+            }
+
+            $this->dispatch('swal:modal', [
+                'type' => 'success',
+                'title' => 'Import Berhasil',
+                'message' => $message,
+            ]);
+            $this->dispatch('notify', ['icon' => 'success', 'message' => $message]);
+        } catch (\Throwable $e) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Gagal Import',
+                'message' => 'Terjadi kesalahan saat memproses file Excel: '.$e->getMessage(),
+            ]);
+            $this->dispatch('notify', ['icon' => 'error', 'message' => 'Gagal import: '.$e->getMessage()]);
+        }
     }
 
     public function close(): void

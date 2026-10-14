@@ -131,6 +131,124 @@ class HrExcelImporter
         return $stats;
     }
 
+    /**
+     * Imports employee contract details from files like KONTRAK KARYAWAN.xlsx.
+     * Updates contract_end, contract_type, station, supervisor, and notes for matched employees,
+     * or creates new employee records if not found.
+     *
+     * @return array{read: int, created: int, updated: int, skipped: int}
+     */
+    public function importContracts(string $path, bool $dryRun = false): array
+    {
+        $ws = $this->sheet($path, null);
+        $rows = $this->table($ws, ['Staff Id', 'Contract End']);
+
+        $stats = ['read' => 0, 'created' => 0, 'updated' => 0, 'skipped' => 0];
+        foreach ($rows as $r) {
+            $id = $this->id($r['staff_id'] ?? $r['no_id'] ?? null);
+            $name = trim((string) ($r['name'] ?? $r['nama'] ?? ''));
+            if (! $id && $name === '') {
+                continue;
+            }
+            $stats['read']++;
+
+            $contractEnd = $this->parseContractDate($r['contract_end'] ?? null);
+            $station = strtoupper(trim((string) ($r['station'] ?? ''))) ?: null;
+            $supervisor = trim((string) ($r['under'] ?? $r['atasan_langsung'] ?? '')) ?: null;
+            $statusLges = trim((string) ($r['status_lges'] ?? ''));
+            $note = trim((string) ($r['note'] ?? ''));
+
+            $notesParts = [];
+            if ($statusLges !== '') {
+                $notesParts[] = "LGES: {$statusLges}";
+            }
+            if ($note !== '') {
+                $notesParts[] = $note;
+            }
+            $notesStr = ! empty($notesParts) ? implode(' | ', $notesParts) : null;
+
+            $employee = Employee::withTrashed()->firstOrNew(['nik' => $id]);
+            $isNew = ! $employee->exists;
+
+            if ($isNew) {
+                $employee->nik = $id;
+                $employee->name = $name ?: "Karyawan {$id}";
+                $employee->status = 'Aktif';
+                $employee->contract_type = 'PKWT';
+                $employee->station = $station;
+                $employee->supervisor_name = $supervisor;
+                $employee->division_id = 1; // Default to Cabin division
+            }
+
+            if ($contractEnd) {
+                $employee->contract_end = $contractEnd;
+                $employee->contract_type = 'PKWT';
+            }
+
+            if ($station && ! $employee->station) {
+                $employee->station = $station;
+            }
+
+            if ($supervisor && ! $employee->supervisor_name) {
+                $employee->supervisor_name = $supervisor;
+            }
+
+            if ($notesStr) {
+                $employee->notes = $notesStr;
+            }
+
+            if (! $dryRun) {
+                $employee->deleted_at = null;
+                $employee->save();
+            }
+
+            $stats[$isNew ? 'created' : 'updated']++;
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Automatically detects whether an uploaded Excel file is an employee master list,
+     * an airport pass response file, or a contract list, and runs the appropriate import.
+     */
+    public function autoImport(string $path, bool $dryRun = false, bool $preserveExisting = false): array
+    {
+        $ws = $this->sheet($path, null);
+        $highestCol = Coordinate::columnIndexFromString($ws->getHighestDataColumn());
+
+        $headers = [];
+        for ($r = 1; $r <= min(10, $ws->getHighestDataRow()); $r++) {
+            for ($c = 1; $c <= $highestCol; $c++) {
+                $val = trim((string) $ws->getCell([$c, $r])->getValue());
+                if ($val !== '') {
+                    $headers[] = strtoupper($val);
+                }
+            }
+        }
+
+        $allHeaders = implode(' ', $headers);
+
+        if (str_contains($allHeaders, 'CONTRACT END') || str_contains($allHeaders, 'STATUS LGES')) {
+            $stats = $this->importContracts($path, $dryRun);
+            $stats['type'] = 'contracts';
+
+            return $stats;
+        }
+
+        if (str_contains($allHeaders, 'PAS BANDARA') || str_contains($allHeaders, 'PASPOR')) {
+            $stats = $this->importPasban($path, $dryRun);
+            $stats['type'] = 'pasban';
+
+            return $stats;
+        }
+
+        $stats = $this->importEmployees($path, $dryRun, $preserveExisting);
+        $stats['type'] = 'employees';
+
+        return $stats;
+    }
+
     private function savePas(string $id, array $r, string $codes, ?string $until, ?Employee $employee): void
     {
         $note = trim((string) ($r['status_pasban'] ?? ''));
@@ -200,11 +318,51 @@ class HrExcelImporter
         $reader = IOFactory::createReaderForFile($path);
         $reader->setReadDataOnly(true);
         if ($names) {
-            $reader->setLoadSheetsOnly($names);
+            $sheetNames = $reader->listWorksheetNames($path);
+            $matching = array_values(array_intersect($names, $sheetNames));
+            if (! empty($matching)) {
+                $reader->setLoadSheetsOnly($matching);
+            }
         }
         $book = $reader->load($path);
 
         return $book->getSheet(0);
+    }
+
+    /**
+     * Parses contract end date handling both Excel numeric serial dates and text formats (d/m/Y, m/d/Y, Y-m-d).
+     */
+    public function parseContractDate(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return Carbon::instance(ExcelDate::excelToDateTimeObject((float) $value))->toDateString();
+        }
+
+        $str = trim((string) $value);
+        // Fix typos like 18/012/2026 -> 18/12/2026
+        $str = preg_replace('/\/0+(\d{2})\//', '/$1/', $str);
+
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $str, $m)) {
+            $d = (int) $m[1];
+            $mo = (int) $m[2];
+            $y = (int) $m[3];
+
+            if ($mo > 12 && $d <= 12) {
+                return Carbon::createFromDate($y, $d, $mo)->toDateString();
+            }
+
+            return Carbon::createFromDate($y, $mo, $d)->toDateString();
+        }
+
+        try {
+            return Carbon::parse($str)->toDateString();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

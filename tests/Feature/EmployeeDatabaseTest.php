@@ -6,6 +6,7 @@ use App\Livewire\Modules\Hr\Employees;
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\User;
+use App\Services\Hr\HrExcelImporter;
 use App\Support\ExpiryStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -125,5 +126,42 @@ class EmployeeDatabaseTest extends TestCase
         Livewire::actingAs($admin)->test(Employees::class)
             ->set('expiryFilter', 'contract')
             ->assertSee('Segera Habis')->assertDontSee('Masih Lama');
+    }
+
+    public function test_parse_contract_date_handles_various_formats(): void
+    {
+        $importer = new HrExcelImporter;
+
+        $this->assertSame('2027-08-03', $importer->parseContractDate(46602));
+        $this->assertSame('2027-02-28', $importer->parseContractDate('28/02/2027'));
+        $this->assertSame('2026-12-18', $importer->parseContractDate('18/012/2026'));
+        $this->assertSame('2026-12-14', $importer->parseContractDate('14/12/2026'));
+        $this->assertNull($importer->parseContractDate(null));
+        $this->assertNull($importer->parseContractDate(''));
+    }
+
+    public function test_import_contracts_updates_existing_and_creates_new(): void
+    {
+        $div = $this->division('Cabin');
+        Employee::create([
+            'nik' => '87074719',
+            'name' => 'DODIK WAHYU',
+            'division_id' => $div->id,
+            'contract_type' => 'PKWT',
+            'station' => 'SOC',
+        ]);
+
+        $file = base_path('files/KONTRAK KARYAWAN.xlsx');
+        if (file_exists($file)) {
+            $importer = new HrExcelImporter;
+            $stats = $importer->importContracts($file);
+
+            $this->assertSame(644, $stats['read']);
+            $this->assertGreaterThanOrEqual(1, $stats['updated']);
+
+            $dodik = Employee::where('nik', '87074719')->first();
+            $this->assertNotNull($dodik->contract_end);
+            $this->assertSame('2027-08-03', $dodik->contract_end->format('Y-m-d'));
+        }
     }
 }

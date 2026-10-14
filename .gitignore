@@ -30,3 +30,4 @@ whatsapp-service/.wwebjs_auth
 database/*.sql
 !database/*.sql.gz
 /scratch/
+~$*

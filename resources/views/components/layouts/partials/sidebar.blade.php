@@ -2,11 +2,11 @@
 
         {{-- Header --}}
         <div class="cbm-sidebar-header">
-            <div class="cbm-sidebar-logo" style="background: transparent;">
-                <img src="{{ asset('images/lion-logo.png') }}" alt="Lion Logo" style="width: 100%; height: 100%; object-fit: contain;">
-            </div>
+            <a href="{{ route('dashboard') }}" wire:navigate class="cbm-sidebar-logo" aria-label="Ke dashboard">
+                <img src="{{ asset('images/lion-logo.png') }}" alt="Logo Lion" width="40" height="40">
+            </a>
             <div class="cbm-sidebar-brand">
-                <div class="cbm-sidebar-brand-name">Cluster Cabin Maintenance</div>
+                <div class="cbm-sidebar-brand-name"><span>Cluster Cabin</span><span class="accent">Maintenance</span></div>
                 <div class="cbm-sidebar-brand-sub">Batam Aero Technic</div>
             </div>
         </div>

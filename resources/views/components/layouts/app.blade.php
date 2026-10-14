@@ -339,33 +339,44 @@
     .cbm-sidebar-header {
         display: flex;
         align-items: center;
-        gap: .75rem;
-        padding: 1.5rem 1.5rem 1.25rem;
+        gap: .7rem;
+        padding: 1.1rem 1rem 1rem;
         border-bottom: 1px solid var(--cbm-divider);
         flex-shrink: 0;
     }
+    /* The logo sits on a quiet tile; no coloured glow behind a transparent mark */
     .cbm-sidebar-logo {
-        width: 2.5rem; height: 2.5rem;
-        background: linear-gradient(135deg, var(--cbm-blue), var(--cbm-indigo));
-        border-radius: .75rem;
+        width: 2.75rem; height: 2.75rem;
+        padding: .3rem;
+        background: var(--cbm-input-bg, rgba(255,255,255,.06));
+        border: 1px solid var(--cbm-divider);
+        border-radius: .85rem;
         display: flex; align-items: center; justify-content: center;
-        color: white;
         flex-shrink: 0;
-        box-shadow: 0 4px 0.75rem var(--cbm-blue-glow);
+        transition: transform .15s ease, border-color .15s ease;
     }
-    .cbm-sidebar-logo svg { width: 1.125rem; height: 1.125rem; }
-    .cbm-sidebar-brand { line-height: 1.2; }
+    .cbm-sidebar-logo:hover { transform: scale(1.04); border-color: var(--cbm-blue); }
+    .cbm-sidebar-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .cbm-sidebar-brand { line-height: 1.2; min-width: 0; flex: 1; }
     .cbm-sidebar-brand-name {
-        font-size: .9375rem;
+        display: flex; flex-direction: column;
+        font-size: .875rem;
         font-weight: 800;
         color: var(--cbm-text);
         letter-spacing: -.01em;
+        line-height: 1.15;
     }
+    .cbm-sidebar-brand-name .accent { color: var(--cbm-blue); }
     .cbm-sidebar-brand-sub {
-        font-size: .6875rem;
+        margin-top: .25rem;
+        font-size: .625rem;
         color: var(--cbm-text-muted);
-        font-weight: 500;
-        letter-spacing: .03em;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Sidebar nav */

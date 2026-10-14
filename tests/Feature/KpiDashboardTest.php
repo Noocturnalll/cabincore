@@ -57,7 +57,7 @@ class KpiDashboardTest extends TestCase
         DB::table('dmi_logs')->insert(['aircraft_registration' => 'PK-A', 'date' => '2026-10-07', 'status' => 'Closed', 'man_hour' => 2, 'plan_station' => 'CGK', 'created_at' => now(), 'updated_at' => now()]);
         DB::table('wo_logs')->insert(['aircraft_registration' => 'PK-B', 'date' => '2026-10-07', 'status' => 'Closed', 'man_hour' => 4, 'act_station' => 'SUB', 'created_at' => now(), 'updated_at' => now()]);
         DB::table('aircraft_cleanings')->insert(['aircraft_registration' => 'PK-A', 'date' => '2026-10-07', 'shift' => 'Pagi', 'type' => 'Transit', 'status' => 'Closed', 'station' => 'CGK', 'man_hour' => 6, 'created_at' => now(), 'updated_at' => now()]);
-        DB::table('nsrdi_logs')->insert(['aircraft_registration' => 'PK-A', 'refresh_date' => '2026-10-07', 'category' => 'PAINTING', 'status' => 'Closed', 'man_hour' => 3, 'act_station' => 'CGK', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('nsrdi_logs')->insert(['aircraft_registration' => 'PK-A', 'refresh_date' => '2026-10-07', 'plan_date' => '2026-10-07', 'category' => 'PAINTING', 'status' => 'Closed', 'man_hour' => 3, 'act_station' => 'CGK', 'created_at' => now(), 'updated_at' => now()]);
 
         DocumentAccuracy::create(['work_date' => '2026-10-07', 'station' => 'CGK', 'cml_reported' => 90, 'nsrdi_reported' => 10, 'cml_missed' => 5, 'nsrdi_missed' => 0]);
         foreach ([['CLOSED', 'CLOSED'], ['CLOSED', 'CANCEL'], ['CANCEL', 'CANCEL'], ['CLOSED', 'CLOSED']] as [$c, $a]) {

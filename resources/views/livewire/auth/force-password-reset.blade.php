@@ -64,7 +64,7 @@
 .cl-left-in {
     display: flex; flex-direction: column; justify-content: space-between;
     height: 100%; padding: 2.75rem 3rem; position: relative; z-index: 1;
-    overflow-y: auto; overflow-x: hidden;
+    overflow: hidden;
 }
 
 /* Brand */
@@ -117,8 +117,25 @@
 /* --- Right Interactive Panel --- */
 .cl-right {
     flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
+    align-items: center; justify-content: flex-start;
     padding: 2.25rem 1.5rem; background: var(--panel); overflow-y: auto;
+    scrollbar-width: thin;
+}
+/* margin:auto centres the card vertically but never clips its top when it is taller than the screen */
+.cl-right > .cl-mob { margin-top: auto; }
+.cl-right > .cl-card { margin-top: auto; margin-bottom: auto; }
+.cl-right > .cl-mob + .cl-card { margin-top: 0; }
+
+/* Short screens (laptops, split windows): drop the decoration, tighten the form */
+@media (max-height: 820px) {
+    .cl-features { display: none; }
+    .cl-left-in { padding: 2rem 2.5rem; }
+    .cl-hero { padding: 1.25rem 0; }
+    .cl-right { padding: 1.25rem 1.5rem; }
+}
+@media (max-height: 700px) {
+    .cl-hero-p { display: none; }
+    .cl-form { gap: .8rem; }
 }
 
 /* Mobile brand */
@@ -175,6 +192,8 @@
 .cl-user-info { flex: 1; min-width: 0; }
 .cl-user-name { font-size: .8125rem; font-weight: 700; color: var(--txt-heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cl-user-meta { font-size: .6875rem; color: var(--muted); display: flex; align-items: center; gap: .375rem; margin-top: .1rem; }
+.cl-user-meta span { white-space: nowrap; }
+@media (max-width: 420px) { .cl-hdr-t { font-size: 1.2rem; } }
 .cl-badge-warn {
     font-size: .625rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
     padding: .15rem .45rem; border-radius: 9999px;
@@ -597,7 +616,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
                     </svg>
-                    <p>Tips: Jangan gunakan kata sandi yang mudah ditebak seperti tanggal lahir atau NIK. Buat kombinasi unik yang mudah Anda ingat.</p>
+                    <p>Tips: Jangan gunakan kata sandi yang mudah ditebak seperti tanggal lahir atau ID karyawan. Buat kombinasi unik yang mudah Anda ingat.</p>
                 </div>
 
             </div>

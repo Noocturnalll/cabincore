@@ -27,6 +27,7 @@ class RoleMatrixTest extends TestCase
         $sa = RoleHelper::SUPER_ADMIN;
         $mg = RoleHelper::MANAGER;
         $ad = RoleHelper::ADMIN_CGK;
+        $cod = RoleHelper::COD;
 
         return [
             '/modules/wo' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD],
@@ -40,7 +41,7 @@ class RoleMatrixTest extends TestCase
             '/modules/capacity' => [$sa, $mg, $ad, RoleHelper::PIC_CBM, RoleHelper::COD, RoleHelper::PIC_AIEC],
             '/reports/kpi' => $all,
             '/reports/summary' => $all,
-            '/reports/executive' => [$sa, $mg],
+            '/reports/executive' => [$sa, $mg, $ad, $cod, ...$pics],   // production-meeting dashboard: every working role
             '/audit' => [$sa, $mg],
             '/master/airports' => [$sa],
             '/master/aircraft' => [$sa],

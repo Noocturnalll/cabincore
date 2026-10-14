@@ -16,6 +16,8 @@ use App\Models\User;
 use App\Services\Attendance\AttendanceScorer;
 use App\Services\Compliance\ComplianceReport;
 use App\Support\ExpiryStatus;
+use App\Support\PlannedLogs;
+use App\Support\TaskStation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -75,7 +77,8 @@ class ModuleTiles
                 $rate = function (ReportPeriod $p) use ($table, $station) {
                     $q = DB::table("$table as l")->join('daily_job_assignments as d', 'd.id', '=', 'l.dja_id')
                         ->whereDate('d.date', '>=', $p->from->toDateString())->whereDate('d.date', '<=', $p->to->toDateString());
-                    $q = $station($q, 'COALESCE(l.act_station, l.plan_station)');
+                    $q = PlannedLogs::latestInPeriod($q, $table, $p->from->toDateString(), $p->to->toDateString());
+                    $q = $station($q, TaskStation::plannedSql('l', 'd'));
 
                     return [(clone $q)->whereRaw("LOWER(l.status) = 'closed'")->count(), (clone $q)->count()];
                 };
@@ -90,7 +93,7 @@ class ModuleTiles
             }, $key === 'nsrdi' ? 'menu.production|menu.painting' : 'menu.production');
         }
         $add('production', 'cml', function () use ($from, $to, $station) {
-            $q = $station(DB::table('cml_logs')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
+            $q = $station(DB::table('cml_logs')->where('kind', 'CML')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
             $open = (clone $q)->whereRaw("LOWER(status) <> 'closed'")->count();
 
             return ['title' => 'CML', 'value' => number_format((clone $q)->count()), 'sub' => $open ? "$open masih open" : 'semua closed', 'tone' => $open ? 'yellow' : 'green', 'route' => 'modules.cml'];
@@ -98,7 +101,7 @@ class ModuleTiles
         $add('production', 'unplanned', function () use ($from, $to, $station) {
             $n = $total = 0;
             foreach ([['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'plan_date']] as [$t, $c]) {
-                $q = $station(DB::table($t)->whereNull('dja_id')->whereDate($c, '>=', $from)->whereDate($c, '<=', $to), 'COALESCE(act_station, plan_station)');
+                $q = $station(DB::table($t)->whereNull('dja_id')->whereDate($c, '>=', $from)->whereDate($c, '<=', $to), TaskStation::unplannedSql());
                 $total += (clone $q)->count();
                 $n += (clone $q)->whereRaw("LOWER(status) = 'closed'")->count();
             }
@@ -120,7 +123,7 @@ class ModuleTiles
 
         // ── Cleaning & LGT ──
         $add('cleaning', 'cleaning', function () use ($from, $to, $station) {
-            $q = $station(DB::table('aircraft_cleanings')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
+            $q = $station(DB::table('aircraft_cleanings')->where('type', '!=', 'DBI')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
             $byType = (clone $q)->select('type', DB::raw('COUNT(*) n'))->groupBy('type')->orderByDesc('n')->pluck('n', 'type');
             $hours = (float) (clone $q)->sum('man_hour');
 
@@ -168,6 +171,19 @@ class ModuleTiles
 
             return ['title' => 'NSRDI overdue', 'value' => (string) $open, 'sub' => 'belum closed', 'tone' => $open ? 'red' : 'green', 'route' => 'modules.nsrdi-overdue'];
         }, 'menu.nsrdi');
+        $add('flight', 'stretcher', function () {
+            $inUse = DB::table('stretchers')->where('status', 'IN_USE')->count();
+            $requested = DB::table('stretcher_transactions')->where('status', 'REQUESTED')->count();
+            $total = DB::table('stretchers')->count();
+
+            return [
+                'title' => 'Stretcher Medevac',
+                'value' => (string) ($inUse + $requested),
+                'sub' => $requested ? "$requested request · $inUse in use dari $total unit" : "$inUse in use dari $total unit",
+                'tone' => ($inUse || $requested) ? 'yellow' : 'green',
+                'route' => 'modules.stretcher.index',
+            ];
+        }, 'menu.production');
 
         // ── People & compliance ──
         $add('people', 'compliance', function () use ($period, $stations, $tone) {

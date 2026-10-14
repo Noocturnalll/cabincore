@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\CmlKind;
+use App\Support\StationNormalizer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,8 +25,18 @@ class CmlLog extends Model
         'operator',
         'ac_status',
         'doc_type',
+        'kind',
         'no_doc',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $log) {
+            // a DBI is Cabin Maintenance with its own tab; "DBI" in the station cell is a label, not a station
+            $log->kind = CmlKind::detect($log->description);
+            $log->station = strtoupper(trim((string) $log->station)) === 'DBI' ? null : StationNormalizer::normalize($log->station);
+        });
+    }
 
     public function dailyJobAssignment()
     {

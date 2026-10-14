@@ -48,7 +48,7 @@ class OperationalPivotTest extends TestCase
     private function wo(string $table, ?int $dja, string $date, string $station, string $status): void
     {
         $dateCol = $table === 'nsrdi_logs' ? 'refresh_date' : 'date';
-        DB::table($table)->insert(['aircraft_registration' => 'PK-A', $dateCol => $date, 'status' => $status, 'act_station' => $station, 'dja_id' => $dja, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table($table)->insert(['aircraft_registration' => 'PK-A', $dateCol => $date, 'status' => $status, 'act_station' => $station, 'plan_station' => $dja ? $station : null, 'dja_id' => $dja, 'created_at' => now(), 'updated_at' => now()]);
     }
 
     private function cleaning(string $type, string $station, string $date, string $status, float $hours = 1): void
@@ -115,12 +115,13 @@ class OperationalPivotTest extends TestCase
 
         $p = app(OperationalPivot::class)->build($this->user(RoleHelper::MANAGER), ReportPeriod::of('week', Carbon::parse('2026-10-07'), 3));
 
-        $this->assertSame(['Transit', 'General', 'DCI', 'DCE', 'DBI', 'GCI', 'GCE'], $p['cleaning_types']);
+        $this->assertSame(['Transit', 'General', 'DCI', 'DCE', 'GCI', 'GCE'], $p['cleaning_types'], 'DBI is Cabin Maintenance, not an AIEC cleaning type');
+        $this->assertSame(1, $p['total']['dbi']['total'], 'the DBI log of the cleaning records shows as the DBI block');
         $this->assertSame(['total' => 3, 'closed' => 2, 'open' => 1, 'rate' => 66.7], $p['rows']['CGK']['cleaning:Transit']);
         $this->assertSame(1, $p['rows']['CGK']['cleaning:GCE']['closed']);
         $this->assertSame(1, $p['rows']['SUB']['cleaning:GCI']['closed']);
         $this->assertSame(0.0, (float) $p['rows']['SUB']['cleaning:DCI']['rate']);
-        $this->assertSame(9, $p['total']['cleaning']['total']);
+        $this->assertSame(8, $p['total']['cleaning']['total'], 'the DBI row is not AIEC work');
     }
 
     public function test_days_give_the_same_figures_one_day_at_a_time(): void
@@ -160,7 +161,7 @@ class OperationalPivotTest extends TestCase
         $this->assertSame(['cleaning'], array_keys($aiec['blocks']));
 
         $cbm = $pivot->build($this->user(RoleHelper::PIC_CBM), $period);
-        $this->assertSame(['wo', 'dmi', 'nsrdi', 'unplanned', 'cml'], array_keys($cbm['blocks']));
+        $this->assertSame(['wo', 'dmi', 'nsrdi', 'unplanned', 'cml', 'dbi'], array_keys($cbm['blocks']));
 
         $finishing = $pivot->build($this->user(RoleHelper::PIC_FINISHING), $period);
         $this->assertSame([], $finishing['blocks']);

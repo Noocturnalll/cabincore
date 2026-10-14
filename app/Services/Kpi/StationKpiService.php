@@ -58,6 +58,8 @@ class StationKpiService
                 'lgt_cbm' => $lgt[$station]['cbm'] ?? null,
                 'lgt_aiec' => $lgt[$station]['aiec'] ?? null,
                 'compliance' => $compliance[$station] ?? null,
+                // work was done here but no CBM roster exists (an outstation): capacity is not 0%, it is not measured
+                'no_mp' => $capacity <= 0 && $hours !== null,
             ];
         })->sortByDesc('capacity')->values()->all();
 

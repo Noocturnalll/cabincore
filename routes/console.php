@@ -17,4 +17,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('report:daily')->dailyAt('10:00');
+Schedule::command('ops:watch')->everyThirtyMinutes();
+Schedule::command('app:backup-database')->dailyAt('02:00');
 Schedule::command('app:snapshot-capacity-data')->dailyAt('16:00');

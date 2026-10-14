@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\DashboardScope;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -181,7 +182,7 @@ class Dashboard extends Component
         $nsrdi_unplanned_closed = (int) ($nsrdiUnplannedAgg->closed_count ?? 0);
 
         // ─── 4. CML ─────────────────────────────────────────────────────────
-        $cmlAgg = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')
+        $cmlAgg = $this->applyStationFilter(DB::table('cml_logs')->where('kind', 'CML'), 'cml_logs')
             ->whereBetween('date', [$from, $to])
             ->selectRaw("
                 COUNT(*) as total,
@@ -433,7 +434,7 @@ class Dashboard extends Component
         $endDateStr = $targetDates[$loopCount - 1][1];
 
         // CML closed trend
-        $cmlTrend = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')
+        $cmlTrend = $this->applyStationFilter(DB::table('cml_logs')->where('kind', 'CML'), 'cml_logs')
             ->where('status', 'Closed')
             ->whereBetween('date', [$startDateStr, $endDateStr])
             ->select('date', DB::raw('COUNT(*) as total'))
@@ -606,12 +607,37 @@ class Dashboard extends Component
             }
         }
 
+        if (Schema::hasTable('nsrdi_overdues')) {
+            $dedicatedOverdues = DB::table('nsrdi_overdues')
+                ->whereNull('closed_at')
+                ->select('aoc', DB::raw('COUNT(*) as overdue_count'))
+                ->whereNotNull('aoc')
+                ->groupBy('aoc')
+                ->get();
+            foreach ($dedicatedOverdues as $row) {
+                $aocStr = strtolower(trim((string) $row->aoc));
+                if (str_contains($aocStr, 'batik')) {
+                    $nsrdiOverdueMap['Batik Air'] += $row->overdue_count;
+                } elseif (str_contains($aocStr, 'lion')) {
+                    $nsrdiOverdueMap['Lion Air'] += $row->overdue_count;
+                } elseif (str_contains($aocStr, 'saj') || str_contains($aocStr, 'super')) {
+                    $nsrdiOverdueMap['Super Air Jet'] += $row->overdue_count;
+                } elseif (str_contains($aocStr, 'wings')) {
+                    $nsrdiOverdueMap['Wings Air'] += $row->overdue_count;
+                }
+            }
+        }
+
         // ─── 11. Overall / All-time summary ──────────────────────────────────
         $overall = [
             'wo' => $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->count(),
-            'cml' => $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')->count(),
+            'cml' => $this->applyStationFilter(DB::table('cml_logs')->where('kind', 'CML'), 'cml_logs')->count(),
             'dmi' => $this->applyStationFilter(DB::table('dmi_logs'), 'dmi_logs')->count(),
             'nsrdi' => $this->applyStationFilter(DB::table('nsrdi_logs'), 'nsrdi_logs')->count(),
+            'nsrdi_overdues' => Schema::hasTable('nsrdi_overdues') ? DB::table('nsrdi_overdues')->whereNull('closed_at')->count() : 0,
+            'stretcher' => Schema::hasTable('stretchers') ? DB::table('stretchers')->count() : 0,
+            'stretcher_in_use' => Schema::hasTable('stretchers') ? DB::table('stretchers')->where('status', 'IN_USE')->count() : 0,
+            'stretcher_requested' => Schema::hasTable('stretcher_transactions') ? DB::table('stretcher_transactions')->where('status', 'REQUESTED')->count() : 0,
             'ict' => $hasIct ? DB::table('ict_findings')->count() : 0,
             'ict_open' => $hasIct ? DB::table('ict_findings')->where('status', 'Open')->count() : 0,
             'ac' => $this->applyStationFilter(DB::table('aircraft_cleanings'), 'aircraft_cleanings')->count(),
@@ -740,7 +766,7 @@ class Dashboard extends Component
             ->all();
 
         if (empty($topDefects)) {
-            $topDefects = $this->applyStationFilter(DB::table('cml_logs'), 'cml_logs')
+            $topDefects = $this->applyStationFilter(DB::table('cml_logs')->where('kind', 'CML'), 'cml_logs')
                 ->whereBetween('date', [$from, $to])
                 ->whereNotNull('doc_type')
                 ->select('doc_type as category', DB::raw('COUNT(*) as total'))
@@ -759,11 +785,24 @@ class Dashboard extends Component
             $ronCount = $latestRonDate ? DB::table('ac_rons')->whereDate('ron_date', $latestRonDate)->count() : 0;
         }
         $standbyCount = DB::table('ac_standbies')->count();
+        $stretcherRequested = Schema::hasTable('stretcher_transactions')
+            ? DB::table('stretcher_transactions')->where('status', 'REQUESTED')->count()
+            : 0;
+        $stretcherInUse = Schema::hasTable('stretchers')
+            ? DB::table('stretchers')->where('status', 'IN_USE')->count()
+            : 0;
+        $nsrdiOverdueOpen = Schema::hasTable('nsrdi_overdues')
+            ? DB::table('nsrdi_overdues')->whereNull('closed_at')->count()
+            : 0;
+
         $capacitySummary = [
             'ron_count' => $ronCount,
             'standby_count' => $standbyCount,
             'man_hours' => $man_hours,
             'man_power' => $man_power,
+            'stretcher_requested' => $stretcherRequested,
+            'stretcher_in_use' => $stretcherInUse,
+            'nsrdi_overdue_open' => $nsrdiOverdueOpen,
         ];
 
         return [

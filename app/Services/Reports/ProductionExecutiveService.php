@@ -10,7 +10,9 @@ use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
 use App\Services\Aiec\StationCapabilityService;
+use App\Support\TaskStation;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class ProductionExecutiveService
 {
@@ -78,6 +80,20 @@ class ProductionExecutiveService
     }
 
     /**
+     * The station filter lets a task through when either station matches; this keeps it only where the shared rule
+     * puts it (planned: plan station, unplanned: actual station), so one task is never counted at two stations.
+     */
+    private function placedAt(Collection $logs, ?string $station): Collection
+    {
+        if (! $station) {
+            return $logs;
+        }
+        $station = strtoupper($station);
+
+        return $logs->filter(fn ($r) => TaskStation::of($r) === $station)->values();
+    }
+
+    /**
      * Build full consolidated production statistics for executive meeting.
      *
      * @return array<string, mixed>
@@ -114,7 +130,7 @@ class ProductionExecutiveService
         if ($station) {
             $nsrdiCbmQ->where(fn ($q) => $q->where('act_station', $station)->orWhere('plan_station', $station));
         }
-        $nsrdiCbm = $nsrdiCbmQ->get();
+        $nsrdiCbm = $this->placedAt($nsrdiCbmQ->with('dailyJobAssignment')->get(), $station);
 
         $woQ = WoLog::where('is_submitted', true)
             ->where(function ($q) use ($startStr, $endStr) {
@@ -124,7 +140,7 @@ class ProductionExecutiveService
         if ($station) {
             $woQ->where(fn ($q) => $q->where('act_station', $station)->orWhere('plan_station', $station));
         }
-        $wo = $woQ->get();
+        $wo = $this->placedAt($woQ->with('dailyJobAssignment')->get(), $station);
 
         $dmiQ = DmiLog::where('is_submitted', true)
             ->where(function ($q) use ($startStr, $endStr) {
@@ -134,9 +150,9 @@ class ProductionExecutiveService
         if ($station) {
             $dmiQ->where(fn ($q) => $q->where('act_station', $station)->orWhere('plan_station', $station));
         }
-        $dmi = $dmiQ->get();
+        $dmi = $this->placedAt($dmiQ->with('dailyJobAssignment')->get(), $station);
 
-        $cmlQ = CmlLog::whereDate('date', '>=', $startStr)->whereDate('date', '<=', $endStr);
+        $cmlQ = CmlLog::where('kind', 'CML')->whereDate('date', '>=', $startStr)->whereDate('date', '<=', $endStr);
         if ($station) {
             $cmlQ->where('station', $station);
         }
@@ -175,7 +191,7 @@ class ProductionExecutiveService
         if ($station) {
             $nsrdiPaintQ->where(fn ($q) => $q->where('act_station', $station)->orWhere('plan_station', $station));
         }
-        $nsrdiPaint = $nsrdiPaintQ->get();
+        $nsrdiPaint = $this->placedAt($nsrdiPaintQ->with('dailyJobAssignment')->get(), $station);
 
         $paintingTotal = $nsrdiPaint->count() + $cmlPainting->count();
         $paintingClosed = $nsrdiPaint->where('status', 'Closed')->count() + $cmlPainting->where('status', 'Closed')->count();
@@ -234,9 +250,9 @@ class ProductionExecutiveService
                 continue;
             }
 
-            $sNsrdi = $nsrdiCbm->filter(fn ($r) => strtoupper(trim($r->act_station ?: $r->plan_station ?: '')) === $sta);
-            $sWo = $wo->filter(fn ($r) => strtoupper(trim($r->act_station ?: $r->plan_station ?: '')) === $sta);
-            $sDmi = $dmi->filter(fn ($r) => strtoupper(trim($r->act_station ?: $r->plan_station ?: '')) === $sta);
+            $sNsrdi = $nsrdiCbm->filter(fn ($r) => TaskStation::of($r) === $sta);
+            $sWo = $wo->filter(fn ($r) => TaskStation::of($r) === $sta);
+            $sDmi = $dmi->filter(fn ($r) => TaskStation::of($r) === $sta);
             $sCml = $cmlCabin->filter(fn ($r) => strtoupper(trim($r->station ?: '')) === $sta);
 
             $sTotal = $sNsrdi->count() + $sWo->count() + $sDmi->count() + $sCml->count();

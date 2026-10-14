@@ -98,7 +98,7 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/modules/nsrdi', App\Livewire\Modules\NsrdiLog\Index::class)->middleware('permission:menu.production|menu.painting')->name('modules.nsrdi');
     Route::get('/modules/painting/nsrdi', App\Livewire\Modules\NsrdiLog\Index::class)->middleware('permission:menu.painting|menu.production')->name('modules.painting.nsrdi');
     Route::get('/modules/painting/daily-report', App\Livewire\Modules\Painting\DailyReport::class)->middleware('permission:menu.painting|menu.production')->name('modules.painting.daily-report');
-    Route::get('/modules/nsrdi-overdue', App\Livewire\Modules\NsrdiOverdue\Index::class)->middleware('permission:menu.nsrdi')->name('modules.nsrdi-overdue');
+    Route::get('/modules/nsrdi-overdue', App\Livewire\Modules\NsrdiOverdue\Index::class)->middleware('permission:menu.nsrdi.overdue|menu.nsrdi|menu.production')->name('modules.nsrdi-overdue');
     Route::get('/modules/nsrdi-no-spare', App\Livewire\Modules\NsrdiNoSpare\Index::class)->middleware('permission:menu.nsrdi')->name('modules.nsrdi-no-spare');
     Route::get('/modules/dmi', App\Livewire\Modules\DmiLog\Index::class)->middleware('permission:menu.production')->name('modules.dmi');
     Route::get('/modules/wo', App\Livewire\Modules\WoLog\Index::class)->middleware('permission:menu.production')->name('modules.wo');

@@ -117,7 +117,7 @@ class OperationalCharts
             'datasets' => [['label' => 'Porsi', 'data' => $totals->map(fn ($c) => round($c['total'] / $sum * 100, 1))->values()->all(), 'colors' => $totals->keys()->map($colorOf)->all(), 'extra' => $totals->map(fn ($c) => number_format($c['total']).' pekerjaan')->values()->all()]]];
 
         // closed rate per type
-        $charts[] = ['id' => 'cl_rate', 'title' => 'Closed rate per tipe', 'sub' => 'Transit, General, DCI, DCE, DBI, GCI, GCE', 'type' => 'bar', 'labels' => $totals->keys()->all(), 'percent' => true, 'max' => 100, 'legend' => false,
+        $charts[] = ['id' => 'cl_rate', 'title' => 'Closed rate per tipe', 'sub' => 'Transit, General, DCI, DCE, GCI, GCE', 'type' => 'bar', 'labels' => $totals->keys()->all(), 'percent' => true, 'max' => 100, 'legend' => false,
             'datasets' => [['label' => 'Closed rate', 'data' => $totals->pluck('rate')->values()->all(), 'colors' => $totals->map(fn ($c) => $this->tone($c['rate']))->values()->all(), 'extra' => $totals->map(fn ($c) => "{$c['closed']} / {$c['total']} closed")->values()->all()]]];
 
         // the mix of types at each station, 100% stacked

@@ -3,6 +3,15 @@
 namespace App\Providers;
 
 use App\Helpers\RoleHelper;
+use App\Models\Aircraft;
+use App\Models\Airport;
+use App\Models\CapacityStation;
+use App\Models\Division;
+use App\Models\JobCategory;
+use App\Models\MasterEntry;
+use App\Models\Position;
+use App\Models\User;
+use App\Observers\AuditObserver;
 use App\Services\Dja\DjaIngestor;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -33,6 +42,12 @@ class AppServiceProvider extends ServiceProvider
     {
         // Super Admin is allowed everything, so a permission added later never locks the owner out
         Gate::before(fn ($user) => $user->hasRole(RoleHelper::SUPER_ADMIN) ? true : null);
+
+        // Who changed accounts and the masters the numbers are measured against
+        foreach ([User::class, Airport::class, Aircraft::class, JobCategory::class,
+            Division::class, Position::class, CapacityStation::class, MasterEntry::class] as $audited) {
+            $audited::observe(AuditObserver::class);
+        }
 
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinutes(3, 5)->by($request->ip());

@@ -3,12 +3,14 @@
 namespace App\Services\Kpi;
 
 use App\Models\User;
+use App\Support\PlannedLogs;
+use App\Support\TaskStation;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Open / closed / rate per station and per day for the work of the period:
  *   WO, DMI and NSRDI as planned by the DJA (deployed in the period), the unplanned ones next to them, CML, and
- *   Aircraft Cleaning split by type (Transit, General, DCI, DCE, DBI, GCI, GCE, ...).
+ *   Aircraft Cleaning split by type (Transit, General, DCI, DCE, GCI, GCE, ...); DBI is Cabin Maintenance, not cleaning.
  * A block is only built for a user who has the menu behind it. A figure that fails to compute leaves its block out.
  *
  * A cell is [total, closed, open, rate]; rate is null when there is nothing to measure.
@@ -16,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class OperationalPivot
 {
     /** The order the cleaning types are shown in; any other type found in the data follows. */
-    public const CLEANING_TYPES = ['Transit', 'General', 'DCI', 'DCE', 'DBI', 'GCI', 'GCE'];
+    public const CLEANING_TYPES = ['Transit', 'General', 'DCI', 'DCE', 'GCI', 'GCE'];
 
     /** @return array{blocks: array<string, string>, cleaning_types: array<int, string>, rows: array<string, array>, total: array, days: array<string, array>} */
     public function build(User $user, ReportPeriod $period, ?array $stations = null): array
@@ -57,8 +59,9 @@ class OperationalPivot
             try {
                 $q = DB::table("$table as l")->join('daily_job_assignments as d', 'd.id', '=', 'l.dja_id')
                     ->whereDate('d.date', '>=', $from)->whereDate('d.date', '<=', $to);
-                $q = $stationFilter($q, 'COALESCE(l.act_station, l.plan_station)');
-                $put($key, $q->selectRaw("COALESCE(l.act_station, l.plan_station) as st, DATE(d.date) as day, COUNT(*) as total, {$closedSum('l.status')} as closed")->groupBy('st', 'day')->get());
+                $q = PlannedLogs::latestInPeriod($q, $table, $from, $to);
+                $q = $stationFilter($q, TaskStation::plannedSql('l', 'd'));
+                $put($key, $q->selectRaw(TaskStation::plannedSql('l', 'd')." as st, DATE(d.date) as day, COUNT(*) as total, {$closedSum('l.status')} as closed")->groupBy('st', 'day')->get());
                 $blocks[$key] = $label;
             } catch (\Throwable $e) {
                 report($e);
@@ -71,8 +74,8 @@ class OperationalPivot
                 $sources = $can('menu.production') ? [['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'plan_date']] : [['nsrdi_logs', 'plan_date']];
                 foreach ($sources as [$table, $dateCol]) {
                     $q = DB::table($table)->whereNull('dja_id')->whereDate($dateCol, '>=', $from)->whereDate($dateCol, '<=', $to);
-                    $q = $stationFilter($q, 'COALESCE(act_station, plan_station)');
-                    $put('unplanned', $q->selectRaw("COALESCE(act_station, plan_station) as st, DATE($dateCol) as day, COUNT(*) as total, {$closedSum('status')} as closed")->groupBy('st', 'day')->get());
+                    $q = $stationFilter($q, TaskStation::unplannedSql());
+                    $put('unplanned', $q->selectRaw(TaskStation::unplannedSql()." as st, DATE($dateCol) as day, COUNT(*) as total, {$closedSum('status')} as closed")->groupBy('st', 'day')->get());
                 }
                 $blocks['unplanned'] = 'Unplanned';
             } catch (\Throwable $e) {
@@ -80,12 +83,22 @@ class OperationalPivot
             }
         }
 
-        // ── CML
+        // ── CML and DBI (Daily Beautification Inspection, Cabin Maintenance): two lists of the same log
         if ($can('menu.production')) {
+            foreach (['cml' => ['CML', 'CML'], 'dbi' => ['DBI', 'DBI']] as $key => [$kind, $label]) {
+                try {
+                    $q = $stationFilter(DB::table('cml_logs')->where('kind', $kind)->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
+                    $put($key, $q->selectRaw("station as st, DATE(date) as day, COUNT(*) as total, {$closedSum('status')} as closed")->groupBy('st', 'day')->get());
+                    $blocks[$key] = $label;
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+            // the DBI log kept with the cleaning records is the same Cabin Maintenance work
             try {
-                $q = $stationFilter(DB::table('cml_logs')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
-                $put('cml', $q->selectRaw("station as st, DATE(date) as day, COUNT(*) as total, {$closedSum('status')} as closed")->groupBy('st', 'day')->get());
-                $blocks['cml'] = 'CML';
+                $q = $stationFilter(DB::table('aircraft_cleanings')->where('type', 'DBI')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
+                $put('dbi', $q->selectRaw("station as st, DATE(date) as day, COUNT(*) as total, {$closedSum('status')} as closed")->groupBy('st', 'day')->get());
+                $blocks['dbi'] = 'DBI';
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -94,7 +107,7 @@ class OperationalPivot
         // ── Aircraft Cleaning, split by type
         if ($can('menu.cleaning')) {
             try {
-                $q = $stationFilter(DB::table('aircraft_cleanings')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
+                $q = $stationFilter(DB::table('aircraft_cleanings')->where('type', '!=', 'DBI')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
                 $data = $q->selectRaw("station as st, DATE(date) as day, type, COUNT(*) as total, {$closedSum('status')} as closed, COALESCE(SUM(man_hour), 0) as hours")->groupBy('st', 'day', 'type')->get();
                 $types = $data->pluck('type')->filter()->unique()->values()->all();
                 usort($types, fn ($a, $b) => [array_search($a, self::CLEANING_TYPES) === false ? 99 : array_search($a, self::CLEANING_TYPES), $a] <=> [array_search($b, self::CLEANING_TYPES) === false ? 99 : array_search($b, self::CLEANING_TYPES), $b]);

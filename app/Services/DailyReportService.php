@@ -73,7 +73,7 @@ class DailyReportService
                 ->where('status', 'Closed')->count();
 
             // 7. CML CLOSED (Created on this date, regardless of DJA, status closed)
-            $cmlClosed = CmlLog::where('station', $station)
+            $cmlClosed = CmlLog::where('kind', 'CML')->where('station', $station)
                 ->whereDate('created_at', $date)
                 ->where('status', 'Closed')->count();
 

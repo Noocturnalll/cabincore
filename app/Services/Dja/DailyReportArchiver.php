@@ -5,6 +5,7 @@ namespace App\Services\Dja;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
+use App\Support\CmlKind;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -39,6 +40,7 @@ class DailyReportArchiver
     public function run(): array
     {
         $moved = [];
+        CmlKind::sync();
         foreach (self::SOURCES as $kind => [$model, $dateSql, $codes, $remarks]) {
             $moved[$kind] = $this->pastCutoff($model, $dateSql)
                 ->where(fn (Builder $q) => $q

@@ -74,7 +74,7 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
             $data,
             'station',
             'type',
-            ['DCI', 'DCE', 'Transit', 'General', 'DBI', 'LGT'],
+            ['DCI', 'DCE', 'Transit', 'General', 'LGT'],
             'Station / Bandara',
             '1. Matriks Rekapitulasi: Station vs Jenis Cleaning'
         );
@@ -107,7 +107,7 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
 
     public function collection(): Collection
     {
-        $query = AircraftCleaning::query();
+        $query = AircraftCleaning::aiec();
 
         if ($this->search) {
             $query->where(function ($q) {

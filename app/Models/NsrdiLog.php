@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizesStations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class NsrdiLog extends Model
 {
-    use HasFactory;
+    use HasFactory, NormalizesStations;
 
     protected $fillable = [
         'man_power', 'start_at', 'end_at', 'man_hour', 'leader_import_id',
@@ -49,6 +50,23 @@ class NsrdiLog extends Model
                 $log->description,
                 $log->work_group
             );
+        });
+
+        static::saved(function (NsrdiLog $log) {
+            if (strtolower((string) $log->status) === 'closed') {
+                $num = strtoupper(trim((string) $log->nsrdi_number));
+                if ($num !== '') {
+                    NsrdiOverdue::where(function ($q) use ($num) {
+                        $q->whereRaw('UPPER(TRIM(nsrdi_number)) = ?', [$num])
+                            ->orWhereRaw('UPPER(TRIM(mddr)) = ?', [$num]);
+                    })
+                        ->whereRaw('LOWER(status) != ?', ['closed'])
+                        ->update([
+                            'status' => 'Closed',
+                            'closed_at' => now(),
+                        ]);
+                }
+            }
         });
     }
 

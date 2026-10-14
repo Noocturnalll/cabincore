@@ -13,14 +13,30 @@ class NsrdiOverdueExport implements Export, WithMultipleSheets
 {
     protected $search;
 
-    public function __construct($search = '')
+    protected $tab;
+
+    protected $operator;
+
+    public function __construct($search = '', $tab = 'all', $operator = '')
     {
         $this->search = $search;
+        $this->tab = $tab;
+        $this->operator = $operator;
     }
 
     public function sheets(): array
     {
         $query = NsrdiOverdue::query();
+
+        if ($this->tab === 'open') {
+            $query->whereRaw('LOWER(status) != ?', ['closed']);
+        } elseif ($this->tab === 'closed') {
+            $query->whereRaw('LOWER(status) = ?', ['closed']);
+        }
+
+        if ($this->operator) {
+            $query->where('operator', $this->operator);
+        }
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -28,7 +44,8 @@ class NsrdiOverdueExport implements Export, WithMultipleSheets
                     ->orWhere('nsrdi_number', 'like', '%'.$this->search.'%')
                     ->orWhere('description', 'like', '%'.$this->search.'%')
                     ->orWhere('operator', 'like', '%'.$this->search.'%')
-                    ->orWhere('mddr', 'like', '%'.$this->search.'%');
+                    ->orWhere('mddr', 'like', '%'.$this->search.'%')
+                    ->orWhere('part_number', 'like', '%'.$this->search.'%');
             });
         }
 
@@ -44,8 +61,10 @@ class NsrdiOverdueExport implements Export, WithMultipleSheets
                 'status' => $r->status ?: 'Open',
                 'area' => $r->area ?: '-',
                 'report_date' => $r->report_date ? (is_string($r->report_date) ? substr($r->report_date, 0, 10) : $r->report_date->format('Y-m-d')) : '-',
+                'due_date' => $r->due_date ? (is_string($r->due_date) ? substr($r->due_date, 0, 10) : $r->due_date->format('Y-m-d')) : '-',
                 'month_due' => $r->month_due ?: '-',
                 'description' => $r->description ?: '-',
+                'part_number' => $r->part_number ?: '-',
                 'status_final' => $r->status_final ?: '-',
                 'remarks' => $r->remarks ?: '-',
                 'closed_at' => $r->closed_at ? (is_string($r->closed_at) ? substr($r->closed_at, 0, 19) : $r->closed_at->format('Y-m-d H:i:s')) : '-',
@@ -100,6 +119,7 @@ class NsrdiOverdueExport implements Export, WithMultipleSheets
 
         $metadata = [
             'Total Overdue Defect' => (string) $records->count(),
+            'Kategori Tab' => ucfirst($this->tab),
             'Filter Pencarian' => $this->search ?: 'Semua Data',
             'Tanggal Ekspor' => now()->translatedFormat('d F Y H:i'),
         ];
@@ -117,8 +137,10 @@ class NsrdiOverdueExport implements Export, WithMultipleSheets
             'Status',
             'Area',
             'Report Date',
+            'Due Date',
             'Month Due',
             'Defect Description',
+            'Part Number',
             'Status Final',
             'Remarks',
             'Closed At',

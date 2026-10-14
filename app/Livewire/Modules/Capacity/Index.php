@@ -6,6 +6,8 @@ use App\Models\CapacityReport;
 use App\Models\CapacityStation;
 use App\Models\CapacityTarget;
 use App\Models\NsrdiLog;
+use App\Services\Audit\AocResolver;
+use App\Support\TaskStation;
 use Carbon\Carbon;
 use Livewire\Component;
 
@@ -84,33 +86,19 @@ class Index extends Component
             ];
         }
 
-        $nsrdisAll = NsrdiLog::where('status', 'Closed')
+        $nsrdisAll = NsrdiLog::with('dailyJobAssignment')->where('status', 'Closed')
             ->whereDate('close_date', $day)
             ->get();
 
+        $resolver = app(AocResolver::class);
         $nsrdiData = [];
         $nsrdiTotals = ['JT' => 0, 'IW' => 0, 'ID' => 0, 'IU' => 0, 'TOTAL' => 0];
 
         foreach ($nsrdisAll as $log) {
-            $sta = strtoupper($log->act_station ?? $log->station ?? $log->plan_station ?? '');
-            $aoc = strtoupper($log->operator ?? $log->aoc ?? '');
-            $acReg = strtoupper($log->aircraft_registration ?? '');
-
-            $aocKey = 'UNKNOWN';
-            if (stripos($aoc, 'LION') !== false || stripos($acReg, 'PK-L') === 0) {
-                $aocKey = 'JT';
-            } elseif (stripos($aoc, 'BATIK') !== false || stripos($acReg, 'PK-B') === 0) {
-                $aocKey = 'ID';
-            } elseif (stripos($aoc, 'WINGS') !== false || stripos($acReg, 'PK-W') === 0) {
-                $aocKey = 'IW';
-            } elseif (stripos($aoc, 'SUPER AIR') !== false || stripos($acReg, 'PK-S') === 0) {
-                $aocKey = 'IU';
-            } elseif (stripos($aoc, 'THAI') !== false || stripos($acReg, 'HS-') === 0) {
-                $aocKey = 'SL';
-            } elseif (stripos($aoc, 'MALINDO') !== false || stripos($acReg, '9M-') === 0) {
-                $aocKey = 'OD';
-            }
-
+            $sta = TaskStation::of($log);
+            // The aircraft master decides the airline (PK-L.. is both Lion and Batik); the AOC text of the log is only a fallback
+            $aocCode = $resolver->resolve($log->aircraft_registration, $log->aoc)?->code;
+            $aocKey = in_array($aocCode, ['JT', 'ID', 'IW', 'IU', 'SL', 'OD'], true) ? $aocCode : 'UNKNOWN';
             if ($sta && $aocKey !== 'UNKNOWN') {
                 if (! isset($nsrdiData[$sta])) {
                     $nsrdiData[$sta] = ['JT' => 0, 'IW' => 0, 'ID' => 0, 'IU' => 0, 'TOTAL' => 0];

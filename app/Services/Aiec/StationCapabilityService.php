@@ -145,7 +145,7 @@ class StationCapabilityService
     {
         $capabilities = self::getStationCapabilities();
 
-        $query = AircraftCleaning::query();
+        $query = AircraftCleaning::aiec();
         if ($month) {
             $query->where('date', 'like', "$month%");
         } elseif ($startDate && $endDate) {
@@ -284,11 +284,11 @@ class StationCapabilityService
     }
 
     /**
-     * PIVOT 1: Matriks Stasiun vs Jenis Cleaning (Transit, General, DCI, DCE, DBI, LGT)
+     * PIVOT 1: Matriks Stasiun vs Jenis Cleaning (Transit, General, DCI, DCE, LGT)
      */
     public static function getStationTypePivot(?string $month = null): array
     {
-        $query = AircraftCleaning::query();
+        $query = AircraftCleaning::aiec();
         if ($month) {
             $query->where('date', 'like', "$month%");
         }
@@ -297,7 +297,7 @@ class StationCapabilityService
             ->groupBy('station', 'type')
             ->get();
 
-        $types = ['Transit', 'General', 'DCI', 'DCE', 'DBI', 'LGT'];
+        $types = ['Transit', 'General', 'DCI', 'DCE', 'LGT'];
         $matrix = [];
         $totals = array_fill_keys($types, 0);
         $grandTotal = 0;
@@ -334,7 +334,7 @@ class StationCapabilityService
      */
     public static function getStationShiftPivot(?string $month = null): array
     {
-        $query = AircraftCleaning::query();
+        $query = AircraftCleaning::aiec();
         if ($month) {
             $query->where('date', 'like', "$month%");
         }
@@ -393,7 +393,7 @@ class StationCapabilityService
         $results = collect();
 
         foreach ($months as $code => $label) {
-            $q = AircraftCleaning::where('date', 'like', "$code%");
+            $q = AircraftCleaning::aiec()->where('date', 'like', "$code%");
 
             $total = (clone $q)->count();
             $transit = (clone $q)->where('type', 'Transit')->count();
@@ -431,7 +431,7 @@ class StationCapabilityService
     public static function getBatikOdOverdueMonitoring(): Collection
     {
         // Cari semua pekerjaan Batik OD (operator like 'BATIK OD' atau reg like '9M-%')
-        $records = AircraftCleaning::where(function ($q) {
+        $records = AircraftCleaning::aiec()->where(function ($q) {
             $q->where('operator', 'like', '%BATIK OD%')
                 ->orWhere('aircraft_registration', 'like', '9M-%');
         })

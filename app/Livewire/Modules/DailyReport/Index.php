@@ -412,7 +412,8 @@ class Index extends Component
                 $logs = $query->orderByRaw('COALESCE(plan_date, report_date) DESC')->orderBy('id')->paginate($this->perPage);
                 break;
             case 'cml':
-                $query = CmlLog::whereDate('date', '<', $activeDate);
+            case 'dbi':
+                $query = CmlLog::where('kind', $this->activeTab === 'dbi' ? 'DBI' : 'CML')->whereDate('date', '<', $activeDate);
                 if ($this->search) {
                     $query->where(function ($q) {
                         $q->where('aircraft_registration', 'like', '%'.$this->search.'%')
@@ -433,7 +434,7 @@ class Index extends Component
                 $woQuery = WoLog::where('is_submitted', true);
                 $dmiQuery = DmiLog::where('is_submitted', true);
                 $nsrdiQuery = NsrdiLog::where('is_submitted', true)->where(fn ($q) => $q->where('category', 'CBM')->orWhereNull('category'));
-                $cmlQuery = CmlLog::query();
+                $cmlQuery = CmlLog::where('kind', 'CML');
 
                 // Adjust for date boundaries (same as other tabs: before activeDate, or exact dateFilter)
                 if ($this->dateFilter) {
@@ -571,7 +572,7 @@ class Index extends Component
                         ->where(fn ($q) => $q->whereHas('dailyJobAssignment', fn ($d) => $d->whereDate('date', $targetDate))->orWhereDate('plan_date', $targetDate)->orWhereDate('report_date', $targetDate))
                         ->count();
 
-                    $cmlCount = CmlLog::where('station', $sta)->whereDate('date', $targetDate)->count();
+                    $cmlCount = CmlLog::where('kind', 'CML')->where('station', $sta)->whereDate('date', $targetDate)->count();
                     $acCount = AircraftCleaning::where('station', $sta)->whereDate('date', $targetDate)->count();
 
                     $totalItems = $woCount + $dmiCount + $nsrdiCount + $cmlCount + $acCount;

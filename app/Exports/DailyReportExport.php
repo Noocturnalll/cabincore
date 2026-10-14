@@ -281,9 +281,10 @@ class DailyReportExport implements Export, FromCollection, WithHeadings, WithMul
                     ];
                 });
 
+            case 'dbi':
             case 'cml':
             default:
-                $query = CmlLog::whereDate('date', '<', $activeDate);
+                $query = CmlLog::where('kind', $this->activeTab === 'dbi' ? 'DBI' : 'CML')->whereDate('date', '<', $activeDate);
                 if ($this->search) {
                     $query->where(function ($q) {
                         $q->where('aircraft_registration', 'like', '%'.$this->search.'%')

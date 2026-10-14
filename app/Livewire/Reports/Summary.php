@@ -78,8 +78,8 @@ class Summary extends Component
 
         // Process CML Logs
         if (Schema::hasTable('cml_logs')) {
-            $cabinKpi['open'] += CmlLog::whereBetween('date', $d)->where('status', 'Open')->count();
-            $cabinKpi['closed'] += CmlLog::whereBetween('date', $d)->where('status', 'Closed')->count();
+            $cabinKpi['open'] += CmlLog::where('kind', 'CML')->whereBetween('date', $d)->where('status', 'Open')->count();
+            $cabinKpi['closed'] += CmlLog::where('kind', 'CML')->whereBetween('date', $d)->where('status', 'Closed')->count();
         }
 
         // Process ICT Findings
@@ -89,7 +89,7 @@ class Summary extends Component
             $cabinKpi['manPower'] += IctFinding::whereBetween('date', $d)->whereNotNull('operator')->distinct('operator')->count('operator');
         }
 
-        $cabinKpi['totalWork'] = $cabinKpi['planned'] + $cabinKpi['unplanned'] + CmlLog::whereBetween('date', $d)->count();
+        $cabinKpi['totalWork'] = $cabinKpi['planned'] + $cabinKpi['unplanned'] + CmlLog::where('kind', 'CML')->whereBetween('date', $d)->count();
 
         // ============================================
         // 2. AIRCRAFT CLEANING KPIs (GLOBAL)
@@ -220,7 +220,7 @@ class Summary extends Component
                 }
             }
             if (Schema::hasTable('cml_logs')) {
-                $q = CmlLog::whereBetween('date', $d)->where('station', $st);
+                $q = CmlLog::where('kind', 'CML')->whereBetween('date', $d)->where('station', $st);
                 $s_totalWork += $q->count();
                 $s_cmlClosed += (clone $q)->where('status', 'Closed')->count();
             }

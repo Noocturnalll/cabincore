@@ -256,7 +256,7 @@
                     <tbody>
                         @foreach($rows as $r)
                             <tr wire:key="kd-{{ $r['station'] }}">
-                                <td><strong>{{ $r['station'] }}</strong></td>
+                                <td><strong>{{ $r['station'] }}</strong>@if(! empty($r['no_mp'])) <span class="kd-sub" title="Ada pekerjaan di station ini tetapi tidak ada MP CBM di roster" style="font-weight:600;">· tanpa MP</span>@endif</td>
                                 <td>{{ $num($r['mp_avg'], 1) }}</td>
                                 <td>{{ $num($r['capacity'], 0) }}</td>
                                 <td>{{ $num($r['used'], 1) }}</td>

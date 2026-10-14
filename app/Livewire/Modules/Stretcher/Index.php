@@ -222,7 +222,7 @@ class Index extends Component
                 'destination_station' => 'required|string|max:10',
                 'route' => 'required|string|max:40',
                 'passenger_name' => 'required|string|max:255',
-                'status' => 'required|in:COMPLETED,IN_TRANSIT,CANCELLED',
+                'status' => 'required|in:REQUESTED,COMPLETED,IN_TRANSIT,CANCELLED',
             ], [
                 'stretcher_id.required' => 'Pilih unit stretcher terlebih dahulu.',
                 'date.required' => 'Tanggal penerbangan wajib diisi.',
@@ -283,7 +283,7 @@ class Index extends Component
                 if ($stretcher) {
                     $stretcher->update([
                         'current_station' => $destStation,
-                        'status' => $this->status === 'IN_TRANSIT' ? 'IN_USE' : 'AVAILABLE',
+                        'status' => in_array($this->status, ['IN_TRANSIT', 'REQUESTED']) ? 'IN_USE' : 'AVAILABLE',
                     ]);
                 }
             }

@@ -65,7 +65,6 @@
                 <button type="button" wire:click="setCleaningType('DCE')" class="ch-tab {{ $cleaningType === 'DCE' ? 'on' : '' }}">Deep Exterior (DCE)</button>
                 <button type="button" wire:click="setCleaningType('GCI')" class="ch-tab {{ $cleaningType === 'GCI' ? 'on' : '' }}">GCI</button>
                 <button type="button" wire:click="setCleaningType('GCE')" class="ch-tab {{ $cleaningType === 'GCE' ? 'on' : '' }}">GCE</button>
-                <button type="button" wire:click="setCleaningType('DBI')" class="ch-tab {{ $cleaningType === 'DBI' ? 'on' : '' }}">DBI Beautification</button>
                 <button type="button" wire:click="setCleaningType('LGT')" class="ch-tab {{ $cleaningType === 'LGT' ? 'on' : '' }}">LGT</button>
             </div>
 

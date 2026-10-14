@@ -40,6 +40,9 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:.95rem;height:.95rem;display:inline-block;vertical-align:-2px;margin-right:.3rem;"><path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" /></svg>
             Daftar Log CML (Data Mentah)
         </button>
+        <button type="button" wire:click="setTab('dbi')" class="ch-tab {{ $activeTab === 'dbi' ? 'on' : '' }}" title="Daily Beautification Inspection (Cabin Maintenance)">
+            DBI <span class="cbm-tab-count">{{ number_format($dbiCount) }}</span>
+        </button>
         <button type="button" wire:click="setTab('pivot')" class="ch-tab {{ $activePillar ?? '' }} {{ $activeTab === 'pivot' ? 'on' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:.95rem;height:.95rem;display:inline-block;vertical-align:-2px;margin-right:.3rem;"><path d="M15.5 2A1.5 1.5 0 0014 3.5v13a1.5 1.5 0 001.5 1.5h1a1.5 1.5 0 001.5-1.5v-13A1.5 1.5 0 0016.5 2h-1zM9.5 6A1.5 1.5 0 008 7.5v9A1.5 1.5 0 009.5 18h1a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 6h-1zM3.5 10A1.5 1.5 0 002 11.5v5A1.5 1.5 0 003.5 18h1A1.5 1.5 0 006 16.5v-5A1.5 1.5 0 004.5 10h-1z" /></svg>
             Pivot &amp; Rekapitulasi Defect Kabin
@@ -47,7 +50,7 @@
     </div>
 
     {{-- TAB 1: LOG TABLE --}}
-    @if($activeTab === 'logs')
+    @if(in_array($activeTab, ['logs', 'dbi'], true))
         <div class="mod-card mod-card-accent-blue">
             {{-- Toolbar --}}
             <x-log-toolbar :logs="$logs" mode="range" :active="(bool) ($search || $filterStation)" />

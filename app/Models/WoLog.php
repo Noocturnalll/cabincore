@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizesStations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WoLog extends Model
 {
-    use HasFactory;
+    use HasFactory, NormalizesStations;
 
     protected $fillable = [
         'man_power', 'start_at', 'end_at', 'man_hour', 'leader_import_id',

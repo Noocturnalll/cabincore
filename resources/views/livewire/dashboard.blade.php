@@ -171,9 +171,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"/></svg>
         </div>
         <div>
-            <div class="cbm-kpi-label">A/C RON & Standby</div>
+            <div class="cbm-kpi-label">A/C Movement &amp; Stretcher</div>
             <div class="cbm-kpi-value">{{ $stats['capacity_summary']['ron_count'] ?? 0 }} <span style="font-size:.875rem;color:var(--cbm-text-muted);">RON</span></div>
-            <div class="cbm-kpi-sub">{{ $stats['capacity_summary']['standby_count'] ?? 0 }} pesawat Standby</div>
+            <div class="cbm-kpi-sub">
+                <a href="{{ route('modules.ac-movement') }}" wire:navigate style="color:inherit;text-decoration:none;">{{ $stats['capacity_summary']['standby_count'] ?? 0 }} Standby</a>
+                @if(!empty($stats['capacity_summary']['stretcher_requested']) || !empty($stats['capacity_summary']['stretcher_in_use']))
+                    &middot; <a href="{{ route('modules.stretcher.index') }}" wire:navigate style="color:#0ea5e9;font-weight:700;text-decoration:none;">🩺 {{ ($stats['capacity_summary']['stretcher_requested'] ?? 0) + ($stats['capacity_summary']['stretcher_in_use'] ?? 0) }} Stretcher</a>
+                @endif
+            </div>
         </div>
     </div>
 </div>
@@ -828,8 +833,14 @@
         <div class="cbm-card-header">
             <div>
                 <div class="cbm-card-title">NSRDI Overdue (Open)</div>
-                <div class="cbm-card-sub">Laporan NSRDI melewati due date</div>
+                <div class="cbm-card-sub">
+                    Laporan NSRDI melewati due date
+                    @if(!empty($stats['capacity_summary']['nsrdi_overdue_open']))
+                        &middot; <span style="color:#ef4444;font-weight:700;">{{ $stats['capacity_summary']['nsrdi_overdue_open'] }} open</span>
+                    @endif
+                </div>
             </div>
+            <a href="{{ route('modules.nsrdi-overdue') }}" wire:navigate style="font-size:.75rem;font-weight:700;color:var(--cbm-blue);text-decoration:none;">Buka Modul →</a>
         </div>
         <div class="cbm-chart-container" wire:ignore wire:key="cbm-ig-8-{{ $period }}">
             <canvas id="nsrdi-overdue-chart" height="210"

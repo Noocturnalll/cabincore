@@ -233,7 +233,11 @@
                                     {{ $t->medical_notes ?: '-' }}
                                 </td>
                                 <td>
-                                    @if($t->status === 'COMPLETED')
+                                    @if($t->status === 'REQUESTED')
+                                        <span class="mod-badge-progress" style="background:rgba(139,92,246,0.15);color:#8b5cf6;border-color:rgba(139,92,246,0.3);">
+                                            <span class="mod-badge-dot" style="background:#8b5cf6;"></span> Req Stretcher
+                                        </span>
+                                    @elseif($t->status === 'COMPLETED')
                                         <span class="mod-badge-closed">Tiba / Selesai</span>
                                     @elseif($t->status === 'IN_TRANSIT')
                                         <span class="mod-badge-progress">Dalam Penerbangan</span>
@@ -459,9 +463,10 @@
                         <div>
                             <label style="font-size:.78rem;font-weight:700;color:var(--cbm-text);">Status Pergerakan:</label>
                             <select wire:model="status" class="mod-select" style="width:100%;margin-top:.3rem;">
-                                <option value="COMPLETED">Tiba / Selesai (Stretcher Standby di End Point)</option>
-                                <option value="IN_TRANSIT">Dalam Penerbangan (In Transit)</option>
-                                <option value="CANCELLED">Dibatalkan</option>
+                                <option value="REQUESTED">REQUESTED (Permintaan / Booking Stretcher)</option>
+                                <option value="IN_TRANSIT">IN_TRANSIT (Dalam Penerbangan / Onboard)</option>
+                                <option value="COMPLETED">COMPLETED (Tiba / Selesai - Standby di End Point)</option>
+                                <option value="CANCELLED">CANCELLED (Dibatalkan)</option>
                             </select>
                         </div>
                     </div>

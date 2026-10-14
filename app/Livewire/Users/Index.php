@@ -4,6 +4,7 @@ namespace App\Livewire\Users;
 
 use App\Helpers\RoleHelper;
 use App\Models\Airport;
+use App\Models\AuditLog;
 use App\Models\Division;
 use App\Models\Position;
 use App\Models\User;
@@ -167,6 +168,7 @@ class Index extends Component
             'is_default_password' => true,
         ]);
         $user->assignRole($this->role);
+        AuditLog::create(['user_id' => auth()->id(), 'action' => 'Beri role', 'description' => "{$user->nik} ({$user->name}) -> {$this->role}", 'ip_address' => request()->ip()]);
 
         $this->close();
         $this->dispatch('notify', ['icon' => 'success', 'message' => "Pengguna {$user->name} berhasil ditambahkan."]);
@@ -203,7 +205,11 @@ class Index extends Component
             'station' => $this->station,
             'status' => $this->status,
         ]);
+        $before = $user->getRoleNames()->implode(', ');
         $user->syncRoles([$this->role]);
+        if ($before !== $this->role) {
+            AuditLog::create(['user_id' => auth()->id(), 'action' => 'Ubah role', 'description' => "{$user->nik} ({$user->name}): {$before} -> {$this->role}", 'ip_address' => request()->ip()]);
+        }
 
         $this->close();
         $this->dispatch('notify', ['icon' => 'success', 'message' => "Pengguna {$user->name} berhasil diperbarui."]);
@@ -245,6 +251,7 @@ class Index extends Component
             'is_default_password' => true,
         ]);
 
+        AuditLog::create(['user_id' => auth()->id(), 'action' => 'Reset password', 'description' => "{$user->nik} ({$user->name}) direset ke default", 'ip_address' => request()->ip()]);
         $this->dispatch('notify', ['icon' => 'success', 'message' => "Password {$user->name} direset ke default.", 'timer' => 5000]);
     }
 

@@ -20,7 +20,7 @@ class DailyReport extends Component
     /** Tab Utama: logs, capability, pivots, overdue */
     public string $mainTab = 'logs';
 
-    /** Sub-filter jenis cleaning: '', Transit, General, DCI, DCE, DBI, LGT */
+    /** Sub-filter jenis cleaning: '', Transit, General, DCI, DCE, GCI, GCE, LGT (DBI is Cabin Maintenance) */
     public string $cleaningType = '';
 
     /** Filter periode bulan: '', 2026-10, 2026-09, 2026-08, 2026-07, 2026-06 */
@@ -133,7 +133,7 @@ class DailyReport extends Component
 
     public function render()
     {
-        $query = AircraftCleaning::query();
+        $query = AircraftCleaning::aiec();
 
         if ($this->search) {
             $query->where(function ($q) {

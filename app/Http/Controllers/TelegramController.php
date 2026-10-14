@@ -46,7 +46,7 @@ class TelegramController extends Controller
             $dmiOpen = DB::table('dmi_logs')->where('status', 'Open')->count();
             $this->sendMessage($chatId, "🔧 *DMI Terbuka saat ini:* {$dmiOpen} kasus.", $botToken);
         } elseif (str_starts_with($text, '/cml')) {
-            $cmlOpen = DB::table('cml_logs')->where('status', 'Open')->count();
+            $cmlOpen = DB::table('cml_logs')->where('kind', 'CML')->where('status', 'Open')->count();
             $this->sendMessage($chatId, "📋 *CML Terbuka saat ini:* {$cmlOpen} kasus.", $botToken);
         } elseif (str_starts_with($text, '/wo')) {
             $woOpen = DB::table('wo_logs')->where('status', 'Open')->count();

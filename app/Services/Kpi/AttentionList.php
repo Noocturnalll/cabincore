@@ -4,6 +4,7 @@ namespace App\Services\Kpi;
 
 use App\Models\EmployeeTraining;
 use App\Models\User;
+use App\Support\TaskStation;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -51,13 +52,14 @@ class AttentionList
                 $q = DB::table("$t as l")->join('daily_job_assignments as d', 'd.id', '=', 'l.dja_id')
                     ->whereDate('d.date', '<', $today)->whereRaw("LOWER(COALESCE(l.status, '')) <> 'closed'");
 
-                return $station($q, 'COALESCE(l.act_station, l.plan_station)')->count();
+                return $station($q, TaskStation::plannedSql('l', 'd'))->count();
             });
         });
         $add('menu.production', 'Hasil sinkron DJA menunggu keputusan', 'modules.dja', 'yellow', fn () => DB::table('dja_sync_reviews')->whereNull('decision')->where('bucket', 'review')->count());
-        $add('menu.production', 'CML open lebih dari 2 hari', 'modules.cml', 'yellow', fn () => $station(DB::table('cml_logs')->whereRaw("LOWER(status) <> 'closed'")->whereDate('date', '<', now()->subDays(2)->toDateString()), 'station')->count());
+        $add('menu.production', 'CML open lebih dari 2 hari', 'modules.cml', 'yellow', fn () => $station(DB::table('cml_logs')->where('kind', 'CML')->whereRaw("LOWER(status) <> 'closed'")->whereDate('date', '<', now()->subDays(2)->toDateString()), 'station')->count());
         $add('menu.ict', 'Temuan ICT open lebih dari 7 hari', 'modules.ict-pi', 'yellow', fn () => DB::table('ict_findings')->whereRaw("LOWER(status) <> 'closed'")->whereDate('date', '<', now()->subDays(7)->toDateString())->count());
         $add('menu.nsrdi', 'NSRDI overdue belum closed', 'modules.nsrdi-overdue', 'red', fn () => DB::table('nsrdi_overdues')->whereNull('closed_at')->count());
+        $add('menu.production', 'Request stretcher medevac aktif', 'modules.stretcher.index', 'yellow', fn () => DB::table('stretcher_transactions')->where('status', 'REQUESTED')->count());
 
         // ── LGT ──
         $add('lgt.manage', 'Draft LGT menunggu diisi pekerjaannya', 'modules.lgt', 'yellow', fn () => $station(DB::table('lgt_records')->whereDate('work_date', '>=', $today)->whereNull('cbm_action')->whereNull('aiec_action'), 'station')->count());

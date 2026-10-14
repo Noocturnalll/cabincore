@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithLogTable;
 use App\Models\CmlLog;
 use App\Notifications\SystemNotification;
 use App\Services\Reports\ProductionExecutiveService;
+use App\Support\CmlKind;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -22,7 +23,7 @@ class Index extends Component
 
     public $isImportModalOpen = false;
 
-    public string $activeTab = 'logs'; // 'logs' | 'pivot'
+    public string $activeTab = 'logs'; // 'logs' | 'dbi' | 'pivot'
 
     public function mount()
     {
@@ -31,7 +32,7 @@ class Index extends Component
 
     public function setTab(string $tab): void
     {
-        $this->activeTab = in_array($tab, ['logs', 'pivot'], true) ? $tab : 'logs';
+        $this->activeTab = in_array($tab, ['logs', 'dbi', 'pivot'], true) ? $tab : 'logs';
         $this->resetPage();
     }
 
@@ -78,7 +79,9 @@ class Index extends Component
 
     public function render()
     {
-        $query = CmlLog::query()->with('dailyJobAssignment');
+        // normal CML and DBI are separate lists; the pivot is about CML
+        $kind = $this->activeTab === 'dbi' ? CmlKind::DBI : CmlKind::CML;
+        $query = CmlLog::query()->with('dailyJobAssignment')->where('kind', $kind);
         $searchFields = ['aircraft_registration', 'status', 'doc_type', 'no_doc', 'station', 'operator', 'ac_status', 'description'];
         $query = $this->scopeAdvancedFilter($query, $searchFields);
 
@@ -164,6 +167,7 @@ class Index extends Component
         return view('livewire.modules.cml-log.index', [
             'logs' => $query->paginate($this->perPage),
             'pivotData' => $pivotData,
+            'dbiCount' => CmlLog::where('kind', CmlKind::DBI)->count(),
         ])->layout('components.layouts.app', ['title' => 'CML Logs & Pivot Defect']);
     }
 }

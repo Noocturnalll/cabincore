@@ -7,4 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class NsrdiOverdue extends Model
 {
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'report_date' => 'date',
+            'due_date' => 'date',
+            'closed_at' => 'datetime',
+        ];
+    }
 }

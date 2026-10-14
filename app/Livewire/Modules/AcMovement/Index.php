@@ -5,6 +5,7 @@ namespace App\Livewire\Modules\AcMovement;
 use App\Models\AcRon;
 use App\Models\AcStandby;
 use App\Models\NsrdiLog;
+use App\Models\StretcherTransaction;
 use App\Models\SyncSetting;
 use App\Models\TerminalMovement;
 use App\Notifications\SystemNotification;
@@ -20,6 +21,16 @@ class Index extends Component
     public string $activeTab = 'terminal1';
 
     public string $search = '';
+
+    public bool $isStretcherModalOpen = false;
+
+    public ?int $selectedStretcherId = null;
+
+    public ?StretcherTransaction $selectedStretcher = null;
+
+    protected array $stretcherRegMap = [];
+
+    protected array $stretcherFltMap = [];
 
     public function mount(): void
     {
@@ -85,8 +96,89 @@ class Index extends Component
         });
     }
 
+    public function showStretcherDetail(int $id): void
+    {
+        $this->selectedStretcher = StretcherTransaction::with(['stretcher', 'creator'])->find($id);
+        if ($this->selectedStretcher) {
+            $this->selectedStretcherId = $id;
+            $this->isStretcherModalOpen = true;
+        }
+    }
+
+    public function closeStretcherModal(): void
+    {
+        $this->isStretcherModalOpen = false;
+        $this->selectedStretcher = null;
+        $this->selectedStretcherId = null;
+    }
+
+    protected function initStretcherMaps(): void
+    {
+        $stretcherTransactions = StretcherTransaction::with('stretcher')
+            ->where('status', '!=', 'CANCELLED')
+            ->orderByRaw("CASE WHEN status = 'REQUESTED' THEN 1 WHEN status = 'IN_TRANSIT' THEN 2 ELSE 3 END")
+            ->latest('date')
+            ->latest('id')
+            ->get();
+
+        $this->stretcherRegMap = [];
+        $this->stretcherFltMap = [];
+
+        foreach ($stretcherTransactions as $trx) {
+            $r = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string) $trx->aircraft_registration));
+            if ($r !== '' && ! isset($this->stretcherRegMap[$r])) {
+                $this->stretcherRegMap[$r] = $trx;
+            }
+            $f = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string) $trx->flight_number));
+            if ($f !== '' && ! isset($this->stretcherFltMap[$f])) {
+                $this->stretcherFltMap[$f] = $trx;
+            }
+        }
+    }
+
+    public function findStretcherMatch(?string $reg, ?string ...$flightNumbers): ?StretcherTransaction
+    {
+        if (empty($this->stretcherRegMap) && empty($this->stretcherFltMap)) {
+            $this->initStretcherMaps();
+        }
+
+        if ($reg) {
+            $cleanReg = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string) $reg));
+            if ($cleanReg !== '' && isset($this->stretcherRegMap[$cleanReg])) {
+                return $this->stretcherRegMap[$cleanReg];
+            }
+            if ($cleanReg !== '') {
+                foreach ($this->stretcherRegMap as $mapReg => $trx) {
+                    if (str_contains($cleanReg, $mapReg) || str_contains($mapReg, $cleanReg)) {
+                        return $trx;
+                    }
+                }
+            }
+        }
+
+        foreach ($flightNumbers as $flt) {
+            if (! $flt) {
+                continue;
+            }
+            $cleanFlt = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string) $flt));
+            if ($cleanFlt !== '' && isset($this->stretcherFltMap[$cleanFlt])) {
+                return $this->stretcherFltMap[$cleanFlt];
+            }
+            if ($cleanFlt !== '') {
+                foreach ($this->stretcherFltMap as $mapFlt => $trx) {
+                    if (str_contains($cleanFlt, $mapFlt) || str_contains($mapFlt, $cleanFlt)) {
+                        return $trx;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function render()
     {
+        $this->initStretcherMaps();
         $openNsrdis = NsrdiLog::where('status', 'Open')
             ->whereNotNull('aircraft_registration')
             ->get(['id', 'aircraft_registration', 'nsrdi_number', 'description'])

@@ -99,6 +99,7 @@
             <button type="button" wire:click="setTab('dja-nsrdi')" class="cbm-tab {{ $activeTab === 'dja-nsrdi' ? 'active' : '' }}">DJA NSRDI</button>
             <button type="button" wire:click="setTab('unplanned-nsrdi')" class="cbm-tab {{ $activeTab === 'unplanned-nsrdi' ? 'active' : '' }}">Unplanned NSRDI</button>
             <button type="button" wire:click="setTab('cml')" class="cbm-tab {{ $activeTab === 'cml' ? 'active' : '' }}">CML</button>
+            <button type="button" wire:click="setTab('dbi')" class="cbm-tab {{ $activeTab === 'dbi' ? 'active' : '' }}" title="Daily Beautification Inspection (Cabin Maintenance)">DBI</button>
             <button type="button" wire:click="setTab('summary')" class="cbm-tab {{ $activeTab === 'summary' ? 'active' : '' }}">Summary Pivot</button>
             <button type="button" wire:click="setTab('station-feedback')" class="cbm-tab {{ $activeTab === 'station-feedback' ? 'active' : '' }}">Feedback Station (✓ / ✗)</button>
         </div>
@@ -471,7 +472,7 @@
                     </tbody>
 
                 {{-- 4. CML Format --}}
-                @elseif($activeTab === 'cml')
+                @elseif(in_array($activeTab, ['cml', 'dbi'], true))
                     <thead>
                         <tr>
                             <th>DATE</th>

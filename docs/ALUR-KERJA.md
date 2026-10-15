@@ -53,3 +53,23 @@ Admin COD membuat draft (belum ada pekerjaan) → PIC Finishing mendapat notifik
 - Login memakai **ID karyawan**.
 - Password awal `Password123`; saat login pertama wajib diganti.
 - Lupa password: hubungi Super Admin (menu Users → reset).
+
+## 7. Bukti Briefing / Attendant List / 5R
+
+Menu *Compliance Harian* punya empat tab unit: **AIEC** (dari sheet form), **Cabin Maintenance** dan **Aircraft Painting**
+(shift yang diharapkan = shift yang ada orangnya di roster), serta **Tambahan** (tanpa target).
+
+- Unggah bukti langsung di web: buka *Rincian* sebuah station, lalu pilih berkas di tombol Briefing / Attendant List / 5R pada shift terkait.
+  Foto (JPG, PNG, WEBP) atau PDF, maksimal 8 MB. Bukti hari ini boleh diunggah walau belum dihitung.
+- Setiap peran hanya mengunggah untuk unitnya (PIC CBM / COD → Cabin Maintenance, PIC Painting → Aircraft Painting, PIC AIEC → AIEC).
+  Manager dan Super Admin untuk semua unit.
+- Bukti dari sheet AIEC dan bukti unggahan untuk shift yang sama digabung, jadi tidak saling menimpa.
+
+## 8. NSRDI Overdue
+
+1. Impor file mingguan (sheet daftar defect + sheet part). Gunakan **Analisis dulu** untuk melihat apa yang akan berubah.
+2. Nomor **MDDR** atau **DEFECT** yang sudah *Closed* di bank data / Daily Report otomatis ditutup pada **tanggal close di bank**,
+   lengkap dengan nomor yang cocok dan sumbernya.
+3. Yang belum closed tetap di tab **Open** dengan due date dan sisa hari (merah bila terlambat).
+4. Dokumen open di sistem yang tidak lagi tercantum di file terbaru dilaporkan (kemungkinan sudah ditutup planner), statusnya tidak diubah.
+5. Setiap NSRDI yang disimpan *Closed* juga langsung menutup dokumen overdue yang cocok.

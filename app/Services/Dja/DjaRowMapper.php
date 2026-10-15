@@ -62,6 +62,20 @@ class DjaRowMapper
             'reason_open' => [self::REASON_OPEN_ALIASES, 15],
             'plan_date' => [self::PLAN_DATE_ALIASES, null],
             'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
+            // extra GSS "DJA WO" columns (no positional fallback: header name only)
+            'rii' => [['RII'], null],
+            'etops' => [['ETOPS'], null],
+            'eru' => [['ERU'], null],
+            'iera' => [['IERA'], null],
+            'site' => [['SITE'], null],
+            'due_date_wo' => [['DUE DATE WO', 'DUE DATE'], null],
+            'class_wo' => [['CLASS WO', 'CLASS'], null],
+            'materials' => [['MATERIALS', 'MATERIAL'], null],
+            'tools' => [['TOOLS', 'TOOL'], null],
+            'planner' => [['PLANNER'], null],
+            'ppc_onduty' => [['PPC ONDUTY', 'PPC ON DUTY', 'PPC ON-DUTY'], null],
+            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], null],
+            'highlight' => [['HIGHLIGHT'], null],
         ],
         'dmi' => [
             'ac_reg' => [self::AC_REG[0], 1],
@@ -78,6 +92,18 @@ class DjaRowMapper
             'reason_open' => [self::REASON_OPEN_ALIASES, null],
             'plan_date' => [self::PLAN_DATE_ALIASES, null],
             'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
+            // extra GSS "DJA DMI" columns
+            'work_group' => [['WG', 'WORK GROUP'], null],
+            'defer_type' => [['DEFER TYPE'], null],
+            'status_wo' => [['STATUS WO'], null],
+            'wo_number' => [['WO', 'WO NUMBER', 'NO WO'], null],
+            'due_date_dmi' => [['DUE DATE DMI', 'DUE DATE'], null],
+            'picklist_number' => [['PICKLIST NUMBER', 'PICKLIST NO', 'PICKLIST'], null],
+            'aoc' => [['AOC'], null],
+            'type' => [['TYPE'], null],
+            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], null],
+            'highlight' => [['HIGHLIGHT'], null],
+            'operator' => [['OPERATOR'], null],
         ],
         'nsrdi' => [
             'work_group' => [['WG', 'WORK GROUP'], 1],
@@ -198,6 +224,9 @@ class DjaRowMapper
         $reasonOpen = $f['reason_open'] ?? $get(self::SHARED['reason_open']);
         $f['code_open'] = $codeOpen;
         $f['reason_open'] = $reasonOpen;
+        $f['ata'] = $ata;
+        $f['task_card'] = $get(self::SHARED['task_card']);
+        $f['task_card_description'] = $taskCardDescription;
 
         $acReg = $f['ac_reg'];
         $description = $f['description']
@@ -297,6 +326,23 @@ class DjaRowMapper
                 'reason_open' => $text($f['reason_open']),
                 'hold_reason_category' => $text($f['code_open']),
                 'hold_remarks' => $text($f['reason_open']),
+                'ata' => $text($f['ata'] ?? null),
+                'task_card' => $text($f['task_card'] ?? null),
+                'task_card_description' => $f['task_card_description'] ?? null,
+                'rii' => $text($f['rii'] ?? null),
+                'etops' => $text($f['etops'] ?? null),
+                'eru' => $text($f['eru'] ?? null),
+                'iera' => $text($f['iera'] ?? null),
+                'site' => $text($f['site'] ?? null),
+                'due_date_wo' => GoogleSheetsReader::parseDate($f['due_date_wo'] ?? null),
+                'class_wo' => $text($f['class_wo'] ?? null),
+                'materials' => $f['materials'] ?? null,
+                'tools' => $f['tools'] ?? null,
+                'plan_date' => $planDate,
+                'planner' => $text($f['planner'] ?? null),
+                'ppc_onduty' => $text($f['ppc_onduty'] ?? null),
+                'close_date' => GoogleSheetsReader::parseDate($f['close_date'] ?? null),
+                'highlight' => $text($f['highlight'] ?? null),
             ],
             'dmi' => [
                 'date' => $date,
@@ -312,6 +358,19 @@ class DjaRowMapper
                 'remarks' => $f['remarks'],
                 'hold_reason_category' => $text($f['code_open'] ?? null),
                 'hold_remarks' => $text($f['reason_open'] ?? null) ?: $f['remarks'],
+                'work_group' => $text($f['work_group'] ?? null),
+                'defer_type' => $text($f['defer_type'] ?? null),
+                'status_wo' => $text($f['status_wo'] ?? null),
+                'wo_number' => $text($f['wo_number'] ?? null),
+                'ata' => $text($f['ata'] ?? null),
+                'due_date_dmi' => GoogleSheetsReader::parseDate($f['due_date_dmi'] ?? null),
+                'picklist_number' => $text($f['picklist_number'] ?? null),
+                'aoc' => $text($f['aoc'] ?? null),
+                'type' => $text($f['type'] ?? null),
+                'plan_date' => $planDate,
+                'close_date' => GoogleSheetsReader::parseDate($f['close_date'] ?? null),
+                'highlight' => $text($f['highlight'] ?? null),
+                'operator' => $text($f['operator'] ?? null),
             ],
             'nsrdi' => [
                 'plan_date' => $planDate ?? $date,

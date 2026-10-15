@@ -9,6 +9,7 @@ use App\Models\CmlLog;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
 use App\Models\WoLog;
+use App\Support\ManHours;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -28,6 +29,24 @@ class DailyReportExport implements Export, FromCollection, WithHeadings, WithMul
         $this->search = $search;
         $this->dateFilter = $dateFilter;
         $this->activeTab = $activeTab ?: 'dja-wo';
+    }
+
+    protected string $sheetPrefix = '';
+
+    /** Titles every sheet with a prefix, so several tabs can live in one workbook. */
+    public function withSheetPrefix(string $prefix): static
+    {
+        $this->sheetPrefix = $prefix;
+
+        return $this;
+    }
+
+    protected function sheetTitle(string $base): string
+    {
+        $title = $this->sheetPrefix !== '' ? $this->sheetPrefix.' - '.$base : $base;
+        $title = str_replace(['/', '\\', '?', '*', '[', ']', ':'], '-', $title);
+
+        return mb_substr($title, 0, 31);
     }
 
     public function sheets(): array
@@ -66,8 +85,8 @@ class DailyReportExport implements Export, FromCollection, WithHeadings, WithMul
         $tables = [$matrixStation, $breakdownReg];
 
         return [
-            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI & PIVOT DAILY REPORT ('.strtoupper($this->activeTab).')', $metadata, $tables),
-            new DetailDataSheet($data, $this->headings(), 'Data Detail Report'),
+            new PivotRekapSheet($this->sheetTitle('Pivot'), 'REKAPITULASI & PIVOT DAILY REPORT ('.strtoupper($this->activeTab).')', $metadata, $tables),
+            new DetailDataSheet($data, $this->headings(), $this->sheetTitle('Detail')),
         ];
     }
 
@@ -309,6 +328,15 @@ class DailyReportExport implements Export, FromCollection, WithHeadings, WithMul
                         'operator' => $item->operator,
                         'status' => $item->status,
                         'description' => $item->description,
+                        'ac_type' => $item->ac_type,
+                        'shift' => $item->shift,
+                        'task_type' => $item->task_type,
+                        'start' => ManHours::clockText($item->start_perform),
+                        'finish' => ManHours::clockText($item->finish_perform),
+                        'mp1' => $item->mp1, 'mp2' => $item->mp2, 'mp3' => $item->mp3, 'mp4' => $item->mp4, 'mp5' => $item->mp5,
+                        'total_mp' => $item->man_power,
+                        'individual_mhrs' => $item->individual_mhrs,
+                        'actual_mhrs' => $item->man_hour,
                     ];
                 });
         }
@@ -328,7 +356,7 @@ class DailyReportExport implements Export, FromCollection, WithHeadings, WithMul
                 return ['Date', 'Aircraft Registration', 'NSRDI Number', 'Description', 'Plan Station', 'Act Station', 'Category', 'AOC', 'Status'];
             case 'cml':
             default:
-                return ['Date', 'Aircraft Registration', 'Doc Type', 'No Doc', 'Station', 'Operator', 'Status', 'Description'];
+                return ['Date', 'Aircraft Registration', 'Doc Type', 'No Doc', 'Station', 'Operator', 'Status', 'Description', 'A/C Type', 'Shift', 'Task Type', 'Start Perform', 'Finish Perform', 'MP 1', 'MP 2', 'MP 3', 'MP 4', 'MP 5', 'Total MP', 'Individual MHRS', 'Actual MHRS'];
         }
     }
 }

@@ -10,6 +10,7 @@ use App\Livewire\Modules\WoLog\Index as WoPage;
 use App\Models\DailyJobAssignment;
 use App\Models\DjaSyncReview;
 use App\Models\NsrdiLog;
+use App\Models\SheetSyncLog;
 use App\Models\SyncSetting;
 use App\Models\User;
 use App\Models\WoLog;
@@ -377,7 +378,7 @@ class DjaPipelineTest extends TestCase
         $this->assertNull($log->hold_remarks);
     }
 
-    public function test_a_failed_sheet_write_back_is_reported_not_hidden(): void
+    public function test_a_failed_sheet_write_back_is_logged_silently(): void
     {
         $log = $this->wo();
 
@@ -387,7 +388,9 @@ class DjaPipelineTest extends TestCase
 
         Livewire::actingAs($this->admin())->test(WoPage::class)
             ->call('markClosed', $log->id)
-            ->assertDispatched('notify', fn (string $event, array $params) => ($params['icon'] ?? null) === 'warning' || ($params[0]['icon'] ?? null) === 'warning');
+            ->assertDispatched('notify', fn (string $event, array $params) => ($params['icon'] ?? $params[0]['icon'] ?? null) === 'success');
+
+        $this->assertSame(1, SheetSyncLog::where('event', 'failed')->count(), 'Failure goes to the sync log, not the UI.');
 
         $this->assertSame('Closed', $log->fresh()->status, 'The CBM status is still saved.');
     }

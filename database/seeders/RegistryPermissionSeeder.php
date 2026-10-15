@@ -88,7 +88,7 @@ class RegistryPermissionSeeder extends Seeder
             'security.users.view', 'security.roles.view', 'security.audit.view',
             'documents.view', 'documents.master.view', 'profile.view',
         ];
-        $core = array_merge(HrPermissionSeeder::PERMISSIONS, ['leader.import', 'compliance.view', 'kpi.view'], $masterView, $masterManage, $featurePerms, array_keys(self::MENUS));
+        $core = array_merge(HrPermissionSeeder::PERMISSIONS, ['leader.import', 'compliance.view', 'compliance.upload', 'kpi.view'], $masterView, $masterManage, $featurePerms, array_keys(self::MENUS));
 
         $ims = array_values(array_unique(array_merge(self::IMS_REQUESTER, self::IMS_STORE, self::IMS_MANAGER, ['ims.master.manage', 'ims.user.manage', 'ims.audit.view'])));
         foreach (array_merge($modulePerms, $core, $ims, $sidebarPerms) as $perm) {
@@ -97,7 +97,7 @@ class RegistryPermissionSeeder extends Seeder
 
         // what every working role does in its own scope (division / station): read the master lists, people, assets, presensi
         $own = array_values(array_diff($modulePerms, ['registry.view_all']));
-        $common = array_merge($own, $masterView, ['hr.view', 'hr.manage', 'leader.import', 'compliance.view', 'kpi.view', 'attendance.view', 'asset.view', 'asset.manage', 'asset.assign', 'sources.view', 'lgt.view', 'lgt.manage']);
+        $common = array_merge($own, $masterView, ['hr.view', 'hr.manage', 'leader.import', 'compliance.view', 'compliance.upload', 'kpi.view', 'attendance.view', 'asset.view', 'asset.manage', 'asset.assign', 'sources.view', 'lgt.view', 'lgt.manage']);
 
         $managerSidebarPerms = array_values(array_diff($sidebarPerms, ['security.roles.view', 'security.users.view']));
 

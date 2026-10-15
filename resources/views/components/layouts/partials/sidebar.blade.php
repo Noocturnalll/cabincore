@@ -34,7 +34,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M2.515 10.674a1.875 1.875 0 012.385-2.222l4.896 1.632-1.393-4.18a1.875 1.875 0 012.222-2.385l4.811 1.604a3.75 3.75 0 011.666 6.326L13.626 15h.874a2.25 2.25 0 012.25 2.25v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 00-.75-.75h-1.5a.75.75 0 01-.75-.75v-1.5a.75.75 0 00-.75-.75h-1.5a.75.75 0 01-.75-.75v-1.5h-1.28l-3.476 3.476a3.75 3.75 0 01-6.326-1.666l-1.604-4.811z" clip-rule="evenodd" />
                         </svg>
-                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Cabin Maintenance</span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Cabin Technician</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -192,9 +192,9 @@
             @endif
 
             {{-- 5. DIVISI SUPPORTING & INVENTORY (IMS & ASSET) --}}
-            @if(auth()->user()?->canAny(['menu.inventory', 'ims.catalog.view', 'ims.request.create', 'ims.stock.in', 'ims.stock.adjust', 'ims.stock.transfer', 'ims.approval.view', 'ims.repair.manage', 'ims.report.view', 'ims.master.manage', 'asset.view', 'menu.tools_equipment', 'compliance.view']))
-            <div x-data="{ open: {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily']) ? 'true' : 'false' }} }">
-                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+            @if(auth()->user()?->canAny(['menu.inventory', 'ims.catalog.view', 'ims.request.create', 'ims.stock.in', 'ims.stock.adjust', 'ims.stock.transfer', 'ims.approval.view', 'ims.repair.manage', 'ims.report.view', 'ims.master.manage', 'asset.view', 'menu.tools_equipment', 'compliance.view', 'menu.ict', 'menu.ict.pi', 'menu.ict.tbd']))
+            <div x-data="{ open: {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem; min-width: 0;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm3.75-1.5a.75.75 0 01.75.75v6a.75.75 0 01-1.5 0v-6a.75.75 0 01.75-.75z" clip-rule="evenodd" />
@@ -278,35 +278,16 @@
                         Briefing, Attlist &amp; 5R
                     </a>
                     @endcan
-                </div>
-            </div>
-            @endif
-
-            {{-- 6. DIVISI ICT & IFE --}}
-            @if(auth()->user()?->canAny(['menu.ict', 'menu.ict.pi', 'menu.ict.tbd']))
-            <div x-data="{ open: {{ request()->routeIs(['modules.ict-pi', 'modules.ict-tbd']) ? 'true' : 'false' }} }">
-                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['modules.ict-pi', 'modules.ict-tbd']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: .75rem; min-width: 0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd" />
-                        </svg>
-                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Finding ICT &amp; IFE</span>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-                <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="margin-left: 1rem; padding-left: .75rem; border-left: 1.5px solid var(--cbm-card-border, rgba(255,255,255,.08)); margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.2rem;">
                     @canany(['menu.ict.pi', 'menu.ict'])
                     <a href="{{ route('modules.ict-pi') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.ict-pi') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 11.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
-                        Findings ICT PI
+                        Findings ICT &amp; IFE (PI)
                     </a>
                     @endcanany
                     @canany(['menu.ict.tbd', 'menu.ict'])
                     <a href="{{ route('modules.ict-tbd') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('modules.ict-tbd') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 11.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
-                        Findings ICT (TBD)
+                        Findings ICT &amp; IFE (TBD)
                     </a>
                     @endcanany
                 </div>
@@ -446,8 +427,8 @@
 
             {{-- 10. ANALITIK & REPORTING --}}
             @if(auth()->user()?->canAny(['menu.analytics', 'reports.summary.view', 'reports.kpi.view', 'reports.document_accuracy.view', 'reports.lgt.view', 'reports.manpower.view', 'reports.executive.view', 'kpi.view']))
-            <div x-data="{ open: {{ request()->routeIs(['reports.summary', 'reports.kpi', 'reports.document-accuracy', 'reports.lgt', 'reports.manpower', 'reports.executive', 'aircraft.history']) ? 'true' : 'false' }} }">
-                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['reports.summary', 'reports.kpi', 'reports.document-accuracy', 'reports.lgt', 'reports.manpower', 'reports.executive', 'aircraft.history']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+            <div x-data="{ open: {{ request()->routeIs(['reports.summary', 'reports.kpi', 'reports.document-accuracy', 'reports.lgt', 'reports.manpower', 'reports.insights', 'sync.log', 'reports.executive', 'aircraft.history']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['reports.summary', 'reports.kpi', 'reports.document-accuracy', 'reports.lgt', 'reports.manpower', 'reports.insights', 'sync.log', 'reports.executive', 'aircraft.history']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem; min-width: 0;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clip-rule="evenodd" />
@@ -489,6 +470,18 @@
                         Manpower Harian
                     </a>
                     @endcanany
+                    @can('kpi.view')
+                    <a href="{{ route('reports.insights') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.insights') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z"/></svg>
+                        Pivot Lanjutan
+                    </a>
+                    @endcan
+                    @if(auth()->user()?->hasAnyRole([\App\Helpers\RoleHelper::SUPER_ADMIN, ...\App\Helpers\RoleHelper::COD_DESK]))
+                    <a href="{{ route('sync.log') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('sync.log') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0014.536-4.041.75.75 0 00-.507-.912z" clip-rule="evenodd"/></svg>
+                        Log Sinkron GSS
+                    </a>
+                    @endif
                     @if(auth()->user()?->can('reports.executive.view') || auth()->user()?->hasAnyRole([\App\Helpers\RoleHelper::SUPER_ADMIN, \App\Helpers\RoleHelper::MANAGER, ...\App\Helpers\RoleHelper::ALL_PIC, ...\App\Helpers\RoleHelper::COD_DESK]))
                     <a href="{{ route('reports.executive') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('reports.executive') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" /></svg>

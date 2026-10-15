@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * A line in the CML log is either a normal CML or a DBI (Daily Beautification Inspection). DBI belongs to Cabin
@@ -16,8 +17,13 @@ class CmlKind
 
     public const DBI = 'DBI';
 
-    public static function detect(?string $description): string
+    /** A line is DBI when its TASK TYPE says DBI, or its description does. */
+    public static function detect(?string $description, ?string $taskType = null): string
     {
+        if (strtoupper(trim((string) $taskType)) === 'DBI') {
+            return self::DBI;
+        }
+
         return preg_match('/\bDBI\b|BEAUTIFICATION/i', (string) $description) ? self::DBI : self::CML;
     }
 
@@ -33,20 +39,32 @@ class CmlKind
         DB::table('cml_logs')->whereRaw("UPPER(TRIM(station)) = 'DBI'")->update(['station' => null]);
 
         $changed = 0;
+        // older databases (the migration that added `kind` runs before task_type exists) have no task_type yet
+        $hasTask = Schema::hasColumn('cml_logs', 'task_type');
+        $cols = $hasTask ? ['id', 'description', 'task_type'] : ['id', 'description'];
 
         // rows that read like a DBI but are not marked yet
         DB::table('cml_logs')->where('kind', '!=', self::DBI)
-            ->where(fn ($q) => $q->whereRaw("UPPER(description) LIKE '%BEAUTIFICATION%'")->orWhereRaw("UPPER(description) LIKE '%DBI%'"))
-            ->select('id', 'description')->orderBy('id')
+            ->where(function ($q) use ($hasTask) {
+                $q->whereRaw("UPPER(description) LIKE '%BEAUTIFICATION%'")->orWhereRaw("UPPER(description) LIKE '%DBI%'");
+                if ($hasTask) {
+                    $q->orWhereRaw("UPPER(TRIM(task_type)) = 'DBI'");
+                }
+            })
+            ->select($cols)->orderBy('id')
             ->chunkById(500, function ($rows) use (&$changed) {
-                $ids = $rows->filter(fn ($r) => self::detect($r->description) === self::DBI)->pluck('id')->all();
+                $ids = $rows->filter(fn ($r) => self::detect($r->description, $r->task_type ?? null) === self::DBI)->pluck('id')->all();
                 if ($ids) {
                     $changed += DB::table('cml_logs')->whereIn('id', $ids)->update(['kind' => self::DBI]);
                 }
             });
 
         // rows marked DBI whose description does not say so (an earlier rule, or an edited description)
-        DB::table('cml_logs')->where('kind', self::DBI)->select('id', 'description')->orderBy('id')
+        $marked = DB::table('cml_logs')->where('kind', self::DBI);
+        if ($hasTask) {
+            $marked->where(fn ($q) => $q->whereNull('task_type')->orWhereRaw("UPPER(TRIM(task_type)) != 'DBI'"));
+        }
+        $marked->select('id', 'description')->orderBy('id')
             ->chunkById(500, function ($rows) use (&$changed) {
                 $ids = $rows->filter(fn ($r) => self::detect($r->description) !== self::DBI)->pluck('id')->all();
                 if ($ids) {

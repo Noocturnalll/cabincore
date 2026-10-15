@@ -5,6 +5,7 @@ namespace App\Livewire\Modules\WoLog;
 use App\Exports\WoExport;
 use App\Imports\WoImport;
 use App\Livewire\Traits\ManagesLogStatus;
+use App\Livewire\Traits\QuickUnplannedEntry;
 use App\Livewire\Traits\ShowsCarryOver;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\WoLog;
@@ -16,7 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use ManagesLogStatus, ShowsCarryOver, WithFileUploads, WithLogTable, WithPagination;
+    use ManagesLogStatus, QuickUnplannedEntry, ShowsCarryOver, WithFileUploads, WithLogTable, WithPagination;
 
     public $activeTab = 'planned';
 

@@ -62,13 +62,26 @@
                         <tr>
                             <th>DATE</th>
                             <th>OPERATOR</th>
-                            <th>REG A/C</th>
+                            <th>A/C TYPE</th>
+                            <th>A/C REG</th>
                             <th>A/C STATUS</th>
                             <th>STA</th>
+                            <th>SHIFT</th>
+                            <th>TASK TYPE</th>
                             <th>DOC TYPE</th>
-                            <th>NO. DOC</th>
-                            <th>ACTION TAKEN / REASON</th>
                             <th>STATUS</th>
+                            <th>NO.DOC</th>
+                            <th>ACTION TAKEN / REASON</th>
+                            <th>START PERFORM</th>
+                            <th>FINISH PERFORM</th>
+                            <th>MP 1</th>
+                            <th>MP 2</th>
+                            <th>MP 3</th>
+                            <th>MP 4</th>
+                            <th>MP 5</th>
+                            <th>TOTAL MP</th>
+                            <th>INDIVIDUAL MHRS</th>
+                            <th>ACTUAL MHRS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,14 +89,13 @@
                             <tr>
                                 <td>{{ $log->date ? \Carbon\Carbon::parse($log->date)->format('d M Y') : '' }}</td>
                                 <td>{{ $log->operator ?? '' }}</td>
-                                <td>
-                                    <div class="mod-aircraft-name">{{ $log->aircraft_registration ?? '' }}</div>
-                                </td>
+                                <td>{{ $log->ac_type ?? '' }}</td>
+                                <td><div class="mod-aircraft-name">{{ $log->aircraft_registration ?? '' }}</div></td>
                                 <td>{{ $log->ac_status ?? '' }}</td>
                                 <td><strong>{{ $log->station ?? '' }}</strong></td>
+                                <td>{{ $log->shift ?? '' }}</td>
+                                <td>{{ $log->task_type ?? '' }}</td>
                                 <td>{{ $log->doc_type ?? '' }}</td>
-                                <td>{{ $log->no_doc ?? '' }}</td>
-                                <td><x-text-popup :text="$log->description ?? ''" title="Action Taken / Reason" /></td>
                                 <td>
                                     @if(strtolower((string) $log->status) === 'closed')
                                         <span class="mod-badge-closed"><span class="mod-badge-dot" style="background:#34d399;"></span>Closed</span>
@@ -91,10 +103,22 @@
                                         <span class="mod-badge-open"><span class="mod-badge-dot" style="background:#f87171;"></span>Open</span>
                                     @endif
                                 </td>
+                                <td>{{ $log->no_doc ?? '' }}</td>
+                                <td><x-text-popup :text="$log->description ?? ''" title="Action Taken / Reason" /></td>
+                                <td>{{ \App\Support\ManHours::clockText($log->start_perform) ?? '' }}</td>
+                                <td>{{ \App\Support\ManHours::clockText($log->finish_perform) ?? '' }}</td>
+                                <td>{{ $log->mp1 ?? '' }}</td>
+                                <td>{{ $log->mp2 ?? '' }}</td>
+                                <td>{{ $log->mp3 ?? '' }}</td>
+                                <td>{{ $log->mp4 ?? '' }}</td>
+                                <td>{{ $log->mp5 ?? '' }}</td>
+                                <td>{{ $log->man_power ?? '' }}</td>
+                                <td>{{ $log->individual_mhrs !== null ? number_format((float) $log->individual_mhrs, 2) : '' }}</td>
+                                <td>{{ $log->man_hour !== null ? number_format((float) $log->man_hour, 2) : '' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9">
+                                <td colspan="22">
                                     <div class="mod-empty">
                                         <div class="mod-empty-icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>

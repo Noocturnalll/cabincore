@@ -3,14 +3,13 @@
 namespace App\Livewire\Modules\NsrdiOverdue;
 
 use App\Exports\NsrdiOverdueExport;
-use App\Imports\NsrdiOverdueImport;
 use App\Models\Ims\Category;
 use App\Models\Ims\Item;
 use App\Models\Ims\Location;
 use App\Models\Ims\Stock;
 use App\Models\Ims\Unit;
-use App\Models\NsrdiLog;
 use App\Models\NsrdiOverdue;
+use App\Services\Nsrdi\NsrdiOverdueSync;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -35,6 +34,11 @@ class Index extends Component
     public $editRemarks = '';
 
     public $file;
+
+    /** @var array<string, mixed>|null result of analyzing / importing the chosen file */
+    public ?array $analysis = null;
+
+    public bool $importDone = false;
 
     public $search = '';
 
@@ -124,50 +128,69 @@ class Index extends Component
         $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data NSRDI Overdue berhasil diperbarui.']);
     }
 
-    public function importData()
+    /** What importing the chosen file would do: counts and the documents the data bank would close. Nothing is written. */
+    public function analyzeFile(NsrdiOverdueSync $sync): void
     {
-        $this->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:20480',
+        $this->validate(['file' => 'required|mimes:xlsx,xls|max:20480'], [
+            'file.required' => 'Pilih file Excel terlebih dahulu.',
+            'file.mimes' => 'File harus berformat Excel (.xlsx / .xls).',
         ]);
 
         try {
-            ini_set('memory_limit', '512M');
-            Excel::import(new NsrdiOverdueImport, $this->file);
-
-            $this->isImportModalOpen = false;
-            $this->file = null;
-            $this->dispatch('notify', ['icon' => 'success', 'message' => 'Data NSRDI Overdue berhasil diimport dan disingkronkan.']);
+            $this->importDone = false;
+            $this->analysis = $sync->analyze($this->file->getRealPath());
         } catch (\Throwable $e) {
-            session()->flash('error', 'Terjadi kesalahan saat mengimport data: '.$e->getMessage());
+            $this->analysis = null;
+            $this->addError('file', 'File tidak bisa dibaca: '.$e->getMessage());
         }
     }
 
-    public function syncData()
+    public function updatedFile(): void
     {
-        $closedNsrdiSet = NsrdiLog::whereRaw('LOWER(status) = ?', ['closed'])
-            ->pluck('nsrdi_number')
-            ->filter()
-            ->map(fn ($v) => strtoupper(trim((string) $v)))
-            ->flip()
-            ->toArray();
+        $this->analysis = null;
+        $this->importDone = false;
+    }
 
-        $openOverdues = NsrdiOverdue::whereRaw('LOWER(status) != ?', ['closed'])->get();
-        $syncedCount = 0;
+    public function importData(NsrdiOverdueSync $sync): void
+    {
+        $this->validate(['file' => 'required|mimes:xlsx,xls|max:20480'], [
+            'file.required' => 'Pilih file Excel terlebih dahulu.',
+            'file.mimes' => 'File harus berformat Excel (.xlsx / .xls).',
+        ]);
 
-        foreach ($openOverdues as $overdue) {
-            $num1 = strtoupper(trim((string) $overdue->nsrdi_number));
-            $num2 = strtoupper(trim((string) $overdue->mddr));
+        try {
+            $report = $sync->apply($this->file->getRealPath());
+            // documents that were already in the list and have been closed in the bank since
+            $later = $sync->closeFromBank();
+            $report['closed_by_bank'] = array_merge($report['closed_by_bank'], $later);
+            $sync->tagClosedFromBank();
 
-            if (($num1 && isset($closedNsrdiSet[$num1])) || ($num2 && isset($closedNsrdiSet[$num2]))) {
-                $overdue->update([
-                    'status' => 'Closed',
-                    'closed_at' => $overdue->closed_at ?: now(),
-                ]);
-                $syncedCount++;
-            }
+            $this->analysis = $report;
+            $this->importDone = true;
+            $this->file = null;
+            $closed = count($report['closed_by_bank']);
+            $this->dispatch('notify', ['icon' => 'success', 'message' => "{$report['created']} baru, {$report['updated']} diperbarui, {$closed} ditutup otomatis dari Bank Data / Daily Report.", 'timer' => 6000]);
+        } catch (\Throwable $e) {
+            $this->addError('file', 'Terjadi kesalahan saat mengimport data: '.$e->getMessage());
         }
+    }
 
-        $this->dispatch('notify', ['icon' => 'success', 'message' => "$syncedCount data berhasil disingkronkan menjadi Closed berdasarkan Bank Data / Daily Report."]);
+    public function closeImportModal(): void
+    {
+        $this->isImportModalOpen = false;
+        $this->analysis = null;
+        $this->importDone = false;
+        $this->file = null;
+        $this->resetErrorBag();
+    }
+
+    /** Close every open document that the data bank / Daily Report has closed. */
+    public function syncData(NsrdiOverdueSync $sync): void
+    {
+        $closed = $sync->closeFromBank();
+        $tagged = $sync->tagClosedFromBank();
+
+        $this->dispatch('notify', ['icon' => 'success', 'message' => count($closed).' dokumen ditutup dari Bank Data / Daily Report'.($tagged ? " ({$tagged} catatan lama dilengkapi tanggal closenya)" : '').'.']);
     }
 
     public function exportData()

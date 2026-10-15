@@ -6,6 +6,7 @@ use App\Exports\Helpers\PivotBuilder;
 use App\Exports\Sheets\DetailDataSheet;
 use App\Exports\Sheets\PivotRekapSheet;
 use App\Models\NsrdiOverdue;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
@@ -68,6 +69,10 @@ class NsrdiOverdueExport implements Export, WithMultipleSheets
                 'status_final' => $r->status_final ?: '-',
                 'remarks' => $r->remarks ?: '-',
                 'closed_at' => $r->closed_at ? (is_string($r->closed_at) ? substr($r->closed_at, 0, 19) : $r->closed_at->format('Y-m-d H:i:s')) : '-',
+                // days to the due date (negative = overdue); only for what is still open
+                'days_to_due' => ($r->due_date && strtolower((string) $r->status) !== 'closed') ? (int) now()->startOfDay()->diffInDays(Carbon::parse($r->due_date)->startOfDay(), false) : '-',
+                'closed_via' => ['daily_report' => 'Daily Report', 'bank' => 'Bank Data', 'file' => 'File', 'manual' => 'Manual'][$r->closed_via] ?? ($r->closed_via ?: '-'),
+                'bank_ref' => $r->bank_ref ?: '-',
             ];
         });
 
@@ -144,6 +149,9 @@ class NsrdiOverdueExport implements Export, WithMultipleSheets
             'Status Final',
             'Remarks',
             'Closed At',
+            'Sisa Hari ke Due Date (minus = terlambat)',
+            'Ditutup Via',
+            'Cocok Dengan (No NSRDI Bank)',
         ];
 
         $sheets[] = new DetailDataSheet('Detail NSRDI Overdue', $headings, $mapped);

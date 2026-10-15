@@ -22,6 +22,24 @@ class PaintingDailyReportExport implements Export, FromCollection, WithHeadings,
         $this->activeTab = $this->activeTab ?: 'dja-painting';
     }
 
+    protected string $sheetPrefix = '';
+
+    /** Titles every sheet with a prefix, so several tabs can live in one workbook. */
+    public function withSheetPrefix(string $prefix): static
+    {
+        $this->sheetPrefix = $prefix;
+
+        return $this;
+    }
+
+    protected function sheetTitle(string $base): string
+    {
+        $title = $this->sheetPrefix !== '' ? $this->sheetPrefix.' - '.$base : $base;
+        $title = str_replace(['/', '\\', '?', '*', '[', ']', ':'], '-', $title);
+
+        return mb_substr($title, 0, 31);
+    }
+
     public function sheets(): array
     {
         $data = $this->collection();
@@ -56,8 +74,8 @@ class PaintingDailyReportExport implements Export, FromCollection, WithHeadings,
         $tables = [$matrixStation, $matrixAoc];
 
         return [
-            new PivotRekapSheet('Pivot Rekapitulasi', 'REKAPITULASI DAILY REPORT AIRCRAFT PAINTING', $metadata, $tables),
-            new DetailDataSheet($data, $this->headings(), 'Data Detail Painting'),
+            new PivotRekapSheet($this->sheetTitle('Pivot'), 'REKAPITULASI DAILY REPORT AIRCRAFT PAINTING', $metadata, $tables),
+            new DetailDataSheet($data, $this->headings(), $this->sheetTitle('Detail')),
         ];
     }
 

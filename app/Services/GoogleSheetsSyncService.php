@@ -11,6 +11,8 @@ use App\Services\Dja\DailyReportArchiver;
 use App\Services\Dja\DjaIngestor;
 use App\Services\Dja\DjaRonSyncService;
 use App\Services\Dja\DjaRowMapper;
+use App\Services\Dja\UnplannedSheetPuller;
+use App\Services\Dja\UnplannedSheetPusher;
 use Google\Service\Sheets\BatchUpdateValuesRequest;
 use Google\Service\Sheets\ValueRange;
 use Illuminate\Support\Facades\Log;
@@ -92,6 +94,21 @@ class GoogleSheetsSyncService
         $ronResult = $this->syncRonSheet($spreadsheetId, $sheetDate);
         if ($ronResult && $ronResult['total_stations'] > 0) {
             $message .= " Data RON {$ronResult['total_stations']} station ({$ronResult['total_aircraft']} A/C) berhasil disinkronkan dari {$ronResult['tab_title']}.";
+        }
+
+        // Unplanned tabs typed in the sheet -> web (read-only on the sheet; never fails the DJA sync)
+        try {
+            // failed web -> GSS writes are retried in the same run, so one task does everything
+            app(UnplannedSheetPusher::class)->retryFailed();
+            $u = app(UnplannedSheetPuller::class)->pull($spreadsheetId);
+            if ($u['created'] > 0) {
+                $message .= " {$u['created']} unplanned baru dari GSS.";
+            }
+            if ($u['conflicts'] > 0) {
+                $message .= " {$u['conflicts']} dokumen status berbeda (cek log sinkron).";
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Unplanned pull failed: '.$e->getMessage());
         }
 
         if ($this->lastError) {

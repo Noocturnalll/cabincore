@@ -217,6 +217,12 @@
                                     @else
                                         <span style="font-weight: 500; color: var(--cbm-text-main);">{{ $dueDateObj->format('d M Y') }}</span>
                                     @endif
+                                    @if(! $isClosed)
+                                        @php $days = (int) now()->startOfDay()->diffInDays($dueDateObj->copy()->startOfDay(), false); @endphp
+                                        <div class="mod-subtitle" style="font-size:.72rem; color:{{ $days < 0 ? '#ef4444' : ($days <= 30 ? '#f59e0b' : 'inherit') }};">
+                                            {{ $days < 0 ? 'terlambat '.abs($days).' hari' : ($days === 0 ? 'jatuh tempo hari ini' : $days.' hari lagi') }}
+                                        </div>
+                                    @endif
                                 @else
                                     <span style="color: var(--cbm-text-muted);">-</span>
                                 @endif
@@ -274,8 +280,11 @@
                             <td>
                                 @if($log->closed_at)
                                     <span style="font-size: 0.8rem; color: #10b981;">
-                                        {{ \Carbon\Carbon::parse($log->closed_at)->format('d M Y H:i') }}
+                                        {{ \Carbon\Carbon::parse($log->closed_at)->format($log->closed_via ? 'd M Y' : 'd M Y H:i') }}
                                     </span>
+                                    @if($log->closed_via)
+                                        <div class="mod-subtitle" style="font-size:.72rem;" title="Dicocokkan dengan nomor NSRDI di bank data">via {{ ['daily_report' => 'Daily Report', 'bank' => 'Bank Data', 'file' => 'File', 'manual' => 'Manual'][$log->closed_via] ?? $log->closed_via }}@if($log->bank_ref) · {{ $log->bank_ref }}@endif</div>
+                                    @endif
                                 @else
                                     <span style="color: var(--cbm-text-muted);">-</span>
                                 @endif
@@ -349,44 +358,111 @@
 
     {{-- Modal Import --}}
     @if($isImportModalOpen)
-    <div class="cbm-modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:flex; align-items:center; justify-content:center;">
-        <div class="cbm-modal-content" style="background:var(--cbm-card-bg); width:100%; max-width:28rem; border-radius:0.75rem; overflow:hidden; box-shadow:0 0.625rem 0.9375rem -3px rgba(0,0,0,0.1);">
-            <form wire:submit.prevent="importData">
-                <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--cbm-border); display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-weight:600; font-size:1.1rem; color:var(--cbm-text-main);">Import NSRDI Overdue Excel</h3>
-                    <button type="button" wire:click="$set('isImportModalOpen', false)" style="background:transparent; border:none; color:var(--cbm-text-sub); cursor:pointer;">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:1.25rem; height:1.25rem;"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                    </button>
-                </div>
-                <div style="padding:1.5rem;">
-                    @if(session()->has('error'))
-                    <div style="margin-bottom:1rem; padding:0.75rem; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); border-radius:6px; color:#ef4444; font-size:0.875rem;">
-                        {{ session('error') }}
+    @php
+        $an = $analysis;
+        $viaLabel = ['daily_report' => 'Daily Report', 'bank' => 'Bank Data', 'file' => 'File', 'manual' => 'Manual'];
+    @endphp
+    <div class="cbm-modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem;">
+        <div class="cbm-modal-content" style="background:var(--cbm-card-bg); width:100%; max-width:46rem; max-height:92vh; display:flex; flex-direction:column; border-radius:0.75rem; overflow:hidden; box-shadow:0 0.625rem 0.9375rem -3px rgba(0,0,0,0.1);">
+            <div style="padding:1.1rem 1.5rem; border-bottom:1px solid var(--cbm-border); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-weight:600; font-size:1.1rem; color:var(--cbm-text-main);">Import NSRDI Overdue (Excel)</h3>
+                <button type="button" wire:click="closeImportModal" aria-label="Tutup" style="background:transparent; border:none; color:var(--cbm-text-sub); cursor:pointer; font-size:1.4rem; line-height:1;">×</button>
+            </div>
+
+            <div style="padding:1.25rem 1.5rem; overflow-y:auto;">
+                @error('file')
+                    <div style="margin-bottom:1rem; padding:0.75rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:6px; color:#ef4444; font-size:0.875rem;">{{ $message }}</div>
+                @enderror
+
+                @if(! $importDone)
+                    <label style="display:block; font-size:0.875rem; font-weight:500; color:var(--cbm-text-main); margin-bottom:0.5rem;">Pilih file mingguan NSRDI (Excel)</label>
+                    <input type="file" wire:model="file" accept=".xlsx,.xls" style="display:block; width:100%; padding:0.5rem; border:1px solid var(--cbm-border); border-radius:6px; background:var(--cbm-bg); color:var(--cbm-text-main);">
+                    <div wire:loading wire:target="file" class="mod-subtitle" style="margin-top:.4rem;">Mengunggah…</div>
+                    <div style="margin-top:.9rem; padding:.7rem .85rem; background:var(--cbm-bg); border:1px solid var(--cbm-border); border-radius:6px; font-size:.78rem; color:var(--cbm-text-sub); line-height:1.55;">
+                        Sheet daftar defect (PROVIDER, A/C, DEFECT, MDDR, STATUS, AREA, REPORTED_DATE, DUE-DATE) dan sheet part (DOC NO., PART NUMBER, STATUS FINAL) dibaca otomatis.
+                        Nomor <strong>MDDR</strong> atau <strong>DEFECT</strong> yang sudah <strong>Closed</strong> di Bank Data / Daily Report ditutup otomatis pada tanggal close di bank;
+                        sisanya tetap <strong>Open</strong> dengan due date-nya.
                     </div>
+                @endif
+
+                @if($an)
+                    <div style="margin-top:1rem; font-weight:600; color:var(--cbm-text-main);">{{ $importDone ? 'Hasil import' : 'Hasil analisis (belum disimpan)' }}</div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr)); gap:.55rem; margin-top:.55rem;">
+                        @foreach([
+                            ['Dokumen unik', $an['unique'], '#60a5fa'],
+                            ['Baru', $an['created'], '#34d399'],
+                            ['Diperbarui', $an['updated'], '#94a3b8'],
+                            ['Ditutup otomatis', count($an['closed_by_bank']) + $an['closed_by_file'], '#34d399'],
+                            ['Masih open', $an['still_open'], '#f59e0b'],
+                            ['Lewat due date', $an['past_due'], '#ef4444'],
+                            ['Due ≤ 30 hari', $an['due_30'], '#f59e0b'],
+                            ['Tidak ada di file', $an['missing_from_file'], '#94a3b8'],
+                        ] as [$label, $value, $color])
+                            <div style="padding:.6rem .7rem; border:1px solid var(--cbm-border); border-radius:8px; border-left:3px solid {{ $color }};">
+                                <div style="font-size:.7rem; color:var(--cbm-text-muted);">{{ $label }}</div>
+                                <div style="font-size:1.3rem; font-weight:700; color:var(--cbm-text-main);">{{ number_format($value) }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if($an['duplicates'])
+                        <div class="mod-subtitle" style="margin-top:.5rem;">{{ $an['duplicates'] }} baris ganda (nomor defect sama) dilewati.</div>
                     @endif
-                    <div style="margin-bottom:1rem;">
-                        <label style="display:block; font-size:0.875rem; font-weight:500; color:var(--cbm-text-main); margin-bottom:0.5rem;">Pilih File Excel / CSV</label>
-                        <input type="file" wire:model="file" accept=".xlsx,.xls,.csv" style="display:block; width:100%; padding:0.5rem; border:1px solid var(--cbm-border); border-radius:6px; background:var(--cbm-bg); color:var(--cbm-text-main); cursor:pointer;">
-                        @error('file') <span style="color:#ef4444; font-size:0.75rem; margin-top:0.25rem; display:block;">{{ $message }}</span> @enderror
-                        
-                        <div style="margin-top: 1rem; padding: 0.75rem; background: var(--cbm-bg); border: 1px solid var(--cbm-border); border-radius: 6px; font-size: 0.78rem; color: var(--cbm-text-sub); line-height: 1.5;">
-                            <div style="font-weight: 600; color: var(--cbm-text-main); margin-bottom: 0.25rem;">ℹ️ Informasi Kolom Excel:</div>
-                            Mendukung file format <strong>NSRDI WEEKLY / OVERDUE</strong> (Sheet daftar NSRDIL &amp; Sheet detail part). Sistem akan otomatis mengenali kolom Provider, A/C, Defect No, MDDR, Due Date, dan otomatis mengubah status menjadi <strong>Closed</strong> jika sudah terselesaikan di Bank Data / Daily Report.
+                    @if($an['missing_from_file'])
+                        <div class="mod-subtitle" style="margin-top:.35rem;">"Tidak ada di file": dokumen open di sistem yang tidak lagi tercantum di file ini (kemungkinan sudah ditutup planner). Status tidak diubah.</div>
+                    @endif
+
+                    @if(count($an['closed_by_bank']))
+                        <div style="margin-top:1rem; font-weight:600; color:var(--cbm-text-main);">Ditutup karena nomornya Closed di bank data ({{ count($an['closed_by_bank']) }})</div>
+                        <div style="margin-top:.4rem; border:1px solid var(--cbm-border); border-radius:8px; max-height:14rem; overflow:auto;">
+                            <table class="mod-table" style="font-size:.8rem;">
+                                <thead><tr><th>DEFECT</th><th>MDDR</th><th>A/C</th><th>COCOK DENGAN</th><th>CLOSE</th><th>SUMBER</th></tr></thead>
+                                <tbody>
+                                    @foreach(array_slice($an['closed_by_bank'], 0, 60) as $c)
+                                        <tr>
+                                            <td style="font-family:monospace;">{{ $c['doc'] }}</td>
+                                            <td style="font-family:monospace;">{{ $c['mddr'] ?: '-' }}</td>
+                                            <td>{{ $c['aircraft'] ?: '-' }}</td>
+                                            <td style="font-family:monospace;">{{ $c['bank_ref'] }}</td>
+                                            <td style="white-space:nowrap;">{{ $c['date'] ? \Carbon\Carbon::parse($c['date'])->format('d M Y') : '-' }}</td>
+                                            <td>{{ $viaLabel[$c['source']] ?? $c['source'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                </div>
-                <div style="padding:1rem 1.5rem; border-top:1px solid var(--cbm-border); background:var(--cbm-bg); display:flex; justify-content:flex-end; gap:0.75rem;">
-                    <button type="button" wire:click="$set('isImportModalOpen', false)" class="mod-btn-outline" style="border-radius:6px;">Batal</button>
-                    <button type="submit" class="mod-btn-primary" style="border-radius:6px;" wire:loading.attr="disabled" wire:target="file, importData">
-                        <span wire:loading.remove wire:target="importData">Upload &amp; Import</span>
-                        <span wire:loading wire:target="importData">Memproses...</span>
+                        @if(count($an['closed_by_bank']) > 60)<div class="mod-subtitle" style="margin-top:.3rem;">…dan {{ count($an['closed_by_bank']) - 60 }} lainnya.</div>@endif
+                    @endif
+
+                    @if(! empty($an['by_operator']))
+                        <div style="margin-top:1rem; font-weight:600; color:var(--cbm-text-main);">Masih open per AOC</div>
+                        <div style="margin-top:.4rem; display:flex; gap:.4rem; flex-wrap:wrap;">
+                            @foreach($an['by_operator'] as $op => $n)
+                                <span style="padding:.2rem .6rem; border-radius:999px; background:rgba(96,165,250,.14); font-size:.8rem;"><strong>{{ $op }}</strong> {{ number_format($n) }}</span>
+                            @endforeach
+                            @foreach($an['by_month'] as $mo => $n)
+                                <span style="padding:.2rem .6rem; border-radius:999px; background:rgba(245,158,11,.14); font-size:.8rem;">due {{ $mo }}: <strong>{{ number_format($n) }}</strong></span>
+                            @endforeach
+                        </div>
+                    @endif
+                @endif
+            </div>
+
+            <div style="padding:1rem 1.5rem; border-top:1px solid var(--cbm-border); background:var(--cbm-bg); display:flex; justify-content:flex-end; gap:0.75rem; flex-wrap:wrap;">
+                <button type="button" wire:click="closeImportModal" class="mod-btn-outline" style="border-radius:6px;">{{ $importDone ? 'Selesai' : 'Batal' }}</button>
+                @if(! $importDone)
+                    <button type="button" wire:click="analyzeFile" class="mod-btn-outline" style="border-radius:6px;" wire:loading.attr="disabled" wire:target="file, analyzeFile, importData" @disabled(! $file)>
+                        <span wire:loading.remove wire:target="analyzeFile">Analisis dulu</span>
+                        <span wire:loading wire:target="analyzeFile">Menganalisis…</span>
                     </button>
-                </div>
-            </form>
+                    <button type="button" wire:click="importData" class="mod-btn-primary" style="border-radius:6px;" wire:loading.attr="disabled" wire:target="file, analyzeFile, importData" @disabled(! $file)>
+                        <span wire:loading.remove wire:target="importData">{{ $an ? 'Terapkan import' : 'Import langsung' }}</span>
+                        <span wire:loading wire:target="importData">Memproses…</span>
+                    </button>
+                @endif
+            </div>
         </div>
     </div>
     @endif
-
     {{-- Modal Detail Stok IMS --}}
     @if($isImsModalOpen && $selectedImsItem)
     <div class="cbm-modal-backdrop" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem;" wire:keydown.escape="closeImsModal">

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\NormalizesStations;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -63,7 +64,9 @@ class NsrdiLog extends Model
                         ->whereRaw('LOWER(status) != ?', ['closed'])
                         ->update([
                             'status' => 'Closed',
-                            'closed_at' => now(),
+                            'closed_at' => $log->close_date ? Carbon::parse($log->close_date)->startOfDay() : now(),
+                            'closed_via' => $log->is_submitted ? 'daily_report' : 'bank',
+                            'bank_ref' => $num,
                         ]);
                 }
             }

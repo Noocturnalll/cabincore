@@ -5,6 +5,7 @@ namespace App\Livewire\Modules\DmiLog;
 use App\Exports\DmiExport;
 use App\Imports\DmiImport;
 use App\Livewire\Traits\ManagesLogStatus;
+use App\Livewire\Traits\QuickUnplannedEntry;
 use App\Livewire\Traits\ShowsCarryOver;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\DmiLog;
@@ -16,7 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use ManagesLogStatus, ShowsCarryOver, WithFileUploads, WithLogTable, WithPagination;
+    use ManagesLogStatus, QuickUnplannedEntry, ShowsCarryOver, WithFileUploads, WithLogTable, WithPagination;
 
     public $activeTab = 'planned';
 

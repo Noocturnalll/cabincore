@@ -280,6 +280,23 @@
                             <th>STATUS</th>
                             <th>CODE REASON</th>
                             <th>REASON OPEN</th>
+                            <th>ATA</th>
+                            <th>TASK CARD</th>
+                            <th>TASK CARD DESCRIPTION</th>
+                            <th>RII</th>
+                            <th>ETOPS</th>
+                            <th>ERU</th>
+                            <th>IERA</th>
+                            <th>SITE</th>
+                            <th>DUE DATE WO</th>
+                            <th>CLASS WO</th>
+                            <th>MATERIALS</th>
+                            <th>TOOLS</th>
+                            <th>PLAN DATE</th>
+                            <th>PLANNER</th>
+                            <th>PPC ONDUTY</th>
+                            <th>CLOSE DATE</th>
+                            <th>HIGHLIGHT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -316,10 +333,27 @@
                                 </td>
                                 <td>{{ $log->hold_reason_category ?? '' }}</td>
                                 <td>{{ $log->hold_remarks ?? '' }}</td>
+                                <td>{{ $log->ata ?? '' }}</td>
+                                <td>{{ $log->task_card ?? '' }}</td>
+                                <td><x-text-popup :text="$log->task_card_description ?? ''" title="Task Card Description" /></td>
+                                <td>{{ $log->rii ?? '' }}</td>
+                                <td>{{ $log->etops ?? '' }}</td>
+                                <td>{{ $log->eru ?? '' }}</td>
+                                <td>{{ $log->iera ?? '' }}</td>
+                                <td>{{ $log->site ?? '' }}</td>
+                                <td>{{ $log->due_date_wo?->format('d M Y') }}</td>
+                                <td>{{ $log->class_wo ?? '' }}</td>
+                                <td><x-text-popup :text="$log->materials ?? ''" title="Materials" /></td>
+                                <td><x-text-popup :text="$log->tools ?? ''" title="Tools" /></td>
+                                <td>{{ $log->plan_date?->format('d M Y') }}</td>
+                                <td>{{ $log->planner ?? '' }}</td>
+                                <td>{{ $log->ppc_onduty ?? '' }}</td>
+                                <td>{{ $log->close_date?->format('d M Y') }}</td>
+                                <td>{{ $log->highlight ?? '' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="16">
+                                <td colspan="33">
                                     <div class="mod-empty">
                                         <div class="mod-empty-icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
@@ -345,6 +379,18 @@
                             <th>CAT</th>
                             <th>STATUS</th>
                             <th>REMARK</th>
+                            <th>WG</th>
+                            <th>ATA</th>
+                            <th>DEFER TYPE</th>
+                            <th>STATUS WO</th>
+                            <th>WO</th>
+                            <th>DUE DATE DMI</th>
+                            <th>PICKLIST NUMBER</th>
+                            <th>AOC</th>
+                            <th>TYPE</th>
+                            <th>PLAN DATE</th>
+                            <th>CLOSE DATE</th>
+                            <th>HIGHLIGHT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -375,10 +421,22 @@
                                     @endif
                                 </td>
                                 <td><x-text-popup :text="$log->hold_remarks ?? $log->remarks ?? ''" /></td>
+                                <td>{{ $log->work_group ?? '' }}</td>
+                                <td>{{ $log->ata ?? '' }}</td>
+                                <td>{{ $log->defer_type ?? '' }}</td>
+                                <td>{{ $log->status_wo ?? '' }}</td>
+                                <td>{{ $log->wo_number ?? '' }}</td>
+                                <td>{{ $log->due_date_dmi?->format('d M Y') }}</td>
+                                <td>{{ $log->picklist_number ?? '' }}</td>
+                                <td>{{ $log->aoc ?? '' }}</td>
+                                <td>{{ $log->type ?? '' }}</td>
+                                <td>{{ $log->plan_date?->format('d M Y') }}</td>
+                                <td>{{ $log->close_date?->format('d M Y') }}</td>
+                                <td>{{ $log->highlight ?? '' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10">
+                                <td colspan="22">
                                     <div class="mod-empty">
                                         <div class="mod-empty-icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"/></svg>
@@ -477,13 +535,26 @@
                         <tr>
                             <th>DATE</th>
                             <th>OPERATOR</th>
-                            <th>REG A/C</th>
+                            <th>A/C TYPE</th>
+                            <th>A/C REG</th>
                             <th>A/C STATUS</th>
                             <th>STA</th>
+                            <th>SHIFT</th>
+                            <th>TASK TYPE</th>
                             <th>DOC TYPE</th>
-                            <th>NO. DOC</th>
-                            <th>ACTION TAKEN / REASON</th>
                             <th>STATUS</th>
+                            <th>NO.DOC</th>
+                            <th>ACTION TAKEN / REASON</th>
+                            <th>START PERFORM</th>
+                            <th>FINISH PERFORM</th>
+                            <th>MP 1</th>
+                            <th>MP 2</th>
+                            <th>MP 3</th>
+                            <th>MP 4</th>
+                            <th>MP 5</th>
+                            <th>TOTAL MP</th>
+                            <th>INDIVIDUAL MHRS</th>
+                            <th>ACTUAL MHRS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -491,25 +562,36 @@
                             <tr>
                                 <td>{{ $log->date ? \Carbon\Carbon::parse($log->date)->format('d M Y') : '' }}</td>
                                 <td>{{ $log->operator ?? '' }}</td>
-                                <td>
-                                    <div class="mod-aircraft-name">{{ $log->aircraft_registration ?? '' }}</div>
-                                </td>
+                                <td>{{ $log->ac_type ?? '' }}</td>
+                                <td><div class="mod-aircraft-name">{{ $log->aircraft_registration ?? '' }}</div></td>
                                 <td>{{ $log->ac_status ?? '' }}</td>
-                                <td>{{ $log->station ?? '' }}</td>
+                                <td><strong>{{ $log->station ?? '' }}</strong></td>
+                                <td>{{ $log->shift ?? '' }}</td>
+                                <td>{{ $log->task_type ?? '' }}</td>
                                 <td>{{ $log->doc_type ?? '' }}</td>
-                                <td>{{ $log->no_doc ?? '' }}</td>
-                                <td><x-text-popup :text="$log->description ?? ''" title="Action Taken / Reason" /></td>
                                 <td>
-                                    @if(($log->status ?? '') === 'Closed')
+                                    @if(strtolower((string) $log->status) === 'closed')
                                         <span class="mod-badge-closed"><span class="mod-badge-dot" style="background:#34d399;"></span>Closed</span>
                                     @else
                                         <span class="mod-badge-open"><span class="mod-badge-dot" style="background:#f87171;"></span>Open</span>
                                     @endif
                                 </td>
+                                <td>{{ $log->no_doc ?? '' }}</td>
+                                <td><x-text-popup :text="$log->description ?? ''" title="Action Taken / Reason" /></td>
+                                <td>{{ \App\Support\ManHours::clockText($log->start_perform) ?? '' }}</td>
+                                <td>{{ \App\Support\ManHours::clockText($log->finish_perform) ?? '' }}</td>
+                                <td>{{ $log->mp1 ?? '' }}</td>
+                                <td>{{ $log->mp2 ?? '' }}</td>
+                                <td>{{ $log->mp3 ?? '' }}</td>
+                                <td>{{ $log->mp4 ?? '' }}</td>
+                                <td>{{ $log->mp5 ?? '' }}</td>
+                                <td>{{ $log->man_power ?? '' }}</td>
+                                <td>{{ $log->individual_mhrs !== null ? number_format((float) $log->individual_mhrs, 2) : '' }}</td>
+                                <td>{{ $log->man_hour !== null ? number_format((float) $log->man_hour, 2) : '' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9">
+                                <td colspan="22">
                                     <div class="mod-empty">
                                         <div class="mod-empty-icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>

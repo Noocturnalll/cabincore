@@ -2,6 +2,7 @@
 
 namespace App\Services\Kpi;
 
+use App\Helpers\RoleHelper;
 use App\Models\Aircraft;
 use App\Models\Asset;
 use App\Models\AssetAssignment;
@@ -11,10 +12,12 @@ use App\Models\EmployeeTraining;
 use App\Models\LeaderReportImport;
 use App\Models\LgtRecord;
 use App\Models\RegistryRecord;
+use App\Models\SheetSyncLog;
 use App\Models\SyncSetting;
 use App\Models\User;
 use App\Services\Attendance\AttendanceScorer;
 use App\Services\Compliance\ComplianceReport;
+use App\Services\Dja\DjaPersister;
 use App\Support\ExpiryStatus;
 use App\Support\PlannedLogs;
 use App\Support\TaskStation;
@@ -121,6 +124,53 @@ class ModuleTiles
             return ['title' => 'Laporan Leader', 'value' => (string) $pending, 'sub' => $pending ? 'pratinjau menunggu Terapkan' : ($last ? 'terakhir '.$last->applied_at->diffForHumans() : 'belum ada impor'), 'tone' => $pending ? 'yellow' : 'green', 'route' => 'modules.leader-report'];
         }, 'leader.import');
 
+        // ── Insights: man hours, DBI, ageing of open work (the pivots live in reports.insights) ──
+        $add('production', 'manhours', function () use ($from, $to, $station) {
+            $q = $station(DB::table('cml_logs')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
+            $jobs = (clone $q)->count();
+            $timed = (clone $q)->where('man_hour', '>', 0)->count();
+            $hours = (float) (clone $q)->sum('man_hour');
+            if ($jobs === 0) {
+                return null;
+            }
+
+            return [
+                'title' => 'Man-hour CML & DBI', 'value' => number_format($hours, 1).' jam',
+                'sub' => $timed.' dari '.$jobs.' pekerjaan punya jam mulai/selesai', 'tone' => $timed === $jobs ? 'green' : 'yellow', 'route' => 'reports.insights',
+            ];
+        }, 'kpi.view');
+        $add('production', 'dbi', function () use ($from, $to, $station) {
+            $q = $station(DB::table('cml_logs')->where('kind', 'DBI')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
+            $open = (clone $q)->whereRaw("LOWER(status) <> 'closed'")->count();
+
+            return ['title' => 'DBI', 'value' => number_format((clone $q)->count()), 'sub' => $open ? "$open masih open" : 'semua closed', 'tone' => $open ? 'yellow' : 'green', 'route' => 'modules.cml'];
+        }, 'menu.production');
+        $add('production', 'aging', function () use ($station) {
+            $old = 0;
+            foreach ([['wo_logs', 'date'], ['dmi_logs', 'date'], ['nsrdi_logs', 'plan_date']] as [$t, $c]) {
+                $old += $station(DB::table($t)->whereRaw("LOWER(status) <> 'closed'")->whereDate($c, '<', now()->subDays(7)->toDateString()), TaskStation::unplannedSql())->count();
+            }
+
+            return ['title' => 'Open > 7 hari', 'value' => number_format($old), 'sub' => 'WO + DMI + NSRDI belum Closed', 'tone' => $old ? 'red' : 'green', 'route' => 'reports.insights'];
+        }, 'kpi.view');
+        $add('production', 'bank', function () use ($station) {
+            $banked = 0;
+            $held = 0;
+            foreach (['wo_logs' => 'act_station', 'dmi_logs' => 'act_station', 'nsrdi_logs' => 'act_station'] as $t => $c) {
+                $banked += $station(DB::table($t)->where('is_submitted', true), TaskStation::unplannedSql())->count();
+                $held += $station(DB::table($t)->where('is_submitted', false)->whereDate($t === 'nsrdi_logs' ? 'plan_date' : 'date', '<', DjaPersister::activeDate()), TaskStation::unplannedSql())->count();
+            }
+
+            return ['title' => 'Daily Report (bank)', 'value' => number_format($banked), 'sub' => $held ? number_format($held).' log hari lalu belum masuk bank' : 'semua log hari lalu sudah masuk', 'tone' => $held ? 'yellow' : 'green', 'route' => 'modules.daily-report'];
+        }, 'menu.production|menu.painting');
+        $add('production', 'painting', function () use ($from, $to, $station, $pct, $tone) {
+            $q = $station(DB::table('nsrdi_logs')->where('category', 'PAINTING')->whereDate('plan_date', '>=', $from)->whereDate('plan_date', '<=', $to), TaskStation::unplannedSql());
+            $total = (clone $q)->count();
+            $done = (clone $q)->whereRaw("LOWER(status) = 'closed'")->count();
+            $p = $pct($done, $total);
+
+            return ['title' => 'NSRDI Painting', 'value' => "$done / $total", 'sub' => $p !== null ? "$p% closed" : 'belum ada data', 'tone' => $tone($p), 'route' => 'modules.painting.nsrdi'];
+        }, 'menu.painting|menu.production');
         // ── Cleaning & LGT ──
         $add('cleaning', 'cleaning', function () use ($from, $to, $station) {
             $q = $station(DB::table('aircraft_cleanings')->where('type', '!=', 'DBI')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to), 'station');
@@ -256,6 +306,15 @@ class ModuleTiles
         $add('assets', 'aircraft', fn () => ['title' => 'Master pesawat', 'value' => number_format(Aircraft::count()), 'sub' => number_format(Aircraft::whereNotNull('wg')->count()).' sudah punya WG', 'tone' => 'none', 'route' => 'master.aircraft']);
 
         // ── Data & system ──
+        $add('system', 'synclog', function () use ($user) {
+            if (! $user->hasAnyRole([RoleHelper::SUPER_ADMIN, ...RoleHelper::COD_DESK])) {
+                return null;
+            }
+            $open = SheetSyncLog::whereIn('event', ['failed', 'conflict'])->whereNull('resolved_at')->count();
+            $healed = SheetSyncLog::where('event', 'healed')->where('resolved_at', '>=', now()->subDay())->count();
+
+            return ['title' => 'Sinkron GSS', 'value' => (string) $open, 'sub' => $open ? 'konflik / gagal tulis perlu dilihat' : ($healed ? "$healed pulih otomatis hari ini" : 'semua normal'), 'tone' => $open ? 'yellow' : 'green', 'route' => 'sync.log'];
+        });
         $add('system', 'sources', function () {
             $keys = collect(config('sources.sources'))->filter(fn ($s) => isset($s['handler']))->keys();
             $rows = SyncSetting::whereIn('key', $keys)->get();

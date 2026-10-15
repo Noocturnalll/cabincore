@@ -19,8 +19,12 @@ class DjaPersister
 {
     /** Log columns that mirror the planner sheet and may be refreshed by a later sync. */
     private const PLANNER_OWNED = [
-        'wo' => ['work_group', 'aircraft_registration', 'wo_category', 'description', 'pn_picklist', 'man_hour', 'operator', 'type', 'plan_station', 'remarks_ppc_to_lm'],
-        'dmi' => ['aircraft_registration', 'description', 'pn_required', 'dmi_category', 'plan_station', 'category'],
+        'wo' => ['work_group', 'aircraft_registration', 'wo_category', 'description', 'pn_picklist', 'man_hour', 'operator', 'type', 'plan_station', 'remarks_ppc_to_lm',
+            'ata', 'task_card', 'task_card_description', 'rii', 'etops', 'eru', 'iera', 'site', 'due_date_wo', 'class_wo',
+            'materials', 'tools', 'plan_date', 'planner', 'ppc_onduty', 'close_date', 'highlight'],
+        'dmi' => ['aircraft_registration', 'description', 'pn_required', 'dmi_category', 'plan_station', 'category',
+            'work_group', 'defer_type', 'status_wo', 'wo_number', 'ata', 'due_date_dmi', 'picklist_number', 'aoc',
+            'type', 'plan_date', 'close_date', 'highlight', 'operator'],
         'nsrdi' => ['work_group', 'aircraft_registration', 'description', 'category', 'report_date', 'due_date', 'part_number', 'part_description', 'defer', 'aoc', 'type', 'plan_station'],
     ];
 

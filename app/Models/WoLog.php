@@ -35,6 +35,8 @@ class WoLog extends Model
         'photo_evidence_path',
         'is_submitted',
         'import_source',
+        'ata', 'task_card', 'task_card_description', 'rii', 'etops', 'eru', 'iera', 'site', 'due_date_wo',
+        'class_wo', 'materials', 'tools', 'plan_date', 'planner', 'ppc_onduty', 'close_date', 'highlight',
     ];
 
     public function dailyJobAssignment()
@@ -46,6 +48,9 @@ class WoLog extends Model
     {
         return [
             'date' => 'date',
+            'due_date_wo' => 'date',
+            'plan_date' => 'date',
+            'close_date' => 'date',
             'is_submitted' => 'boolean',
             'man_hour' => 'decimal:2',
         ];

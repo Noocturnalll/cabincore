@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Modules\Painting;
 
-use App\Exports\PaintingDailyReportExport;
+use App\Exports\PaintingDailyReportDayExport;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\NsrdiLog;
+use App\Services\Dja\DjaPersister;
 use App\Services\Reports\ProductionExecutiveService;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -56,8 +57,8 @@ class DailyReport extends Component
     public function exportExcel()
     {
         return Excel::download(
-            new PaintingDailyReportExport($this->search, $this->dateFilter, $this->activeTab),
-            'DailyReport-AircraftPainting-'.date('Y-m-d').'.xlsx'
+            new PaintingDailyReportDayExport($this->dateFilter ?: '', $this->search),
+            'DailyReport-AircraftPainting-'.($this->dateFilter ?: DjaPersister::activeDate()).'.xlsx'
         );
     }
 

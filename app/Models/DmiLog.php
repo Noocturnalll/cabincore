@@ -30,6 +30,8 @@ class DmiLog extends Model
         'photo_evidence_path',
         'is_submitted',
         'import_source',
+        'work_group', 'defer_type', 'status_wo', 'wo_number', 'ata', 'due_date_dmi', 'picklist_number', 'aoc',
+        'type', 'plan_date', 'close_date', 'highlight', 'operator',
     ];
 
     public function dailyJobAssignment()
@@ -41,6 +43,9 @@ class DmiLog extends Model
     {
         return [
             'date' => 'date',
+            'due_date_dmi' => 'date',
+            'plan_date' => 'date',
+            'close_date' => 'date',
             'is_submitted' => 'boolean',
         ];
     }

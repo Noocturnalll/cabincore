@@ -4,7 +4,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('sync:daily-dja')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('sync:daily-dja')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('sync:ac-movement')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('sources:sync --every=hourly')->hourly()->withoutOverlapping();   // briefing evidence, CBM closing
 Schedule::command('sources:sync --every=daily')->dailyAt('05:30')->withoutOverlapping();   // AMM working groups, targets

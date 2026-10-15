@@ -4,6 +4,7 @@ namespace App\Livewire\Modules\NsrdiLog;
 
 use App\Exports\NsrdiExport;
 use App\Livewire\Traits\ManagesLogStatus;
+use App\Livewire\Traits\QuickUnplannedEntry;
 use App\Livewire\Traits\ShowsCarryOver;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\NsrdiLog;
@@ -18,7 +19,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use ManagesLogStatus, ShowsCarryOver, WithFileUploads, WithLogTable, WithPagination;
+    use ManagesLogStatus, QuickUnplannedEntry, ShowsCarryOver, WithFileUploads, WithLogTable, WithPagination;
 
     public $activeTab = 'planned';
 

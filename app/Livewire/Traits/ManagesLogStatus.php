@@ -3,7 +3,9 @@
 namespace App\Livewire\Traits;
 
 use App\Models\DailyJobAssignment;
+use App\Models\SheetSyncLog;
 use App\Services\Dja\DjaPersister;
+use App\Services\Dja\UnplannedSheetPusher;
 use App\Services\GoogleSheetsSyncService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
@@ -110,19 +112,16 @@ trait ManagesLogStatus
         $label = $log->aircraft_registration ?: 'Data';
         $pushed = $this->pushStatusToSheet($log, $status, $code, $remarks, $syncService);
 
-        if ($pushed === false) {
-            $this->dispatch('notify', [
-                'icon' => 'warning',
-                'message' => "{$label} {$status} di CBM, tetapi GAGAL diperbarui di Google Sheet. Cek koneksi / akses sheet.",
-                'timer' => 7000,
-            ]);
-
-            return;
+        if ($pushed === null) {
+            // unplanned work: written to its Unplanned tab; a failure is only logged and retried (never shown)
+            app(UnplannedSheetPusher::class)->push($log);
+        } elseif ($pushed === false) {
+            SheetSyncLog::note('push', 'failed', null, (string) ($log->wo_number ?? $log->dmi_number ?? $log->nsrdi_number ?? $log->id), 'Status tidak tertulis ke GSS DJA (akses tutup / koneksi).', ['status' => $status, 'code' => $code]);
         }
 
         $this->dispatch('notify', [
             'icon' => 'success',
-            'message' => "{$label} ditandai {$status}".($pushed ? ' dan sheet diperbarui.' : '.'),
+            'message' => "{$label} ditandai {$status}.",
         ]);
     }
 

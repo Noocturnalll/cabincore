@@ -130,87 +130,22 @@ class UniversalWhatsAppReportService
      */
     protected function generateCbmReport(string $startDate, string $endDate, ?string $station): array
     {
-        $dateFormatted = Carbon::parse($startDate)->format('d M Y');
-        $nowStr = Carbon::now()->format('H:i').' WIB';
-
-        // Query DJA data for this date
-        $djaQuery = DailyJobAssignment::whereDate('date', $startDate);
-        if ($station) {
-            $djaQuery->where('station', $station);
-        }
-        $djaRecords = $djaQuery->get();
-
-        $woDeploy = $djaRecords->where('type', 'WO')->count();
-        $woClosed = $djaRecords->where('type', 'WO')->where('status', 'CLOSED')->count();
-        $woOpen = $woDeploy - $woClosed;
-
-        $dmiDeploy = $djaRecords->where('type', 'DMI')->count();
-        $dmiClosed = $djaRecords->where('type', 'DMI')->where('status', 'CLOSED')->count();
-        $dmiOpen = $dmiDeploy - $dmiClosed;
-
-        $nsrdiDeploy = $djaRecords->where('type', 'NSRDI')->count();
-        $nsrdiClosed = $djaRecords->where('type', 'NSRDI')->where('status', 'CLOSED')->count();
-        $nsrdiOpen = $nsrdiDeploy - $nsrdiClosed;
-
-        $totalDeploy = $woDeploy + $dmiDeploy + $nsrdiDeploy;
-        $totalClosed = $woClosed + $dmiClosed + $nsrdiClosed;
-        $totalOpen = $totalDeploy - $totalClosed;
-        $rate = $totalDeploy > 0 ? round(($totalClosed / $totalDeploy) * 100, 1) : 0;
-
-        $out = [];
-        $out[] = '*LION GROUP AIRCRAFT CABIN TECHNICIAN*';
-        $out[] = '*CABIN ON-DUTY (COD) PRODUCTION REPORT*';
-        $out[] = "📅 Tanggal  : {$dateFormatted}";
-        $out[] = '📍 Stasiun  : '.($station ?: 'All Stations (Nasional)');
-        $out[] = "🕒 Waktu    : {$nowStr}";
-        $out[] = '========================================';
-        $out[] = '';
-
-        // Ringkasan
-        $out[] = "🎯 *TOTAL PRODUCTION: {$totalClosed}/{$totalDeploy} ({$rate}%)*";
-        $out[] = "• TOTAL DEPLOY : *{$totalDeploy}*";
-        $out[] = "• TOTAL CLOSED : *{$totalClosed}*";
-        $out[] = "• TOTAL OPEN   : *{$totalOpen}*";
-        $out[] = '';
-
-        // DJA R01 / WO
-        $out[] = '> *1. DJA R01 / WO*';
-        $out[] = "Deploy: {$woDeploy} | Closed: {$woClosed} | Open: {$woOpen}";
-        $out[] = '';
-
-        // DMI CBM
-        $out[] = '> *2. DMI CBM*';
-        $out[] = "Deploy: {$dmiDeploy} | Closed: {$dmiClosed} | Open: {$dmiOpen}";
-        $out[] = '';
-
-        // NSRDI CBM
-        $out[] = '> *3. NSRDI CBM*';
-        $out[] = "Deploy: {$nsrdiDeploy} | Closed: {$nsrdiClosed} | Open: {$nsrdiOpen}";
-        $out[] = '';
-
-        // Station Breakdown jika nasional
-        if (! $station) {
-            $stationGroups = $djaRecords->groupBy('station')->sortByDesc(fn ($g) => $g->count())->take(6);
-            if ($stationGroups->isNotEmpty()) {
-                $out[] = '📌 *TOP STASIUN AKTIF:*';
-                foreach ($stationGroups as $stName => $stList) {
-                    $stClosed = $stList->where('status', 'CLOSED')->count();
-                    $stTotal = $stList->count();
-                    $out[] = "• {$stName}: {$stClosed}/{$stTotal} closed";
-                }
-                $out[] = '';
-            }
+        // The COD reports the day that just ended: asked on the 14th, the report is of the 13th. A day that is
+        // already in the past (picked on screen) is reported as it is.
+        $today = Carbon::today()->toDateString();
+        if ($startDate >= $today) {
+            $startDate = Carbon::yesterday()->toDateString();
+            $endDate = $endDate >= $today ? $startDate : $endDate;
         }
 
-        $out[] = '========================================';
-        $out[] = '_Bank Data CBM Operasional - Ready for Briefing_';
-
+        // the message the COD posts in the WhatsApp group: DJA per plan station, unplanned NSRDI per actual station
+        $text = app(CodProductionReport::class)->text($startDate, $endDate, $station);
         $evidences = $this->getEvidenceSamples($startDate, $endDate);
 
         return [
             'module' => 'cbm',
             'title' => 'Laporan Cabin On-Duty (CBM)',
-            'report_text' => implode("\n", $out),
+            'report_text' => $text,
             'evidence_count' => count($evidences),
             'evidence_samples' => $evidences,
         ];

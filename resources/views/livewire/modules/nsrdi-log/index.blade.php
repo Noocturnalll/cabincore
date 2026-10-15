@@ -151,6 +151,8 @@
     </div>
 
     {{-- ═══════ Status Open modal ═══════ --}}
+    <x-quick-unplanned :open="$isQuickOpen" :columns="$this->quickColumns()" />
+
     <x-log-status-modal :show="$isModalOpen" :codes="$this::REASON_CODES" />
 
     {{-- ═══════ Import Modal ═══════ --}}

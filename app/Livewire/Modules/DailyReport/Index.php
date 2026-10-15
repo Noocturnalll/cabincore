@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Modules\DailyReport;
 
-use App\Exports\DailyReportExport;
+use App\Exports\DailyReportDayExport;
 use App\Imports\DailyReportImport;
 use App\Livewire\Traits\WithLogTable;
 use App\Models\AircraftCleaning;
@@ -271,7 +271,10 @@ class Index extends Component
         $dateFilter = property_exists($this, 'dateFilter') ? $this->dateFilter : '';
         $activeTab = property_exists($this, 'activeTab') ? $this->activeTab : '';
 
-        return Excel::download(new DailyReportExport($search, $dateFilter, $activeTab), 'DailyReportExport-'.date('Y-m-d').'.xlsx');
+        // the whole day in one workbook (DJA, Unplanned, CML, DBI, each with its pivot, plus the advanced pivots)
+        $export = new DailyReportDayExport($dateFilter, $search);
+
+        return Excel::download($export, 'DailyReport-'.$export->date().'.xlsx');
     }
 
     public function render()

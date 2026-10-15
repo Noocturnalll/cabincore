@@ -50,6 +50,8 @@ class UnplannedSheetWriter
         'close_date' => ['CLOSE DATE'],
         'reason_open' => ['REASON OPEN'],
         'code_open' => ['CODE OPEN'],
+        'pn_required' => ['PN REQUIRED', 'PN'],
+        'remarks' => ['REMARK', 'REMARKS'],
     ];
 
     /** The status column is named per tab: STATUS WO, STATUS DMI, STATUS. */
@@ -202,6 +204,9 @@ class UnplannedSheetWriter
         }
 
         $headers = self::HEADERS + ['status' => self::STATUS_HEADERS[$type] ?? ['STATUS']];
+        // the document column is the one named for this tab's own document type (a DMI tab also has a WO column)
+        $own = ['WO' => ['WO', 'WO NO', 'WO NUMBER'], 'DMI' => ['DMI NO', 'DMI NUMBER'], 'NSRDI' => ['NSRDI', 'NSRDI NO', 'NSRDI NUMBER']][$type] ?? [];
+        $headers['doc_no'] = array_values(array_unique(array_merge($own, $headers['doc_no'])));
         $cols = [];
         foreach ($headers as $field => $names) {
             foreach ($names as $name) {
@@ -250,6 +255,8 @@ class UnplannedSheetWriter
             'close_date' => $closed ? $date($row['work_date'] ?? null) : '',
             'reason_open' => $open ? (string) ($row['reason_open'] ?? '') : '',
             'code_open' => $open ? (string) ($row['code_open'] ?? '') : '',
+            'pn_required' => $type === 'DMI' ? (string) ($row['pn_required'] ?? '') : '',
+            'remarks' => (string) ($row['remarks'] ?? ''),
         ];
 
         $cells = [];

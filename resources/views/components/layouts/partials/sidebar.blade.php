@@ -193,8 +193,8 @@
 
             {{-- 5. DIVISI SUPPORTING & INVENTORY (IMS & ASSET) --}}
             @if(auth()->user()?->canAny(['menu.inventory', 'ims.catalog.view', 'ims.request.create', 'ims.stock.in', 'ims.stock.adjust', 'ims.stock.transfer', 'ims.approval.view', 'ims.repair.manage', 'ims.report.view', 'ims.master.manage', 'asset.view', 'menu.tools_equipment', 'compliance.view', 'menu.ict', 'menu.ict.pi', 'menu.ict.tbd']))
-            <div x-data="{ open: {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd']) ? 'true' : 'false' }} }">
-                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+            <div x-data="{ open: {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd', 'manual.index']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd', 'manual.index']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem; min-width: 0;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm3.75-1.5a.75.75 0 01.75.75v6a.75.75 0 01-1.5 0v-6a.75.75 0 01.75-.75z" clip-rule="evenodd" />
@@ -272,6 +272,10 @@
                         Tools &amp; Equipment
                     </a>
                     @endcan
+                    <a href="{{ route('manual.index') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('manual.index') ? 'cbm-active' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z"/></svg>
+                        Referensi Manual
+                    </a>
                     @can('compliance.view')
                     <a href="{{ route('compliance.daily') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('compliance.daily') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 8.03a.75.75 0 00-1.06-1.06l-4.5 4.5-1.97-1.97a.75.75 0 10-1.06 1.06l2.5 2.5a.75.75 0 001.06 0l5.03-5.03z" clip-rule="evenodd" /></svg>

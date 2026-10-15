@@ -32,4 +32,9 @@ class SystemNotification extends Notification
             'type' => $this->data['type'] ?? 'info',
         ];
     }
+
+    public function toArray(object $notifiable): array
+    {
+        return $this->toDatabase($notifiable);
+    }
 }

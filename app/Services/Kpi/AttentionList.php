@@ -80,13 +80,14 @@ class AttentionList
         $add('hr.view', 'Sertifikasi / Training telah kedaluwarsa (Expired)', 'hr.training', 'red', function () use ($stations) {
             return EmployeeTraining::query()
                 ->when($stations, fn ($q) => $q->whereIn('station', $stations))
-                ->where('status', 'expired')
+                ->whereNotNull('expiry_date')->whereDate('expiry_date', '<', today()->toDateString())
                 ->count();
         });
         $add('hr.view', 'Sertifikasi / Training mendekati kedaluwarsa (< 60 hari)', 'hr.training', 'yellow', function () use ($stations) {
             return EmployeeTraining::query()
                 ->when($stations, fn ($q) => $q->whereIn('station', $stations))
-                ->where('status', 'expiring_soon')
+                ->whereNotNull('expiry_date')->whereDate('expiry_date', '>=', today()->toDateString())
+                ->whereDate('expiry_date', '<=', today()->addDays(60)->toDateString())
                 ->count();
         });
 

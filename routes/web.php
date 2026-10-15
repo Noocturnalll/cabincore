@@ -86,6 +86,7 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/reports/document-accuracy', DocumentAccuracy::class)->middleware('permission:kpi.view')->name('reports.document-accuracy');
     Route::get('/reports/lgt', Lgt::class)->middleware('permission:kpi.view')->name('reports.lgt');
     Route::get('/reports/manpower', Manpower::class)->middleware('permission:kpi.view')->name('reports.manpower');
+    Route::get('/manual', App\Livewire\Modules\Manual\Index::class)->name('manual.index');
     Route::get('/reports/insights', Insights::class)->middleware('permission:kpi.view')->name('reports.insights');
     Route::get('/sync/log', Log::class)->name('sync.log');
     Route::get('/master/data/{type}', Entries::class)->name('master.data');

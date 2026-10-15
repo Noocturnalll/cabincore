@@ -3,6 +3,7 @@
 use App\Services\Compliance\ComplianceSyncService;
 use App\Services\Sources\AmmSync;
 use App\Services\Sources\CbmClosingSync;
+use App\Services\Sources\ManualReferenceSync;
 use App\Services\Sources\TargetSync;
 
 /**
@@ -43,6 +44,12 @@ return [
             'about' => 'Tab WORKING GROUP: pesawat milik WG berapa. Mengisi kolom WG di master pesawat.',
             'default' => '1jJ9KXttfwvfZnQKqXfa7dYeC8KgwDOdJA9XnpqFklAw', 'tab' => 'WORKING GROUP', 'every' => 'daily',
             'handler' => AmmSync::class,
+        ],
+        'manual_ref' => [
+            'kind' => 'reference', 'label' => 'Referensi Manual (AMM, CMM, part number)',
+            'about' => 'Indeks manual dengan link PDF di Google Drive. Hanya indeks dan link yang disimpan; PDF tetap di Drive.',
+            'default' => '1jJ9KXttfwvfZnQKqXfa7dYeC8KgwDOdJA9XnpqFklAw', 'tab' => '', 'every' => 'daily',
+            'handler' => ManualReferenceSync::class,
         ],
         'targets' => [
             'kind' => 'reference', 'label' => 'Target closed per hari (resume NSRDI)',

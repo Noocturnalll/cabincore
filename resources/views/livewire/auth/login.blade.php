@@ -63,10 +63,10 @@
 /* Brand */
 .cl-brand { display: flex; align-items: center; gap: .625rem; }
 .cl-brand-logo {
-    width: 2.5rem; height: 2.5rem; border-radius: .625rem; flex-shrink: 0;
-    background: linear-gradient(135deg,#3b82f6,#6366f1);
+    width: 3rem; height: 3rem; flex-shrink: 0;
+    background: transparent;
     display: flex; align-items: center; justify-content: center;
-    overflow: hidden; box-shadow: 0 4px 1rem rgba(59,130,246,.35);
+    overflow: visible; filter: drop-shadow(0 4px 14px rgba(0,0,0,.45));
 }
 .cl-brand-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .cl-brand-name { font-size: .9375rem; font-weight: 800; color: #fff; }
@@ -107,10 +107,10 @@
 .cl-mob { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.75rem; }
 @media(min-width:1024px) { .cl-mob { display: none; } }
 .cl-mob-logo {
-    width: 3rem; height: 3rem; border-radius: .75rem;
-    background: linear-gradient(135deg,#3b82f6,#6366f1);
+    width: 3.5rem; height: 3.5rem; margin-bottom: .625rem;
+    background: transparent;
     display: flex; align-items: center; justify-content: center;
-    overflow: hidden; margin-bottom: .5rem; box-shadow: 0 4px 1.125rem rgba(59,130,246,.3);
+    overflow: visible; filter: drop-shadow(0 4px 14px rgba(0,0,0,.45));
 }
 .cl-mob-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .cl-mob-name { font-size: .9375rem; font-weight: 800; color: var(--txt); text-align: center; }

@@ -25,7 +25,7 @@ class OpsWatch extends Command
     public const ARCHIVE_MARKER = 'ops:archive:last_run';
 
     /** key => minutes without a successful run that counts as stale (the schedule runs every 5 / 15 minutes) */
-    private const MAX_AGE = [SyncSetting::Dja => 60, SyncSetting::AcMovement => 30];
+    private const MAX_AGE = [SyncSetting::Dja => 20, SyncSetting::AcMovement => 30];
 
     /** @return array<string, string> problem key => message */
     public function issues(?\DateTimeInterface $now = null): array

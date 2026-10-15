@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DailyJobAssignment;
 use App\Models\DmiLog;
 use App\Models\NsrdiLog;
+use App\Models\SheetSyncLog;
 use App\Models\SyncSetting;
 use App\Models\WoLog;
 use App\Services\Dja\DailyReportArchiver;
@@ -70,7 +71,14 @@ class GoogleSheetsSyncService
         }
 
         // Jika ada tab yang gagal dibaca, jangan hapus task apapun (bisa jadi task-nya ada di tab tersebut)
-        $removed = $this->lastError ? 0 : $this->removeGhostTasks($spreadsheetId, $pulledTaskIds);
+        $removed = 0;
+        if (! $this->lastError) {
+            if ($this->ghostRemovalLooksSafe($spreadsheetId, $pulledTaskIds)) {
+                $removed = $this->removeGhostTasks($spreadsheetId, $pulledTaskIds);
+            } else {
+                $this->lastError = 'Penghapusan task ditahan: terlalu banyak task yang "hilang" sekaligus (kemungkinan sheet terbaca tidak lengkap).';
+            }
+        }
         $synced = count(array_unique($pulledTaskIds));
         $this->ingestor->pruneStale();
 
@@ -160,6 +168,47 @@ class GoogleSheetsSyncService
 
             return null;
         }
+    }
+
+    /** Columns the sync cannot work without; a renamed header is reported in the sync log instead of reading blanks. */
+    protected function warnAboutMissingColumns(string $tab, array $headerMap): void
+    {
+        $kind = DjaRowMapper::kindForTab($tab);
+        if (! $kind || $headerMap === []) {
+            return;
+        }
+        $missing = [];
+        foreach (['task_id' => 'nomor dokumen', 'ac_reg' => 'AC REG', 'status' => 'STATUS'] as $field => $label) {
+            if ($this->mapper->columnFor($kind, $field, $headerMap) === null) {
+                $missing[] = $label;
+            }
+        }
+        if ($missing) {
+            SheetSyncLog::note('pull', 'failed', $kind, null, "Tab {$tab}: kolom ".implode(', ', $missing).' tidak ditemukan (header diganti nama?).');
+        }
+    }
+
+    /**
+     * A read that comes back empty or partial (quota, timeout, a tab renamed) would make every task look deleted by
+     * the planner. When more than 40% of this sheet's known tasks go missing at once, nothing is removed and the
+     * event is written to the sync log for a person to look at.
+     *
+     * @param  array<int, string>  $pulledTaskIds
+     */
+    public function ghostRemovalLooksSafe(string $spreadsheetId, array $pulledTaskIds): bool
+    {
+        $known = DailyJobAssignment::where('source_spreadsheet_id', $spreadsheetId)->count();
+        if ($known < 10) {
+            return true;   // too few to judge
+        }
+        $ghosts = DailyJobAssignment::where('source_spreadsheet_id', $spreadsheetId)->whereNotIn('task_id', $pulledTaskIds)->count();
+        if ($ghosts / $known <= 0.4) {
+            return true;
+        }
+
+        SheetSyncLog::note('pull', 'failed', null, null, "Penghapusan ditahan: {$ghosts} dari {$known} task tidak ditemukan di sheet pada sinkron ini.", ['ghosts' => $ghosts, 'known' => $known]);
+
+        return false;
     }
 
     /**
@@ -256,6 +305,7 @@ class GoogleSheetsSyncService
                 $header = $this->reader->locateHeader($values, DjaRowMapper::knownHeaders(), 1);
                 $headerIndex = $header['index'] ?? 0;
                 $headerMap = $header['map'] ?? [];
+                $this->warnAboutMissingColumns($tabName, $headerMap);
 
                 foreach (array_slice($values, $headerIndex + 1) as $row) {
                     $taskId = $this->ingestor->ingest($tabName, $row, $headerMap, $spreadsheetId, $targetDate);

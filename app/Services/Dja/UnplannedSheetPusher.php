@@ -39,7 +39,11 @@ class UnplannedSheetPusher
     {
         $healed = 0;
         $entries = SheetSyncLog::where('direction', 'push')->where('event', 'failed')->whereNull('resolved_at')
-            ->whereNotNull('payload')->where('attempts', '<', 500)->orderBy('id')->limit($limit)->get();
+            ->whereNotNull('payload')->where('attempts', '<', 288)->orderBy('id')->limit($limit)->get();
+
+        // past a day of tries the entry is closed as abandoned (it stays in the log for a person)
+        SheetSyncLog::where('direction', 'push')->where('event', 'failed')->whereNull('resolved_at')->where('attempts', '>=', 288)
+            ->update(['event' => 'abandoned', 'resolved_at' => now()]);
 
         foreach ($entries as $e) {
             $type = strtoupper((string) $e->kind);

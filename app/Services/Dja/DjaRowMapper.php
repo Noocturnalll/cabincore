@@ -25,7 +25,8 @@ class DjaRowMapper
     private const AC_REG = [['AC REG', 'A/C REG', 'AIRCRAFT', 'REG', 'AIRCRAFT REGISTRATION'], null];
 
     private const DESCRIPTION_ALIASES = [
-        'DESCRIPTION', 'WO DESCRIPTION', 'DMI DESCRIPTION', 'NSRDI DESCRIPTION',
+        'DESCRIPTION', 'WO DESCRIPTION', 'DMI DESCRIPTION', 'FINDING DESCRIPTION',
+        'FINDING DESC', 'FINDING_DESCRIPTION', 'NSRDI DESCRIPTION',
         'TASK CARD DESCRIPTION', 'TASK CARD DESC', 'TASK DESCRIPTION', 'JOB DESCRIPTION',
         'WORK DESCRIPTION', 'ITEM DESCRIPTION', 'ACTION TAKEN', 'DEFECT DESCRIPTION',
         'DISCREPANCY', 'PROBLEM DESCRIPTION', 'FINDING', 'DEFECT', 'DESC', 'TASK',
@@ -34,82 +35,81 @@ class DjaRowMapper
 
     private const DESCRIPTION = [self::DESCRIPTION_ALIASES, null];
 
-    private const CODE_OPEN_ALIASES = ['CODE REASON', 'CODE OPEN', 'CODE', 'REASON CODE', 'HOLD REASON CATEGORY', 'KODE ALASAN', 'KD REASON', 'REASON CODE OPEN'];
+    private const CODE_OPEN_ALIASES = ['CODE OPEN', 'CODE REASON', 'CODE', 'REASON CODE', 'HOLD REASON CATEGORY', 'KODE ALASAN', 'KD REASON', 'REASON CODE OPEN'];
 
     private const REASON_OPEN_ALIASES = ['REASON OPEN', 'REASON', 'KETERANGAN OPEN', 'HOLD REMARKS', 'ALASAN', 'REASON CODE REMARKS', 'REASON KET'];
 
     private const PLAN_DATE_ALIASES = ['PLAN DATE', 'DATE PLAN', 'PLANNING DATE', 'PLAN DATE DJA', 'TGL PLAN', 'TANGGAL PLAN'];
 
-    private const REFRESH_DATE_ALIASES = ['REFRESH DATE', 'DATE REFRESH', 'REFRESH', 'TGL REFRESH', 'TANGGAL REFRESH'];
+    private const REFRESH_DATE_ALIASES = ['REFRESH DATE', 'INPUT DATE', 'DATE REFRESH', 'REFRESH', 'TGL REFRESH', 'TANGGAL REFRESH'];
 
     /** @var array<string, array<string, array{0: array<int, string>, 1: int|null}>> */
     private const FIELDS = [
         'wo' => [
+            'refresh_date' => [self::REFRESH_DATE_ALIASES, 0],
             'work_group' => [['WG', 'WORK GROUP'], 1],
             'ac_reg' => [self::AC_REG[0], 2],
-            'task_id' => [['TASK ID', 'WO NUMBER', 'NO WO', 'WO'], 3],
-            'wo_category' => [['CATEGORY', 'TRADE', 'DIVISI', 'WO CAT'], 4],
+            'task_id' => [['WO', 'WO NUMBER', 'NO WO', 'TASK ID'], 3],
+            'wo_category' => [['WO CAT', 'CATEGORY', 'TRADE', 'DIVISI'], 4],
             'description' => [self::DESCRIPTION[0], 5],
-            'pn_picklist' => [['PN PICKLIST'], 6],
-            'man_hour' => [['MAN HOUR', 'MH'], 7],
-            'operator' => [['OPERATOR'], 8],
-            'type' => [['TYPE'], 9],
-            'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 10],
-            'remarks_ppc_to_lm' => [['REMARKS PPC TO LM'], 11],
-            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], 12],
-            'status' => [['STATUS', 'STAT', 'STATUS WO', 'STATUS DJA', 'STATUS JOB', 'STATE', 'CLOSED / OPEN', 'OPEN/CLOSED'], 13],
-            'code_open' => [self::CODE_OPEN_ALIASES, 14],
-            'reason_open' => [self::REASON_OPEN_ALIASES, 15],
-            'plan_date' => [self::PLAN_DATE_ALIASES, null],
-            'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
-            // extra GSS "DJA WO" columns (no positional fallback: header name only)
-            'rii' => [['RII'], null],
-            'etops' => [['ETOPS'], null],
-            'eru' => [['ERU'], null],
-            'iera' => [['IERA'], null],
-            'site' => [['SITE'], null],
-            'due_date_wo' => [['DUE DATE WO', 'DUE DATE'], null],
-            'class_wo' => [['CLASS WO', 'CLASS'], null],
-            'materials' => [['MATERIALS', 'MATERIAL'], null],
-            'tools' => [['TOOLS', 'TOOL'], null],
-            'planner' => [['PLANNER'], null],
-            'ppc_onduty' => [['PPC ONDUTY', 'PPC ON DUTY', 'PPC ON-DUTY'], null],
-            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], null],
-            'highlight' => [['HIGHLIGHT'], null],
+            'task_card' => [['TASK CARD'], 6],
+            'task_card_description' => [['TASK CARD DESCRIPTION', 'TASK CARD DESC'], 7],
+            'rii' => [['RII / ETOPS / ERU / IERA', 'RII/ETOPS/ERU/IERA', 'RII', 'ETOPS', 'ERU', 'IERA'], 8],
+            'man_hour' => [['MAN HOURS', 'MAN HOUR', 'MH'], 9],
+            'site' => [['SITE'], 10],
+            'due_date_wo' => [['DUE DATE WO', 'DUE DATE'], 11],
+            'class_wo' => [['CLASS WO', 'CLASS'], 12],
+            'materials' => [['MATERIALS', 'MATERIAL'], 13],
+            'tools' => [['TOOLS', 'TOOL'], 14],
+            'pn_picklist' => [['PN PICKLIST (NO. PICKLIST)', 'PN PICKLIST (NO PICKLIST)', 'PN PICKLIST'], 15],
+            'operator' => [['OPERATOR'], 16],
+            'type' => [['TYPE'], 17],
+            'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 18],
+            'plan_date' => [self::PLAN_DATE_ALIASES, 19],
+            'remarks_ppc_to_lm' => [['REMARKS PPC WG TO LM', 'REMARKS PPC TO LM', 'REMARKS PPC'], 20],
+            'planner' => [['PLANNER'], 21],
+            'ppc_onduty' => [['PPC ONDUTY', 'PPC ON DUTY', 'PPC ON-DUTY'], 22],
+            'status' => [['STATUS WO', 'STATUS', 'STAT', 'STATUS DJA', 'STATUS JOB', 'STATE', 'CLOSED / OPEN', 'OPEN/CLOSED'], 23],
+            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], 24],
+            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], 25],
+            'reason_open' => [self::REASON_OPEN_ALIASES, 26],
+            'code_open' => [self::CODE_OPEN_ALIASES, 27],
+            'highlight' => [['HIGHLIGHT', 'HIHLIGHT'], 28],
         ],
         'dmi' => [
-            'ac_reg' => [self::AC_REG[0], 1],
-            'description' => [self::DESCRIPTION[0], 2],
-            'pn_required' => [['PN REQUIRED', 'PN'], 3],
-            'task_id' => [['TASK ID', 'DMI NO', 'DMI NUMBER'], 4],
-            'dmi_category' => [['DMI CAT', 'DMI CATEGORY'], 5],
-            'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 6],
-            'category' => [['CAT', 'CATEGORY'], 7],
-            'status' => [['STATUS', 'STAT', 'STATUS DMI', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 8],
-            'remarks' => [['REMARK', 'REMARKS'], 9],
-            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], null],
-            'code_open' => [self::CODE_OPEN_ALIASES, null],
-            'reason_open' => [self::REASON_OPEN_ALIASES, null],
-            'plan_date' => [self::PLAN_DATE_ALIASES, null],
-            'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
-            // extra GSS "DJA DMI" columns
-            'work_group' => [['WG', 'WORK GROUP'], null],
-            'defer_type' => [['DEFER TYPE'], null],
-            'status_wo' => [['STATUS WO'], null],
-            'wo_number' => [['WO', 'WO NUMBER', 'NO WO'], null],
-            'due_date_dmi' => [['DUE DATE DMI', 'DUE DATE'], null],
-            'picklist_number' => [['PICKLIST NUMBER', 'PICKLIST NO', 'PICKLIST'], null],
-            'aoc' => [['AOC'], null],
-            'type' => [['TYPE'], null],
-            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], null],
-            'highlight' => [['HIGHLIGHT'], null],
+            'refresh_date' => [['INPUT DATE', ...self::REFRESH_DATE_ALIASES], 0],
+            'work_group' => [['WG', 'WORK GROUP'], 1],
+            'ac_reg' => [self::AC_REG[0], 2],
+            'task_id' => [['DMI NO', 'DMI NUMBER', 'TASK ID'], 3],
+            'dmi_category' => [['DMI CAT', 'DMI CATEGORY'], 4],
+            'defer_type' => [['DEFER TYPE'], 5],
+            'status' => [['STATUS DMI', 'STATUS', 'STAT', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 6],
+            'wo_number' => [['WO', 'WO NUMBER', 'NO WO'], 7],
+            'description' => [['DMI DESCRIPTION', ...self::DESCRIPTION[0]], 8],
+            'ata' => [['ATA CHAPTER', 'ATA', 'CHAPTER'], 9],
+            'due_date_dmi' => [['DUE DATE DMI', 'DUE DATE'], 10],
+            'pn_required' => [['PN REQUIRED', 'PN'], 11],
+            'picklist_number' => [['PICKLIST NUMBER', 'PICKLIST NO', 'PICKLIST'], 12],
+            'aoc' => [['AOC'], 13],
+            'type' => [['TYPE'], 14],
+            'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 15],
+            'plan_date' => [self::PLAN_DATE_ALIASES, 16],
+            'remarks' => [['REMARKS', 'REMARK'], 17],
+            'status_wo' => [['STATUS WO'], 18],
+            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], 19],
+            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], 20],
+            'reason_open' => [self::REASON_OPEN_ALIASES, 21],
+            'code_open' => [self::CODE_OPEN_ALIASES, 22],
+            'highlight' => [['HIHLIGHT', 'HIGHLIGHT'], 23],
+            'category' => [['CAT', 'CATEGORY'], null],
             'operator' => [['OPERATOR'], null],
         ],
         'nsrdi' => [
+            'refresh_date' => [self::REFRESH_DATE_ALIASES, 0],
             'work_group' => [['WG', 'WORK GROUP'], 1],
             'ac_reg' => [self::AC_REG[0], 2],
-            'task_id' => [['TASK ID', 'NSRDI', 'NSRDI NO', 'NSRDI NUMBER'], 3],
-            'description' => [self::DESCRIPTION[0], 4],
+            'task_id' => [['NSRDI', 'NSRDI NO', 'NSRDI NUMBER', 'TASK ID'], 3],
+            'description' => [['FINDING DESCRIPTION', ...self::DESCRIPTION[0]], 4],
             'category' => [['CATEGORY', 'CAT', 'KATEGORI', 'TRADE', 'DIVISI'], 5],
             'report_date' => [['REPORT DATE'], 6],
             'due_date' => [['DUE DATE'], 7],
@@ -119,14 +119,13 @@ class DjaRowMapper
             'aoc' => [['AOC'], 11],
             'type' => [['TYPE'], 12],
             'plan_station' => [['PLAN STA', 'PLAN STATION', 'PLAN STN', 'STATION', 'STA'], 13],
-            'remarks' => [['REMARKS', 'REMARK'], 14],
-            'status' => [['STATUS', 'STAT', 'STATUS NSRDI', 'STATUS NSRD', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 15],
-            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], 16],
-            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], null],
-            'code_open' => [self::CODE_OPEN_ALIASES, null],
-            'reason_open' => [self::REASON_OPEN_ALIASES, null],
-            'plan_date' => [self::PLAN_DATE_ALIASES, null],
-            'refresh_date' => [self::REFRESH_DATE_ALIASES, null],
+            'plan_date' => [self::PLAN_DATE_ALIASES, 14],
+            'remarks' => [['REMARKS', 'REMARK'], 15],
+            'status' => [['STATUS', 'STAT', 'STATUS NSRDI', 'STATUS NSRD', 'STATUS DJA', 'CLOSED / OPEN', 'OPEN/CLOSED'], 16],
+            'close_date' => [['CLOSE DATE', 'CLOSED DATE', 'DATE CLOSED'], 17],
+            'act_station' => [['ACT STA', 'ACT STATION', 'ACT STN', 'ACTUAL STA', 'ACTUAL STATION'], 18],
+            'reason_open' => [self::REASON_OPEN_ALIASES, 19],
+            'code_open' => [self::CODE_OPEN_ALIASES, 20],
         ],
     ];
 
@@ -187,6 +186,54 @@ class DjaRowMapper
         return null;
     }
 
+    private const LEGACY_FALLBACKS = [
+        'wo' => [
+            'work_group' => 1,
+            'ac_reg' => 2,
+            'task_id' => 3,
+            'wo_category' => 4,
+            'description' => 5,
+            'man_hour' => 7,
+            'operator' => 8,
+            'type' => 9,
+            'plan_station' => 10,
+            'remarks_ppc_to_lm' => 11,
+            'act_station' => 12,
+            'status' => 13,
+            'code_open' => 14,
+            'reason_open' => 15,
+        ],
+        'dmi' => [
+            'ac_reg' => 1,
+            'description' => 2,
+            'pn_required' => 3,
+            'task_id' => 4,
+            'dmi_category' => 5,
+            'plan_station' => 6,
+            'category' => 7,
+            'status' => 8,
+            'remarks' => 9,
+        ],
+        'nsrdi' => [
+            'work_group' => 1,
+            'ac_reg' => 2,
+            'task_id' => 3,
+            'description' => 4,
+            'category' => 5,
+            'report_date' => 6,
+            'due_date' => 7,
+            'part_number' => 8,
+            'part_description' => 9,
+            'defer' => 10,
+            'aoc' => 11,
+            'type' => 12,
+            'plan_station' => 13,
+            'remarks' => 14,
+            'status' => 15,
+            'close_date' => 16,
+        ],
+    ];
+
     /**
      * @param  array<int, mixed>  $row
      * @param  array<string, int>  $headerMap  header name => column index (empty = positional only)
@@ -200,17 +247,26 @@ class DjaRowMapper
             return null;
         }
 
-        $get = function (array $spec) use ($row, $headerMap): ?string {
-            $index = $this->locate($spec, $headerMap);
+        $isLegacyPositional = empty($headerMap) && count($row) <= 17;
+
+        $get = function (array $spec, ?string $name = null) use ($row, $headerMap, $kind, $isLegacyPositional): ?string {
+            $index = null;
+            if ($isLegacyPositional && $name !== null && isset(self::LEGACY_FALLBACKS[$kind][$name])) {
+                $index = self::LEGACY_FALLBACKS[$kind][$name];
+            } else {
+                $index = $this->locate($spec, $headerMap);
+            }
 
             return $index !== null && isset($row[$index]) ? $this->clean($row[$index]) : null;
         };
 
         $f = [];
         foreach (self::FIELDS[$kind] as $name => $spec) {
-            $f[$name] = $get($spec);
+            $f[$name] = $get($spec, $name);
         }
-        $ata = $get(self::SHARED['ata']) ?? DjaClassifier::ataFromTaskCard($get(self::SHARED['task_card']));
+        $ata = ($isLegacyPositional && $kind === 'wo' && isset($row[6]))
+            ? $this->clean($row[6])
+            : ($get(self::SHARED['ata']) ?? DjaClassifier::ataFromTaskCard($get(self::SHARED['task_card'])));
         $taskCardDescription = $get(self::SHARED['task_card_description']);
 
         $planDateRaw = $f['plan_date'] ?? $get(self::SHARED['plan_date']);
@@ -303,8 +359,8 @@ class DjaRowMapper
     /** Attributes for wo_logs / dmi_logs / nsrdi_logs, in the same shape the Excel import always produced. */
     private function logAttributes(string $kind, array $f, ?string $date, ?string $planDate = null, ?string $refreshDate = null): array
     {
-        $text = fn (?string $v, int $limit = 255) => $v === null ? null : mb_substr($v, 0, $limit);
-        $code = fn (?string $v) => $v === null ? null : mb_substr(strtoupper($v), 0, 255); // station codes are always upper-case
+        $text = fn (?string $v, int $limit = 255) => ($v === null || str_starts_with(trim($v), '=')) ? null : mb_substr(trim($v), 0, $limit);
+        $code = fn (?string $v) => ($v === null || str_starts_with(trim($v), '=')) ? null : mb_substr(strtoupper(trim($v)), 0, 255); // station codes are always upper-case
 
         return match ($kind) {
             'wo' => [
@@ -343,6 +399,7 @@ class DjaRowMapper
                 'ppc_onduty' => $text($f['ppc_onduty'] ?? null),
                 'close_date' => GoogleSheetsReader::parseDate($f['close_date'] ?? null),
                 'highlight' => $text($f['highlight'] ?? null),
+                'refresh_date' => $refreshDate,
             ],
             'dmi' => [
                 'date' => $date,
@@ -371,6 +428,7 @@ class DjaRowMapper
                 'close_date' => GoogleSheetsReader::parseDate($f['close_date'] ?? null),
                 'highlight' => $text($f['highlight'] ?? null),
                 'operator' => $text($f['operator'] ?? null),
+                'refresh_date' => $refreshDate,
             ],
             'nsrdi' => [
                 'plan_date' => $planDate ?? $date,

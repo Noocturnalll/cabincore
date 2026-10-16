@@ -117,6 +117,13 @@ Route::middleware(['auth', 'force.password.reset'])->group(function () {
     Route::get('/modules/aircraft-cleaning/exterior', Exterior::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.exterior');
     Route::get('/modules/aircraft-cleaning/daily-report', DailyReport::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.daily-report');
     Route::get('/modules/aircraft-cleaning/sync', Sync::class)->middleware('permission:menu.cleaning')->name('modules.cleaning.sync');
+    // old addresses of the cleaning pages (each type used to have its own menu item) land on the hub, never on a 404
+    Route::redirect('/modules/aircraft-cleaning/transit', '/modules/aircraft-cleaning?tipe=transit');
+    Route::redirect('/modules/aircraft-cleaning/dci', '/modules/aircraft-cleaning?tipe=dci');
+    Route::redirect('/modules/aircraft-cleaning/dce', '/modules/aircraft-cleaning?tipe=dce');
+    Route::redirect('/modules/cleaning', '/modules/aircraft-cleaning');
+    Route::redirect('/modules/aircraft-cleaning/log', '/modules/aircraft-cleaning');
+    Route::redirect('/modules/aircraft-cleaning/report', '/modules/aircraft-cleaning/daily-report');
     Route::get('/rotations/{rotation}/view', function (Rotation $rotation) {
         return response(Storage::get($rotation->html_path))
             ->header('Content-Type', 'text/html; charset=UTF-8')

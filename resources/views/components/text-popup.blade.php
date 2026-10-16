@@ -1,8 +1,8 @@
 @props(['text', 'title' => 'Detail'])
 
 @if(!empty(trim($text)))
-<div x-data="{ open: false }" style="position: relative; max-width: 250px;" @mouseenter="open = true" @mouseleave="open = false">
-    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; color: inherit;">
+<div x-data="{ open: false }" style="position: relative; max-width: 250px;" @mouseenter="open = true" @mouseleave="open = false" @click="open = !open" @click.outside="open = false">
+    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; color: inherit;">
         {{ $text }}
     </div>
     

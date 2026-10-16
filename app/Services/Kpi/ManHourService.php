@@ -75,7 +75,7 @@ class ManHourService
             'cml' => ['CML', 'cml_logs', 'date'],
         ];
         foreach ($logs as $key => [$label, $table, $dateColumn]) {
-            $base = DB::table($table)->whereBetween($dateColumn, [$from, $to]);
+            $base = DB::table($table)->whereDate($dateColumn, '>=', $from)->whereDate($dateColumn, '<=', $to);
             $timed = (clone $base)->where('man_hour', '>', 0)->count();
             $result[$key] = [
                 'label' => $label,
@@ -86,7 +86,7 @@ class ManHourService
         }
 
         // Aircraft cleaning has no man power yet: its working time (finish - start) is counted
-        $cleaning = DB::table('aircraft_cleanings')->whereBetween('date', [$from, $to]);
+        $cleaning = DB::table('aircraft_cleanings')->whereDate('date', '>=', $from)->whereDate('date', '<=', $to);
         $result['cleaning'] = [
             'label' => 'Aircraft Cleaning',
             'hours' => round($this->durationHours(clone $cleaning), 1),

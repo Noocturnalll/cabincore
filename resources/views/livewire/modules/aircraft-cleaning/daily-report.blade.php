@@ -171,6 +171,8 @@
                                             'DCE' => 'background:rgba(236,72,153,.15); color:#ec4899;',
                                             'Transit' => 'background:rgba(59,130,246,.15); color:#3b82f6;',
                                             'General' => 'background:rgba(16,185,129,.15); color:#10b981;',
+                                            'GCI' => 'background:rgba(20,184,166,.16); color:#14b8a6;',
+                                            'GCE' => 'background:rgba(245,158,11,.16); color:#f59e0b;',
                                             default => 'background:rgba(255,255,255,.08); color:inherit;'
                                         };
                                     @endphp

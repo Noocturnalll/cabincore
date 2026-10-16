@@ -4,7 +4,7 @@
         <div class="mod-title-block">
             <div class="mod-title-accent mod-title-accent-green">Work Order</div>
             <div class="mod-title">WO</div>
-            <div class="mod-subtitle">Work Order — dokumen pekerjaan teknis kabin pesawat.</div>
+            <div class="mod-subtitle">Work Order — dokumen pekerjaan teknis cabin maintenance.</div>
         </div>
         <div class="mod-actions">
             <button wire:click="exportExcel" class="mod-btn-outline" wire:loading.attr="disabled" wire:target="exportExcel">
@@ -44,38 +44,34 @@
             <table class="mod-table" style="white-space: nowrap;">
                 <thead>
                     <tr>
-                        <th>DATE</th>
+                        <th>REFRESH DATE</th>
                         <th>WG</th>
                         <th>AC REG</th>
                         <th>WO</th>
                         <th>WO CAT</th>
                         <th>WO DESCRIPTION</th>
-                        <th>PN PICKLIST</th>
-                        <th>MAN HOUR</th>
-                        <th>OPERATOR</th>
-                        <th>TYPE</th>
-                        <th>PLAN STA</th>
-                        <th>REMARKS PPC TO LM</th>
-                        <th>ACT STA</th>
-                        <th>STATUS</th>
-                        <th>CODE REASON</th>
-                        <th>REASON OPEN</th>
-                        <th>ATA</th>
                         <th>TASK CARD</th>
                         <th>TASK CARD DESCRIPTION</th>
-                        <th>RII</th>
-                        <th>ETOPS</th>
-                        <th>ERU</th>
-                        <th>IERA</th>
+                        <th>RII / ETOPS / ERU / IERA</th>
+                        <th>MAN HOURS</th>
                         <th>SITE</th>
                         <th>DUE DATE WO</th>
                         <th>CLASS WO</th>
                         <th>MATERIALS</th>
                         <th>TOOLS</th>
+                        <th>PN PICKLIST</th>
+                        <th>OPERATOR</th>
+                        <th>TYPE</th>
+                        <th>PLAN STA</th>
                         <th>PLAN DATE</th>
+                        <th>REMARKS PPC WG TO LM</th>
                         <th>PLANNER</th>
                         <th>PPC ONDUTY</th>
+                        <th>STATUS WO</th>
                         <th>CLOSE DATE</th>
+                        <th>ACT STA</th>
+                        <th>REASON OPEN</th>
+                        <th>CODE OPEN</th>
                         <th>HIGHLIGHT</th>
                         <th style="text-align:right;">AKSI</th>
                     </tr>
@@ -83,7 +79,7 @@
                 <tbody>
                     @forelse($logs as $log)
                         <tr>
-                            <td>{{ $log->dailyJobAssignment ? \Carbon\Carbon::parse($log->dailyJobAssignment->date)->format('d M Y') : ($log->date ? \Carbon\Carbon::parse($log->date)->format('d M Y') : '') }}</td>
+                            <td>{{ $log->refresh_date ? \Carbon\Carbon::parse($log->refresh_date)->format('d M Y') : ($log->dailyJobAssignment ? \Carbon\Carbon::parse($log->dailyJobAssignment->date)->format('d M Y') : ($log->date ? \Carbon\Carbon::parse($log->date)->format('d M Y') : '')) }}</td>
                             <td>{{ $log->work_group ?? '' }}</td>
                             <td>
                                 <div class="mod-aircraft-name">{{ $log->aircraft_registration ?? '' }}</div>
@@ -98,13 +94,23 @@
                             <td>{{ $log->wo_number ?? '' }}</td>
                             <td>{{ $log->wo_category ?? '' }}</td>
                             <td><x-text-popup :text="$log->description ?? ''" title="WO Description" /></td>
-                            <td>{{ $log->pn_picklist ?? '' }}</td>
+                            <td>{{ $log->task_card ?? '' }}</td>
+                            <td><x-text-popup :text="$log->task_card_description ?? ''" title="Task Card Description" /></td>
+                            <td>{{ $log->rii ?: ($log->etops ?: ($log->eru ?: ($log->iera ?: ''))) }}</td>
                             <td>{{ $log->man_hour ?? '' }}</td>
+                            <td>{{ $log->site ?? '' }}</td>
+                            <td>{{ $log->due_date_wo?->format('d M Y') }}</td>
+                            <td>{{ $log->class_wo ?? '' }}</td>
+                            <td><x-text-popup :text="$log->materials ?? ''" title="Materials" /></td>
+                            <td><x-text-popup :text="$log->tools ?? ''" title="Tools" /></td>
+                            <td>{{ $log->pn_picklist ?? '' }}</td>
                             <td>{{ $log->operator ?? '' }}</td>
                             <td>{{ $log->type ?? '' }}</td>
                             <td>{{ $log->plan_station ?? '' }}</td>
+                            <td>{{ $log->plan_date?->format('d M Y') }}</td>
                             <td><x-text-popup :text="$log->remarks_ppc_to_lm ?? ''" title="Remarks PPC to LM" /></td>
-                            <td>{{ $log->act_station ?? '' }}</td>
+                            <td>{{ $log->planner ?? '' }}</td>
+                            <td>{{ $log->ppc_onduty ?? '' }}</td>
                             <td>
                                 @if(($log->status ?? '') === 'Closed')
                                     <span class="mod-badge-closed"><span class="mod-badge-dot" style="background:#34d399;"></span>Closed</span>
@@ -125,24 +131,10 @@
                                     @endif
                                 </div>
                             </td>
-                            <td>{{ $log->hold_reason_category ?? '' }}</td>
-                            <td>{{ $log->hold_remarks ?? '' }}</td>
-                            <td>{{ $log->ata ?? '' }}</td>
-                            <td>{{ $log->task_card ?? '' }}</td>
-                            <td><x-text-popup :text="$log->task_card_description ?? ''" title="Task Card Description" /></td>
-                            <td>{{ $log->rii ?? '' }}</td>
-                            <td>{{ $log->etops ?? '' }}</td>
-                            <td>{{ $log->eru ?? '' }}</td>
-                            <td>{{ $log->iera ?? '' }}</td>
-                            <td>{{ $log->site ?? '' }}</td>
-                            <td>{{ $log->due_date_wo?->format('d M Y') }}</td>
-                            <td>{{ $log->class_wo ?? '' }}</td>
-                            <td><x-text-popup :text="$log->materials ?? ''" title="Materials" /></td>
-                            <td><x-text-popup :text="$log->tools ?? ''" title="Tools" /></td>
-                            <td>{{ $log->plan_date?->format('d M Y') }}</td>
-                            <td>{{ $log->planner ?? '' }}</td>
-                            <td>{{ $log->ppc_onduty ?? '' }}</td>
                             <td>{{ $log->close_date?->format('d M Y') }}</td>
+                            <td>{{ $log->act_station ?? '' }}</td>
+                            <td>{{ $log->hold_remarks ?: ($log->reason_open ?? '') }}</td>
+                            <td>{{ $log->hold_reason_category ?: ($log->code_open ?? '') }}</td>
                             <td>{{ $log->highlight ?? '' }}</td>
                             <td style="text-align:right;">
                                 <x-log-status-actions :log="$log" />
@@ -150,7 +142,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="34">
+                            <td colspan="30">
                                 <div class="mod-empty">
                                     <div class="mod-empty-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>

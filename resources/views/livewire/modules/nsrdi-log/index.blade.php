@@ -51,7 +51,7 @@
             <table class="mod-table" style="white-space: nowrap;">
                 <thead>
                     <tr>
-                        <th>PLAN DATE</th>
+                        <th>REFRESH DATE</th>
                         <th>WG</th>
                         <th>AC REG</th>
                         <th>NSRDI</th>
@@ -65,19 +65,20 @@
                         <th>AOC</th>
                         <th>TYPE</th>
                         <th>PLAN STA</th>
+                        <th>PLAN DATE</th>
                         <th>REMARKS</th>
                         <th>STATUS</th>
                         <th>CLOSE DATE</th>
                         <th>ACT STA</th>
-                        <th>CODE REASON</th>
                         <th>REASON OPEN</th>
+                        <th>CODE OPEN</th>
                         <th style="text-align:right;">AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($logs as $log)
                         <tr>
-                            <td>{{ $log->dailyJobAssignment ? \Carbon\Carbon::parse($log->dailyJobAssignment->date)->format('d M Y') : ($log->plan_date ? \Carbon\Carbon::parse($log->plan_date)->format('d M Y') : '') }}</td>
+                            <td>{{ $log->refresh_date ? \Carbon\Carbon::parse($log->refresh_date)->format('d M Y') : ($log->dailyJobAssignment ? \Carbon\Carbon::parse($log->dailyJobAssignment->date)->format('d M Y') : '') }}</td>
                             <td>{{ $log->work_group ?? '' }}</td>
                             <td>
                                 <div class="mod-aircraft-name">{{ $log->aircraft_registration ?? '' }}</div>
@@ -90,17 +91,18 @@
                                 </div>
                             </td>
                             <td>{{ $log->nsrdi_number ?? '' }}</td>
-                            <td><x-text-popup :text="$log->description ?? ''" title="Action Taken / Reason" /></td>
+                            <td><x-text-popup :text="$log->description ?? ''" title="Finding Description" /></td>
                             <td>{{ $log->category ?? '' }}</td>
                             <td>{{ $log->report_date ? \Carbon\Carbon::parse($log->report_date)->format('d M Y') : '' }}</td>
                             <td>{{ $log->due_date ? \Carbon\Carbon::parse($log->due_date)->format('d M Y') : '' }}</td>
                             <td>{{ $log->part_number ?? '' }}</td>
-                            <td><x-text-popup :text="$log->part_description ?? ''" /></td>
+                            <td><x-text-popup :text="$log->part_description ?? ''" title="Part Description" /></td>
                             <td>{{ $log->defer ?? '' }}</td>
                             <td>{{ $log->aoc ?? '' }}</td>
                             <td>{{ $log->type ?? '' }}</td>
                             <td>{{ $log->plan_station ?? '' }}</td>
-                            <td><x-text-popup :text="$log->remarks ?? ''" /></td>
+                            <td>{{ $log->plan_date ? \Carbon\Carbon::parse($log->plan_date)->format('d M Y') : '' }}</td>
+                            <td><x-text-popup :text="$log->remarks ?? ''" title="Remarks" /></td>
                             <td>
                                 @if(($log->status ?? '') === 'Closed')
                                     <span class="mod-badge-closed"><span class="mod-badge-dot" style="background:#34d399;"></span>Closed</span>
@@ -123,8 +125,8 @@
                             </td>
                             <td>{{ $log->close_date ? \Carbon\Carbon::parse($log->close_date)->format('d M Y') : '' }}</td>
                             <td>{{ $log->act_station ?? '' }}</td>
-                            <td>{{ $log->hold_reason_category ?? '' }}</td>
-                            <td>{{ $log->hold_remarks ?? '' }}</td>
+                            <td><x-text-popup :text="$log->reason_open ?? $log->hold_remarks ?? ''" title="Reason Open" /></td>
+                            <td>{{ $log->code_open ?? $log->hold_reason_category ?? '' }}</td>
                             <td style="text-align:right;">
                                 <x-log-status-actions :log="$log" />
                             </td>

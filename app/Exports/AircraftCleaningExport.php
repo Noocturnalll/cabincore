@@ -74,7 +74,7 @@ class AircraftCleaningExport implements Export, FromCollection, WithHeadings, Wi
             $data,
             'station',
             'type',
-            ['DCI', 'DCE', 'Transit', 'General', 'LGT'],
+            ['DCI', 'DCE', 'GCI', 'GCE', 'Transit', 'General', 'LGT'],
             'Station / Bandara',
             '1. Matriks Rekapitulasi: Station vs Jenis Cleaning'
         );

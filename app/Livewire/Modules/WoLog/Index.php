@@ -78,7 +78,10 @@ class Index extends Component
             $q->whereHas('dailyJobAssignment', function ($q2) use ($activeDate) {
                 $q2->whereDate('date', $activeDate);
             })->orWhere(function ($q2) use ($activeDate) {
-                $q2->whereNull('dja_id')->whereDate('date', $activeDate);
+                $q2->whereNull('dja_id')->where(function ($q3) use ($activeDate) {
+                    $q3->whereDate('refresh_date', $activeDate)
+                        ->orWhereDate('date', $activeDate);
+                });
             });
 
             // unfinished logs of earlier days stay visible until they are closed / completed

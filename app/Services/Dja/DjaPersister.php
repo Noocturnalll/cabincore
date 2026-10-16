@@ -21,11 +21,11 @@ class DjaPersister
     private const PLANNER_OWNED = [
         'wo' => ['work_group', 'aircraft_registration', 'wo_category', 'description', 'pn_picklist', 'man_hour', 'operator', 'type', 'plan_station', 'remarks_ppc_to_lm',
             'ata', 'task_card', 'task_card_description', 'rii', 'etops', 'eru', 'iera', 'site', 'due_date_wo', 'class_wo',
-            'materials', 'tools', 'plan_date', 'planner', 'ppc_onduty', 'close_date', 'highlight'],
+            'materials', 'tools', 'plan_date', 'planner', 'ppc_onduty', 'close_date', 'highlight', 'refresh_date'],
         'dmi' => ['aircraft_registration', 'description', 'pn_required', 'dmi_category', 'plan_station', 'category',
             'work_group', 'defer_type', 'status_wo', 'wo_number', 'ata', 'due_date_dmi', 'picklist_number', 'aoc',
-            'type', 'plan_date', 'close_date', 'highlight', 'operator'],
-        'nsrdi' => ['work_group', 'aircraft_registration', 'description', 'category', 'report_date', 'due_date', 'part_number', 'part_description', 'defer', 'aoc', 'type', 'plan_station'],
+            'type', 'plan_date', 'close_date', 'highlight', 'operator', 'remarks', 'refresh_date'],
+        'nsrdi' => ['work_group', 'aircraft_registration', 'description', 'category', 'report_date', 'due_date', 'part_number', 'part_description', 'defer', 'aoc', 'type', 'plan_station', 'remarks', 'close_date', 'plan_date', 'refresh_date'],
     ];
 
     private const LOG_MODEL = ['wo' => WoLog::class, 'dmi' => DmiLog::class, 'nsrdi' => NsrdiLog::class];
@@ -119,7 +119,7 @@ class DjaPersister
             if (! empty($date)) {
                 $log->{$dateKey} = $date;
             }
-            if ($kind === 'nsrdi' && ! empty($attrs['refresh_date'])) {
+            if (! empty($attrs['refresh_date'])) {
                 $log->refresh_date = $attrs['refresh_date'];
             }
 

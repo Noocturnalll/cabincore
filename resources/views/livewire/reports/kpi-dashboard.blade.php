@@ -287,6 +287,8 @@
     </section>
 
     {{-- Per team (only when every team is in view) --}}
+    @include('livewire.reports.partials.capacity-board')
+
     @if($team === 'ALL' && count($teamsData))
         <section class="kd-panel" aria-label="Ringkasan per tim">
             <h2><span>Ringkasan per tim (roster)</span><span class="kd-sub">kapasitas dari roster, semua station yang dipilih</span></h2>

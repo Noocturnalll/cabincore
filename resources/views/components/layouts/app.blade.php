@@ -863,20 +863,48 @@
     }
 
     /* ── Table ── */
-    .mod-table-wrap { overflow-x: auto; }
-    .mod-table { width: 100%; border-collapse: collapse; min-width: 0; font-size: .8125rem; }
-    .mod-table thead tr { background: var(--cbm-nav-hover); border-bottom: 2px solid var(--cbm-divider); }
+    .mod-table-wrap {
+        max-height: 72vh;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--cbm-border) transparent;
+        position: relative;
+    }
+    .mod-table-wrap::-webkit-scrollbar { width: 6px; height: 6px; }
+    .mod-table-wrap::-webkit-scrollbar-thumb { background: var(--cbm-divider); border-radius: 4px; }
+    .mod-table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: max-content; font-size: .8125rem; }
+    .mod-table thead tr { background: var(--cbm-nav-hover); }
     .mod-table thead th {
         padding: .75rem .875rem; font-size: .65rem; font-weight: 800;
         text-transform: uppercase; letter-spacing: .08em; color: var(--cbm-text-muted);
         text-align: left; white-space: nowrap;
+        position: sticky; top: 0; z-index: 2; background: var(--cbm-card-bg);
+        box-shadow: inset 0 -2px 0 var(--cbm-divider);
     }
-    .cbm-light .mod-table thead tr { background: #f1f5f9; border-bottom-color: #cbd5e1; }
-    .cbm-light .mod-table thead th { color: #374151; }
+    .mod-table thead th:last-child {
+        position: sticky; right: 0; top: 0; z-index: 3;
+        background: var(--cbm-card-bg);
+        box-shadow: inset 0 -2px 0 var(--cbm-divider), -4px 0 6px -2px rgba(0,0,0,0.12);
+    }
+    .cbm-light .mod-table thead th { background: #f1f5f9; color: #374151; }
+    .cbm-light .mod-table thead th:last-child { background: #f1f5f9; }
     .mod-table tbody tr { border-bottom: 1px solid var(--cbm-divider); transition: background .15s ease; }
     .mod-table tbody tr:last-child { border-bottom: none; }
     .mod-table tbody tr:hover { background: var(--cbm-nav-hover); }
-    .mod-table tbody td { padding: .75rem .875rem; color: var(--cbm-text); font-weight: 500; vertical-align: middle; }
+    .mod-table tbody td {
+        padding: .75rem .875rem; color: var(--cbm-text); font-weight: 500;
+        vertical-align: middle; white-space: nowrap;
+        border-bottom: 1px solid var(--cbm-divider);
+    }
+    .mod-table tbody td:last-child {
+        position: sticky; right: 0; z-index: 1;
+        background: var(--cbm-card-bg);
+        box-shadow: -4px 0 6px -2px rgba(0,0,0,0.12);
+    }
+    .cbm-light .mod-table tbody td:last-child { background: #ffffff; }
+    .mod-table tbody tr:hover td:last-child { background: var(--cbm-nav-hover); }
+    .cbm-light .mod-table tbody tr:hover td:last-child { background: #f8fafc; }
 
     .mod-aircraft-name { font-weight: 700; color: var(--cbm-text); letter-spacing: -.01em; }
     .mod-aircraft-sub  { font-size: .7rem; color: var(--cbm-text-muted); margin-top: .15rem; }
@@ -990,9 +1018,6 @@
     .mod-field-labelled > span, .mod-perpage > span { font-size: .625rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--cbm-text-muted); }
     .mod-input-plain { padding-left: .875rem; width: auto; min-width: 8.5rem; }
     .mod-btn-sm { padding: .4rem .75rem; font-size: .75rem; align-self: flex-end; }
-    .mod-table-wrap { max-height: 70vh; overflow: auto; }
-    .mod-table thead th { position: sticky; top: 0; z-index: 2; background: var(--cbm-card-bg); box-shadow: inset 0 -2px 0 var(--cbm-divider); }
-    .cbm-light .mod-table thead th { background: #f1f5f9; }
     @media (max-width: 640px) { .mod-field-search { max-width: none; flex-basis: 100%; } .mod-input-plain { min-width: 0; } }
 
     /* Charts must shrink with their card (a canvas is 300px wide until Chart.js measures it), and tab rows scroll instead of widening the page */
@@ -1041,8 +1066,9 @@
             box-sizing: border-box;
         }
         .mod-meta { width: 100%; justify-content: space-between; margin-top: .25rem; }
-        .mod-table thead th { padding: .625rem .625rem; }
-        .mod-table tbody td { padding: .625rem .625rem; }
+        .mod-table { font-size: .75rem; }
+        .mod-table thead th { padding: .5rem .5rem; font-size: .6rem; }
+        .mod-table tbody td { padding: .5rem .5rem; font-size: .75rem; }
         .mod-stats { grid-template-columns: repeat(2, 1fr) !important; gap: .5rem !important; }
         .mod-stat { padding: .65rem .75rem !important; border-radius: .75rem !important; }
         .mod-stat-label { font-size: .6rem !important; }
@@ -1052,6 +1078,9 @@
     @media (max-width: 480px) {
         .mod-title { font-size: 1.25rem; }
         .mod-actions { width: 100%; justify-content: flex-start; }
+        .mod-table thead th { padding: .375rem .4rem; font-size: .5625rem; }
+        .mod-table tbody td { padding: .4rem .4rem; font-size: .6875rem; }
+        .mod-table-wrap { max-height: 65vh; }
     }
 
 

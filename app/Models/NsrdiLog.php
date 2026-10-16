@@ -120,4 +120,26 @@ class NsrdiLog extends Model
             'is_submitted' => 'boolean',
         ];
     }
+
+    public function getCodeOpenAttribute(): ?string
+    {
+        return $this->attributes['code_open'] ?? $this->hold_reason_category;
+    }
+
+    public function setCodeOpenAttribute(?string $value): void
+    {
+        $this->attributes['code_open'] = $value;
+        $this->attributes['hold_reason_category'] = $value;
+    }
+
+    public function getReasonOpenAttribute(): ?string
+    {
+        return $this->attributes['reason_open'] ?? $this->hold_remarks;
+    }
+
+    public function setReasonOpenAttribute(?string $value): void
+    {
+        $this->attributes['reason_open'] = $value;
+        $this->attributes['hold_remarks'] = $value;
+    }
 }

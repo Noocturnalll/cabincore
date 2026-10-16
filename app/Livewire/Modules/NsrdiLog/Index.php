@@ -126,7 +126,10 @@ class Index extends Component
                 $q->whereHas('dailyJobAssignment', function ($q2) {
                     $q2->whereDate('date', $this->dateFilter);
                 })->orWhere(function ($q2) {
-                    $q2->whereNull('dja_id')->whereDate('plan_date', $this->dateFilter);
+                    $q2->whereNull('dja_id')->where(function ($q3) {
+                        $q3->whereDate('refresh_date', $this->dateFilter)
+                            ->orWhereDate('plan_date', $this->dateFilter);
+                    });
                 });
             });
         } else {
@@ -135,7 +138,10 @@ class Index extends Component
                 $q->whereHas('dailyJobAssignment', function ($q2) use ($activeDate) {
                     $q2->whereDate('date', $activeDate);
                 })->orWhere(function ($q2) use ($activeDate) {
-                    $q2->whereNull('dja_id')->whereDate('plan_date', $activeDate);
+                    $q2->whereNull('dja_id')->where(function ($q3) use ($activeDate) {
+                        $q3->whereDate('refresh_date', $activeDate)
+                            ->orWhereDate('plan_date', $activeDate);
+                    });
                 });
 
                 // unfinished logs of earlier days stay visible until they are closed / completed

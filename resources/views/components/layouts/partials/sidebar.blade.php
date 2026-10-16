@@ -191,15 +191,15 @@
             </div>
             @endif
 
-            {{-- 5. DIVISI SUPPORTING & INVENTORY (IMS & ASSET) --}}
-            @if(auth()->user()?->canAny(['menu.inventory', 'ims.catalog.view', 'ims.request.create', 'ims.stock.in', 'ims.stock.adjust', 'ims.stock.transfer', 'ims.approval.view', 'ims.repair.manage', 'ims.report.view', 'ims.master.manage', 'asset.view', 'menu.tools_equipment', 'compliance.view', 'menu.ict', 'menu.ict.pi', 'menu.ict.tbd']))
-            <div x-data="{ open: {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd', 'manual.index']) ? 'true' : 'false' }} }">
-                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*', 'assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd', 'manual.index']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+            {{-- 5. INVENTORY MANAGEMENT (IMS) - its own menu --}}
+            @if(auth()->user()?->canAny(['menu.inventory', 'ims.catalog.view', 'ims.request.create', 'ims.stock.in', 'ims.stock.adjust', 'ims.stock.transfer', 'ims.approval.view', 'ims.repair.manage', 'ims.report.view', 'ims.master.manage']))
+            <div x-data="{ open: {{ request()->routeIs(['ims.*']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['ims.*']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: .75rem; min-width: 0;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm3.75-1.5a.75.75 0 01.75.75v6a.75.75 0 01-1.5 0v-6a.75.75 0 01.75-.75z" clip-rule="evenodd" />
                         </svg>
-                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supporting &amp; Inventory</span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Inventory Management</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -260,6 +260,25 @@
                         Master Data IMS
                     </a>
                     @endcan
+                </div>
+            </div>
+            @endif
+
+            {{-- 6. SUPPORTING (ASSET, TOOLS, MANUAL, COMPLIANCE, ICT & IFE) --}}
+            @if(auth()->user()?->canAny(['menu.inventory', 'asset.view', 'menu.tools_equipment', 'compliance.view', 'menu.ict', 'menu.ict.pi', 'menu.ict.tbd']))
+            <div x-data="{ open: {{ request()->routeIs(['assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd', 'manual.index']) ? 'true' : 'false' }} }">
+                <button type="button" @click="open = !open" class="cbm-nav-item {{ request()->routeIs(['assets.index', 'tools.equipment', 'compliance.daily', 'modules.ict-pi', 'modules.ict-tbd', 'manual.index']) ? 'cbm-active' : '' }}" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: .75rem; min-width: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm4.5 7.5a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zm3.75-1.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0V12zm3.75-1.5a.75.75 0 01.75.75v6a.75.75 0 01-1.5 0v-6a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+                        </svg>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supporting</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease;" :style="open ? 'transform: rotate(180deg)' : 'transform: rotate(0deg)'">
+                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:leave="transition ease-in duration-150" style="margin-left: 1rem; padding-left: .75rem; border-left: 1.5px solid var(--cbm-card-border, rgba(255,255,255,.08)); margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.2rem;">
                     @can('asset.view')
                     <a href="{{ route('assets.index') }}" wire:navigate class="cbm-nav-item {{ request()->routeIs('assets.index') ? 'cbm-active' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M11.622 1.602a.75.75 0 01.756 0l8.25 4.813a.75.75 0 010 1.304l-8.25 4.813a.75.75 0 01-.756 0L3.372 7.72a.75.75 0 010-1.304l8.25-4.814z" clip-rule="evenodd" /><path d="M2.25 10.375a.75.75 0 01.75-.75h18a.75.75 0 010 1.5H3a.75.75 0 01-.75-.75zM3.75 14.25a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75zM4.5 18.75a.75.75 0 000 1.5h15a.75.75 0 000-1.5H4.5z" /></svg>

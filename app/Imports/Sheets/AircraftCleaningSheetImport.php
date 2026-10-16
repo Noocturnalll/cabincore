@@ -197,10 +197,11 @@ class AircraftCleaningSheetImport implements ToCollection, WithChunkReading
         if (str_contains($u, 'DCE') || str_contains($u, 'DEEP CLEANING EXTERIOR')) {
             return 'DCE';
         }
-        if (str_contains($u, 'GCI')) {
+        // General Cleaning Interior / Exterior is read from the action taken: GCI and GCE
+        if (str_contains($u, 'GCI') || preg_match('/GENERAL( CLEANING)? INTERIOR|\bGC INTERIOR/', $u)) {
             return 'GCI';
         }
-        if (str_contains($u, 'GCE')) {
+        if (str_contains($u, 'GCE') || preg_match('/GENERAL( CLEANING)? EXTERIOR|\bGC EXTERIOR/', $u)) {
             return 'GCE';
         }
         if (str_contains($u, 'DBI') || str_contains($u, 'BEAUTIFICATION')) {

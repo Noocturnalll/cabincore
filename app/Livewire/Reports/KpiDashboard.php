@@ -5,6 +5,7 @@ namespace App\Livewire\Reports;
 use App\Helpers\RoleHelper;
 use App\Models\Division;
 use App\Services\Kpi\AttentionList;
+use App\Services\Kpi\CapacityOverview;
 use App\Services\Kpi\ModuleTiles;
 use App\Services\Kpi\OperationalCharts;
 use App\Services\Kpi\OperationalPivot;
@@ -126,6 +127,7 @@ class KpiDashboard extends Component
             'rows' => $rows,
             'total' => $data['total'],
             'teamsData' => $data['teams'],
+            'capacityBoard' => app(CapacityOverview::class)->build($period, $data['teams'], $stations),
             'coverage' => $data['coverage'],
             'team' => $team,
             'seesAll' => $this->seesAll(),

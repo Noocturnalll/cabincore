@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Spatie\Permission\Models\Role;
 
 class Dashboard extends Component
 {
@@ -573,7 +574,9 @@ class Dashboard extends Component
         }
 
         // ─── 9. Man Power & Man Hours ────────────────────────────────────────
-        $man_power = User::role(RoleHelper::ALL_PIC)
+        // only roles that exist: asking Spatie for a missing role throws, which would take the whole dashboard down
+        $picRoles = Role::whereIn('name', RoleHelper::ALL_PIC)->pluck('name')->all();
+        $man_power = $picRoles === [] ? 0 : User::role($picRoles)
             ->when($scope->stations, fn ($q) => $q->whereIn('station', $scope->stations))
             ->count();
         $man_hours = $this->applyStationFilter(DB::table('wo_logs'), 'wo_logs')->whereBetween('date', [$from, $to])->sum('man_hour') ?: 0;
@@ -608,14 +611,15 @@ class Dashboard extends Component
         }
 
         if (Schema::hasTable('nsrdi_overdues')) {
+            // the overdue table keeps the airline in `operator` (it has no `aoc` column)
             $dedicatedOverdues = DB::table('nsrdi_overdues')
                 ->whereNull('closed_at')
-                ->select('aoc', DB::raw('COUNT(*) as overdue_count'))
-                ->whereNotNull('aoc')
-                ->groupBy('aoc')
+                ->select('operator', DB::raw('COUNT(*) as overdue_count'))
+                ->whereNotNull('operator')
+                ->groupBy('operator')
                 ->get();
             foreach ($dedicatedOverdues as $row) {
-                $aocStr = strtolower(trim((string) $row->aoc));
+                $aocStr = strtolower(trim((string) $row->operator));
                 if (str_contains($aocStr, 'batik')) {
                     $nsrdiOverdueMap['Batik Air'] += $row->overdue_count;
                 } elseif (str_contains($aocStr, 'lion')) {

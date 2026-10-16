@@ -140,7 +140,12 @@ abstract class CleaningLog extends Component
     public function edit($id): void
     {
         $this->resetInputFields();
-        $record = $this->scopedQuery()->findOrFail($id);
+        $record = $this->scopedQuery()->find($id);
+        if (! $record) {
+            $this->recordMissing();
+
+            return;
+        }
 
         $this->cleaningId = $record->id;
         $this->aircraft_registration = $record->aircraft_registration;
@@ -176,8 +181,14 @@ abstract class CleaningLog extends Component
         [$start, $end] = $this->workWindow();
 
         $record = $this->cleaningId
-            ? $this->scopedQuery()->findOrFail($this->cleaningId)
+            ? $this->scopedQuery()->find($this->cleaningId)
             : new AircraftCleaning(['type' => $this->type()]);
+        if (! $record) {
+            $this->recordMissing();
+            $this->closeModal();
+
+            return;
+        }
 
         $record->fill([
             'aircraft_registration' => $this->aircraft_registration,
@@ -212,7 +223,13 @@ abstract class CleaningLog extends Component
 
     public function deleteConfirm($id): void
     {
-        $this->deleteId = $this->scopedQuery()->findOrFail($id)->id;
+        $record = $this->scopedQuery()->find($id);
+        if (! $record) {
+            $this->recordMissing();
+
+            return;
+        }
+        $this->deleteId = $record->id;
     }
 
     public function cancelDelete(): void
@@ -233,6 +250,12 @@ abstract class CleaningLog extends Component
     {
         $this->isModalOpen = false;
         $this->resetInputFields();
+    }
+
+    /** The row is gone: it was replaced by an import, deleted by someone else, or is not in the user's stations. */
+    private function recordMissing(): void
+    {
+        $this->dispatch('notify', ['icon' => 'warning', 'message' => 'Data tidak ditemukan. Mungkin sudah diperbarui oleh impor atau pengguna lain; muat ulang halaman.']);
     }
 
     protected function notifyUser(string $type, string $message): void

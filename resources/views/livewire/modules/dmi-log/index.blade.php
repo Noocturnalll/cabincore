@@ -44,27 +44,29 @@
             <table class="mod-table" style="white-space: nowrap;">
                 <thead>
                     <tr>
-                        <th>DATE</th>
+                        <th>INPUT DATE</th>
+                        <th>WG</th>
                         <th>REG</th>
-                        <th>DMI DESCRIPTION</th>
-                        <th>PN REQUIRED</th>
                         <th>DMI NO</th>
                         <th>DMI CAT</th>
-                        <th>PLAN STA</th>
-                        <th>CAT</th>
-                        <th>STATUS</th>
-                        <th>REMARK</th>
-                        <th>WG</th>
-                        <th>ATA</th>
                         <th>DEFER TYPE</th>
-                        <th>STATUS WO</th>
+                        <th>STATUS DMI</th>
                         <th>WO</th>
+                        <th>DMI DESCRIPTION</th>
+                        <th>ATA CHAPTER</th>
                         <th>DUE DATE DMI</th>
+                        <th>PN REQUIRED</th>
                         <th>PICKLIST NUMBER</th>
                         <th>AOC</th>
                         <th>TYPE</th>
+                        <th>PLAN STA</th>
                         <th>PLAN DATE</th>
+                        <th>REMARKS</th>
+                        <th>STATUS WO</th>
                         <th>CLOSE DATE</th>
+                        <th>ACT STA</th>
+                        <th>REASON OPEN</th>
+                        <th>CODE OPEN</th>
                         <th>HIGHLIGHT</th>
                         <th style="text-align:right;">AKSI</th>
                     </tr>
@@ -72,7 +74,8 @@
                 <tbody>
                     @forelse($logs as $log)
                         <tr>
-                            <td>{{ $log->date ? \Carbon\Carbon::parse($log->date)->format('d M Y') : '' }}</td>
+                            <td>{{ $log->refresh_date ? \Carbon\Carbon::parse($log->refresh_date)->format('d M Y') : ($log->dailyJobAssignment ? \Carbon\Carbon::parse($log->dailyJobAssignment->date)->format('d M Y') : ($log->date ? \Carbon\Carbon::parse($log->date)->format('d M Y') : '')) }}</td>
+                            <td>{{ $log->work_group ?? '' }}</td>
                             <td>
                                 <div class="mod-aircraft-name">{{ $log->aircraft_registration ?? '' }}</div>
                                 <div class="mod-aircraft-sub">
@@ -83,17 +86,14 @@
                                     @endif
                                 </div>
                             </td>
-                            <td><x-text-popup :text="$log->description ?? ''" title="Action Taken / Reason" /></td>
-                            <td>{{ $log->pn_required ?? '' }}</td>
                             <td>{{ $log->dmi_number ?? '' }}</td>
                             <td>{{ $log->dmi_category ?? '' }}</td>
-                            <td>{{ $log->plan_station ?? '' }}</td>
-                            <td>{{ $log->category ?? '' }}</td>
+                            <td>{{ $log->defer_type ?? '' }}</td>
                             <td>
                                 @if(($log->status ?? '') === 'Closed')
                                     <span class="mod-badge-closed"><span class="mod-badge-dot" style="background:#34d399;"></span>Closed</span>
                                 @else
-                                    <span class="mod-badge-open"><span class="mod-badge-dot" style="background:#f87171;"></span>Open</span>
+                                    <span class="mod-badge-open"><span class="mod-badge-dot" style="background:#f87171;"></span>{{ $log->status ?? 'Open' }}</span>
                                 @endif
                                 <div style="margin-top: 4px;">
                                     @if($log->is_submitted)
@@ -109,26 +109,30 @@
                                     @endif
                                 </div>
                             </td>
-                            <td><x-text-popup :text="$log->hold_remarks ?? $log->remarks ?? ''" /></td>
-                            <td>{{ $log->work_group ?? '' }}</td>
-                            <td>{{ $log->ata ?? '' }}</td>
-                            <td>{{ $log->defer_type ?? '' }}</td>
-                            <td>{{ $log->status_wo ?? '' }}</td>
                             <td>{{ $log->wo_number ?? '' }}</td>
-                            <td>{{ $log->due_date_dmi?->format('d M Y') }}</td>
+                            <td><x-text-popup :text="$log->description ?? ''" title="DMI Description" /></td>
+                            <td>{{ $log->ata ?? '' }}</td>
+                            <td>{{ $log->due_date_dmi ? \Carbon\Carbon::parse($log->due_date_dmi)->format('d M Y') : '' }}</td>
+                            <td>{{ $log->pn_required ?? '' }}</td>
                             <td>{{ $log->picklist_number ?? '' }}</td>
                             <td>{{ $log->aoc ?? '' }}</td>
                             <td>{{ $log->type ?? '' }}</td>
-                            <td>{{ $log->plan_date?->format('d M Y') }}</td>
-                            <td>{{ $log->close_date?->format('d M Y') }}</td>
-                            <td>{{ $log->highlight ?? '' }}</td>
+                            <td>{{ $log->plan_station ?? '' }}</td>
+                            <td>{{ $log->plan_date ? \Carbon\Carbon::parse($log->plan_date)->format('d M Y') : '' }}</td>
+                            <td><x-text-popup :text="$log->remarks ?? ''" title="Remarks" /></td>
+                            <td>{{ $log->status_wo ?? '' }}</td>
+                            <td>{{ $log->close_date ? \Carbon\Carbon::parse($log->close_date)->format('d M Y') : '' }}</td>
+                            <td>{{ $log->act_station ?? '' }}</td>
+                            <td><x-text-popup :text="$log->reason_open ?? $log->hold_remarks ?? ''" title="Reason Open" /></td>
+                            <td>{{ $log->code_open ?? $log->hold_reason_category ?? '' }}</td>
+                            <td><x-text-popup :text="$log->highlight ?? ''" title="Highlight" /></td>
                             <td style="text-align:right;">
                                 <x-log-status-actions :log="$log" />
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="23">
+                            <td colspan="25">
                                 <div class="mod-empty">
                                     <div class="mod-empty-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"/></svg>

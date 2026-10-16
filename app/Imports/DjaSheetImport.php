@@ -13,7 +13,10 @@ use Maatwebsite\Excel\Concerns\ToModel;
 class DjaSheetImport implements ToModel
 {
     /** Header cells that identify a title row rather than data. */
-    private const HEADER_LABELS = ['DATE', 'AC REG', 'A/C REG', 'TASK ID', 'DESCRIPTION', 'WO NUMBER', 'NO WO'];
+    private const HEADER_LABELS = ['DATE', 'REFRESH DATE', 'INPUT DATE', 'AC REG', 'A/C REG', 'REG', 'TASK ID', 'DESCRIPTION', 'WO NUMBER', 'NO WO', 'WO', 'DMI NO', 'NSRDI'];
+
+    /** @var array<string, int> */
+    protected array $headerMap = [];
 
     public function __construct(protected string $tabName, protected ?DjaIngestor $ingestor = null, protected ?string $targetDate = null)
     {
@@ -23,12 +26,28 @@ class DjaSheetImport implements ToModel
     public function model(array $row): Model|array|null
     {
         if ($this->looksLikeHeader($row)) {
+            $this->buildHeaderMap($row);
+
             return null;
         }
 
-        $this->ingestor->ingest($this->tabName, $row, [], null, $this->targetDate);
+        $this->ingestor->ingest($this->tabName, $row, $this->headerMap, null, $this->targetDate);
 
         return null;
+    }
+
+    private function buildHeaderMap(array $row): void
+    {
+        $map = [];
+        foreach ($row as $col => $cell) {
+            $name = strtoupper(trim(preg_replace('/\s+/', ' ', (string) $cell)));
+            if ($name !== '' && ! isset($map[$name])) {
+                $map[$name] = (int) $col;
+            }
+        }
+        if (count($map) >= 3) {
+            $this->headerMap = $map;
+        }
     }
 
     private function looksLikeHeader(array $row): bool

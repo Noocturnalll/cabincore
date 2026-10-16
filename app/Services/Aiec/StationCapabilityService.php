@@ -297,7 +297,7 @@ class StationCapabilityService
             ->groupBy('station', 'type')
             ->get();
 
-        $types = ['Transit', 'General', 'DCI', 'DCE', 'LGT'];
+        $types = ['Transit', 'General', 'GCI', 'GCE', 'DCI', 'DCE', 'LGT'];
         $matrix = [];
         $totals = array_fill_keys($types, 0);
         $grandTotal = 0;

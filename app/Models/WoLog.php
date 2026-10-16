@@ -37,6 +37,7 @@ class WoLog extends Model
         'import_source',
         'ata', 'task_card', 'task_card_description', 'rii', 'etops', 'eru', 'iera', 'site', 'due_date_wo',
         'class_wo', 'materials', 'tools', 'plan_date', 'planner', 'ppc_onduty', 'close_date', 'highlight',
+        'refresh_date',
     ];
 
     public function dailyJobAssignment()
@@ -48,11 +49,34 @@ class WoLog extends Model
     {
         return [
             'date' => 'date',
+            'refresh_date' => 'date',
             'due_date_wo' => 'date',
             'plan_date' => 'date',
             'close_date' => 'date',
             'is_submitted' => 'boolean',
             'man_hour' => 'decimal:2',
         ];
+    }
+
+    public function getCodeOpenAttribute(): ?string
+    {
+        return $this->attributes['code_open'] ?? $this->hold_reason_category;
+    }
+
+    public function setCodeOpenAttribute(?string $value): void
+    {
+        $this->attributes['code_open'] = $value;
+        $this->attributes['hold_reason_category'] = $value;
+    }
+
+    public function getReasonOpenAttribute(): ?string
+    {
+        return $this->attributes['reason_open'] ?? $this->hold_remarks;
+    }
+
+    public function setReasonOpenAttribute(?string $value): void
+    {
+        $this->attributes['reason_open'] = $value;
+        $this->attributes['hold_remarks'] = $value;
     }
 }

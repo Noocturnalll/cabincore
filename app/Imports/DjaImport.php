@@ -11,6 +11,7 @@ class DjaImport implements Import, SkipsUnknownSheets, WithMultipleSheets
 {
     public function __construct(protected ?string $targetDate = null)
     {
+        @ini_set('memory_limit', '1024M');
         // Fresh counters for this file; the ingestor is shared so the caller can read the totals afterwards
         app(DjaIngestor::class)->begin();
     }
@@ -23,7 +24,6 @@ class DjaImport implements Import, SkipsUnknownSheets, WithMultipleSheets
             'List AC' => new DjaRonSheetImport('List AC', null, $this->targetDate),
             'LIST AC' => new DjaRonSheetImport('LIST AC', null, $this->targetDate),
             'Sheet1' => new DjaRonSheetImport('Sheet1', null, $this->targetDate),
-            0 => new DjaRonSheetImport('Sheet 1', null, $this->targetDate),
             'DJA' => $dja('DJA'),
             'DJA R01' => $dja('DJA'),
             'DJA R01/WO' => $dja('DJA'),
